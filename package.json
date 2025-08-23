@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://pkgig.github.io/react-unicorn/",
+  "homepage": "https://dev0gig.github.io/react-unicorn/",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
