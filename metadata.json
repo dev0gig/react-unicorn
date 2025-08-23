@@ -1,0 +1,6 @@
+{
+  "name": "Unicorn",
+  "description": "Unicorn ist eine Webanwendung, die als persönlicher Assistent für die Arbeit dient und dabei hilft, Aufgaben wie Kontakte, E-Mails und Notizen zu verwalten.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
