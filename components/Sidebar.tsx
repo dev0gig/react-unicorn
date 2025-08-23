@@ -82,7 +82,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onA
     <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0">
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
         <div className="mb-8 bg-neutral-900 p-4 rounded-2xl">
-          <h1 className="text-3xl font-bold text-center text-orange-400 mb-2">Unicorn</h1>
           <DateTimeWidget onClick={onCalendarClick} />
         </div>
 
