@@ -80,18 +80,7 @@ const DateTimeWidget: React.FC<{ onClick: () => void }> = ({ onClick }) => {
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onAddCaseClick, onFavoritesClick, onExportClick, onImportClick, onDeleteClick, onCalendarClick }) => {
   return (
     <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0">
-      <div className="px-6 pt-6 pb-4 flex-shrink-0">
-        <div className="flex items-center mb-10">
-            <img
-            src="https://cdn-icons-png.flaticon.com/512/6288/6288891.png"
-            alt="Unicorn Logo"
-            className="h-10 w-10 mr-3"
-            />
-            <h1 className="text-2xl font-bold text-neutral-100">Unicorn</h1>
-        </div>
-      </div>
-      
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6">
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
         <div className="mb-8 bg-neutral-900 p-4 rounded-2xl">
           <DateTimeWidget onClick={onCalendarClick} />
         </div>
