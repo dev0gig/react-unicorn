@@ -131,3 +131,14 @@ export interface SignaturesContextType {
   deleteSignature: (id: string) => void;
   setActiveSignatureId: (id: string | null) => void;
 }
+
+export interface ScheduleEvent {
+  summary: string;
+  dtstart: Date;
+  dtend: Date;
+}
+
+export interface ScheduleContextType {
+  schedule: Record<string, ScheduleEvent[]>;
+  importSchedule: (icsContent: string) => void;
+}

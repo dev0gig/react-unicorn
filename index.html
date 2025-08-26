@@ -215,6 +215,18 @@
         pointer-events: none;
         line-height: 1;
       }
+      
+      /* Agenda Highlight Animation */
+      @keyframes highlight-agenda-day {
+        0% { background-color: rgba(249, 115, 22, 0); } /* orange-500 transparent */
+        50% { background-color: rgba(249, 115, 22, 0.3); } /* orange-500 with opacity */
+        100% { background-color: rgba(249, 115, 22, 0); }
+      }
+
+      .highlight-agenda-day {
+        animation: highlight-agenda-day 5s ease-out;
+        border-radius: 6px;
+      }
     </style>
 </head>
   <body>

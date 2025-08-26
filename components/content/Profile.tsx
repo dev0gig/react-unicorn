@@ -1,7 +1,28 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useContacts, useTemplates, useFavorites, useDashboard, useNotes, useEvidenz } from '../../App';
-import type { ToolLink, ToolGroup } from '../../types';
+import React, { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect } from 'react';
+import { useContacts, useTemplates, useFavorites, useDashboard, useNotes, useEvidenz, useSchedule } from '../../App';
+import type { ToolLink, ToolGroup, ScheduleEvent } from '../../types';
 import { HolidayInfoModal } from '../HolidayInfoModal';
+
+const toLocalDateKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getWeekSpanForDate = (date: Date) => {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const dayOfWeek = start.getDay();
+    const diff = start.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    start.setDate(diff);
+
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    
+    return { weekStart: start, weekEnd: end };
+};
 
 // --- CARD COMPONENT ---
 const Card: React.FC<{ title?: string; icon?: string; children: React.ReactNode; className?: string, headerContent?: React.ReactNode }> = ({ title, icon, children, className = '', headerContent }) => (
@@ -15,7 +36,7 @@ const Card: React.FC<{ title?: string; icon?: string; children: React.ReactNode;
                 {headerContent}
             </div>
         )}
-        <div className="flex-grow">{children}</div>
+        <div className="flex-grow min-h-0">{children}</div>
     </div>
 );
 
@@ -198,7 +219,9 @@ const MonthView: React.FC<{
     dateForMonth: Date;
     today: Date;
     onHolidayClick: (e: React.MouseEvent<HTMLButtonElement>, holidayName: string) => void;
-}> = ({ dateForMonth, today, onHolidayClick }) => {
+    schedule: Record<string, ScheduleEvent[]>;
+    onDateSelect: (date: Date) => void;
+}> = ({ dateForMonth, today, onHolidayClick, schedule, onDateSelect }) => {
     const year = dateForMonth.getFullYear();
     const month = dateForMonth.getMonth();
     
@@ -211,14 +234,14 @@ const MonthView: React.FC<{
             const date = new Date(firstDayOfMonth);
             date.setDate(date.getDate() - firstDayIndex + i);
             const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            days.push({ day: date.getDate(), isCurrentMonth: date.getMonth() === month, date: date, holidayName: holidays.get(dayKey) });
+            days.push({ day: date.getDate(), isCurrentMonth: date.getMonth() === month, date: date, holidayName: holidays.get(dayKey), scheduleEvents: schedule[dayKey] });
         }
         const weeksData = [];
         for (let i = 0; i < days.length; i += 7) {
           weeksData.push({ weekNumber: getWeekNumber(days[i].date), days: days.slice(i, i + 7) });
         }
         return weeksData;
-    }, [year, month]);
+    }, [year, month, schedule]);
 
     const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -228,28 +251,79 @@ const MonthView: React.FC<{
                 {dateForMonth.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
             </h4>
             <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-y-1 justify-items-center">
-                <div className="text-xs font-bold text-neutral-500 uppercase pb-2 w-10 text-center">KW</div>
-                {weekDays.map(day => <div key={day} className="text-xs font-bold text-neutral-400 uppercase pb-2 w-10 text-center">{day}</div>)}
+                <div className="text-xs font-bold text-neutral-500 uppercase pb-2 w-12 text-center">KW</div>
+                {weekDays.map(day => <div key={day} className="text-xs font-bold text-neutral-400 uppercase pb-2 w-12 text-center">{day}</div>)}
                 {calendarWeeks.map((week, weekIndex) => (
                     <React.Fragment key={`${year}-${month}-${weekIndex}`}>
-                        <div className="w-10 h-10 flex items-center justify-center text-xs text-neutral-500 font-medium">{week.weekNumber}</div>
+                        <div className="w-12 h-12 flex items-center justify-center text-xs text-neutral-500 font-medium">{week.weekNumber}</div>
                         {week.days.map((d, dayIndex) => {
                             const isToday = d.isCurrentMonth && d.day === today.getDate() && d.date.getMonth() === today.getMonth() && d.date.getFullYear() === today.getFullYear();
                             const isWeekend = (d.date.getDay() === 6 || d.date.getDay() === 0);
                             const isHoliday = !!d.holidayName;
+                            const scheduleEvent = d.scheduleEvents?.[0];
+
+                            const isFlexi = scheduleEvent && scheduleEvent.summary.toLowerCase().includes('flexi');
+                            const isMeeting = scheduleEvent && scheduleEvent.summary.toLowerCase().includes('meeting');
+                            const isEarlyShift = scheduleEvent && !isFlexi && !isMeeting && scheduleEvent.dtstart.getHours() < 12;
+                            const isLateShift = scheduleEvent && !isFlexi && !isMeeting && scheduleEvent.dtstart.getHours() >= 12;
+
                             const getDayClasses = () => {
-                                let base = 'w-10 h-10 flex items-center justify-center rounded-full text-sm transition-colors';
-                                if (isHoliday) base += ' cursor-pointer';
+                                let base = 'w-12 h-12 flex flex-col items-center justify-center rounded-full text-sm transition-colors relative';
                                 if (!d.isCurrentMonth) return `${base} text-neutral-600`;
                                 if (isToday) return `${base} bg-orange-500 font-bold text-white`;
-                                if (isHoliday) return `${base} bg-sky-800/50 border border-sky-600 text-sky-300 font-semibold hover:bg-sky-700/50`;
-                                if (isWeekend) return `${base} text-neutral-400`;
-                                return `${base} text-neutral-100`;
+                                if (isHoliday) return `${base} bg-sky-800/50 border border-sky-600 text-sky-300 font-semibold hover:bg-sky-700/50 cursor-pointer`;
+                                
+                                let finalClasses = `${base} text-neutral-100`;
+                                if (isWeekend) finalClasses = `${base} text-neutral-400`;
+                                return `${finalClasses} hover:bg-neutral-700 cursor-pointer`;
                             };
-                            return isHoliday ? (
-                                <button key={dayIndex} title={d.holidayName || ''} className={getDayClasses()} onClick={(e) => onHolidayClick(e, d.holidayName!)}>{d.day}</button>
-                            ) : (
-                                <div key={dayIndex} title={d.holidayName || ''} className={getDayClasses()}>{d.day}</div>
+                            
+                            const dayTitle = isFlexi ? "Home Office" : isMeeting ? "Meeting" : scheduleEvent ? scheduleEvent.summary : (d.holidayName || '');
+
+                            const dayContent = (
+                                <>
+                                    <span>{d.day}</span>
+                                    {scheduleEvent && (
+                                        <div className="absolute top-1 right-1">
+                                            {isFlexi ? (
+                                                <i className="material-icons text-green-400" style={{fontSize: '14px'}} title="Home Office">laptop_chromebook</i>
+                                            ) : isMeeting ? (
+                                                <i className="material-icons text-red-400" style={{fontSize: '14px'}} title="Meeting">groups</i>
+                                            ) : isEarlyShift ? (
+                                                <i className="material-icons text-orange-400" style={{fontSize: '14px'}}>wb_sunny</i>
+                                            ) : (
+                                                <i className="material-icons text-purple-400" style={{fontSize: '14px'}}>nightlight</i>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
+                            );
+
+                            if (d.isCurrentMonth) {
+                                return (
+                                    <button
+                                        key={dayIndex}
+                                        title={dayTitle}
+                                        className={getDayClasses()}
+                                        onClick={(e) => {
+                                            onDateSelect(d.date);
+                                            if (isHoliday) {
+                                                onHolidayClick(e, d.holidayName!);
+                                            }
+                                        }}
+                                    >
+                                        {dayContent}
+                                    </button>
+                                );
+                            }
+
+                            return (
+                                <div
+                                    key={dayIndex}
+                                    className={getDayClasses()}
+                                >
+                                    {dayContent}
+                                </div>
                             );
                         })}
                     </React.Fragment>
@@ -259,11 +333,13 @@ const MonthView: React.FC<{
     );
 };
 
-const DualCalendarWidget: React.FC = () => {
+const DualCalendarWidget: React.FC<{onDateSelect: (date: Date) => void}> = ({ onDateSelect }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [now, setNow] = useState(new Date());
     const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; description: string; position: { top: number; left: number } } | null>(null);
+    const { schedule, importSchedule } = useSchedule();
     const today = new Date();
+    const importIcsRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const timerId = setInterval(() => setNow(new Date()), 1000);
@@ -288,6 +364,25 @@ const DualCalendarWidget: React.FC = () => {
         setSelectedHoliday({ name: holidayName, description: description, position: { top: rect.bottom + 5, left: rect.left } });
     };
 
+    const handleImportClick = () => {
+        importIcsRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target?.result;
+            if (typeof content === 'string') {
+                importSchedule(content);
+            }
+        };
+        reader.readAsText(file);
+        if(event.target) event.target.value = ''; // Reset input
+    };
+
     const nextMonthDate = useMemo(() => {
         const next = new Date(currentDate);
         next.setDate(1);
@@ -308,17 +403,26 @@ const DualCalendarWidget: React.FC = () => {
                             <h3 className="text-lg font-bold text-neutral-100 capitalize">Kalender</h3>
                         </div>
                         <div className="flex items-center">
+                            <button onClick={handleImportClick} className="flex items-center gap-2 mr-2 bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-3 rounded-lg transition-all text-sm" title="Dienstplan importieren">
+                                <i className="material-icons text-base">file_upload</i>
+                                <span>Dienstplan importieren</span>
+                            </button>
+                            <input type="file" accept=".ics" ref={importIcsRef} onChange={handleFileChange} className="hidden" />
                             <button onClick={() => changeMonth(-1)} className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors" aria-label="Vorheriger Monat"><i className="material-icons">chevron_left</i></button>
                             <button onClick={() => changeMonth(1)} className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors" aria-label="Nächster Monat"><i className="material-icons">chevron_right</i></button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                        <MonthView dateForMonth={currentDate} today={today} onHolidayClick={handleHolidayClick} />
-                        <MonthView dateForMonth={nextMonthDate} today={today} onHolidayClick={handleHolidayClick} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-neutral-700">
+                        <div className="md:pr-8">
+                           <MonthView dateForMonth={currentDate} today={today} onHolidayClick={handleHolidayClick} schedule={schedule} onDateSelect={onDateSelect} />
+                        </div>
+                        <div className="mt-6 md:mt-0 md:pl-8">
+                           <MonthView dateForMonth={nextMonthDate} today={today} onHolidayClick={handleHolidayClick} schedule={schedule} onDateSelect={onDateSelect} />
+                        </div>
                     </div>
 
-                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-neutral-700/50">
+                    <div className="mt-auto flex justify-between items-center pt-4 border-t border-neutral-700/50">
                         <button onClick={goToToday} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-all">Heute</button>
                         <div className="text-2xl font-bold text-neutral-100 tracking-wider">{formattedTimeWithSeconds}</div>
                     </div>
@@ -333,11 +437,14 @@ const MetricsCard: React.FC = () => {
     const { notes } = useNotes();
     const { faelle } = useEvidenz();
     const { templateGroups } = useTemplates();
+
+    const activeFaelleCount = faelle.filter(f => f.column !== 'fertig').length;
     const totalTemplates = templateGroups.reduce((acc, group) => acc + group.templates.length, 0);
+
     const metrics = [
         { icon: 'people', value: contacts.length, label: 'Kontakte' },
         { icon: 'note_alt', value: notes.length, label: 'Notizen' },
-        { icon: 'gavel', value: faelle.length, label: 'Evidenzfälle' },
+        { icon: 'gavel', value: activeFaelleCount, label: 'Evidenzfälle' },
         { icon: 'drafts', value: totalTemplates, label: 'Vorlagen' },
     ];
     return (
@@ -390,14 +497,335 @@ const FavoritesCard: React.FC = () => {
     );
 };
 
+const AgendaWidget: React.FC<{
+    selectedDate: Date | null;
+    onScrollComplete: () => void;
+}> = ({ selectedDate, onScrollComplete }) => {
+    const { schedule } = useSchedule();
+    const [currentDate, setCurrentDate] = useState(() => getWeekSpanForDate(new Date()).weekStart);
+    const agendaDayRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+    useEffect(() => {
+        let interactionTimerId: number;
+        let highlightTimerId: number;
+
+        if (selectedDate) {
+            const mondayOfWeek = getWeekSpanForDate(new Date(selectedDate)).weekStart;
+            setCurrentDate(mondayOfWeek);
+            
+            interactionTimerId = window.setTimeout(() => {
+                const dateKey = toLocalDateKey(selectedDate);
+                const element = agendaDayRefs.current.get(dateKey);
+
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const header = element.querySelector('h4');
+
+                    if (header) {
+                        header.classList.add('highlight-agenda-day');
+                        
+                        highlightTimerId = window.setTimeout(() => {
+                            header.classList.remove('highlight-agenda-day');
+                            onScrollComplete();
+                        }, 5000); // Highlight for 5 seconds
+                    } else {
+                        onScrollComplete(); // No header found, complete
+                    }
+                } else {
+                    onScrollComplete(); // Element not found for date, complete
+                }
+            }, 150); // Small delay for re-render
+        }
+
+        return () => {
+            clearTimeout(interactionTimerId);
+            clearTimeout(highlightTimerId);
+        };
+    }, [selectedDate, onScrollComplete]);
+
+    const { weekStart, weekEnd } = useMemo(() => getWeekSpanForDate(currentDate), [currentDate]);
+
+    const eventsByDay = useMemo(() => {
+        const allEvents: ScheduleEvent[] = Object.values(schedule).flat();
+        const eventsInWeek = allEvents.filter(event => event.dtstart >= weekStart && event.dtstart <= weekEnd);
+        
+        return eventsInWeek.reduce((acc, event) => {
+            const dateKey = toLocalDateKey(event.dtstart);
+            if (!acc[dateKey]) {
+                acc[dateKey] = [];
+            }
+            acc[dateKey].push(event);
+            acc[dateKey].sort((a,b) => a.dtstart.getTime() - b.dtstart.getTime());
+            return acc;
+        }, {} as Record<string, ScheduleEvent[]>);
+    }, [schedule, weekStart, weekEnd]);
+
+    const weekDaysToRender = useMemo(() => {
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const day = new Date(weekStart);
+            day.setDate(day.getDate() + i);
+            days.push(day);
+        }
+        return days;
+    }, [weekStart]);
+    
+    const handlePrevWeek = () => {
+        setCurrentDate(d => {
+            const newDate = new Date(d);
+            newDate.setDate(newDate.getDate() - 7);
+            return newDate;
+        });
+    };
+
+    const handleNextWeek = () => {
+        setCurrentDate(d => {
+            const newDate = new Date(d);
+            newDate.setDate(newDate.getDate() + 7);
+            return newDate;
+        });
+    };
+    
+    const goToCurrentWeek = () => {
+        setCurrentDate(getWeekSpanForDate(new Date()).weekStart);
+    };
+
+    const formatDateForAgendaHeading = (date: Date) => {
+        return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    };
+
+    const formatTime = (date: Date) => {
+        return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const isCurrentWeek = useMemo(() => {
+        const { weekStart: currentWeekStart } = getWeekSpanForDate(new Date());
+        return weekStart.getTime() === currentWeekStart.getTime();
+    }, [weekStart]);
+
+    const headerContent = (
+        <div className="flex items-center gap-1">
+            <button 
+                onClick={goToCurrentWeek}
+                disabled={isCurrentWeek}
+                className="text-sm font-semibold bg-neutral-700 hover:bg-neutral-600 text-white py-1 px-3 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Heute
+            </button>
+            <button onClick={handlePrevWeek} className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors" aria-label="Vorherige Woche">
+                <i className="material-icons text-lg">chevron_left</i>
+            </button>
+            <span className="font-semibold text-sm text-neutral-300 w-16 text-center">KW {getWeekNumber(currentDate)}</span>
+            <button onClick={handleNextWeek} className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors" aria-label="Nächste Woche">
+                <i className="material-icons text-lg">chevron_right</i>
+            </button>
+        </div>
+    );
+
+    return (
+        <Card title="Agenda" icon="list_alt" className="h-full" headerContent={headerContent}>
+            <div className="flex flex-col h-full">
+                <div className="flex-grow min-h-0 overflow-y-auto custom-scrollbar -mr-3 pr-3 space-y-4">
+                    {weekDaysToRender.map((day) => {
+                        const dateKey = toLocalDateKey(day);
+                        const events = eventsByDay[dateKey] || [];
+                        return (
+                            <div 
+                                key={dateKey} 
+                                ref={(el) => { agendaDayRefs.current.set(dateKey, el); }}
+                            >
+                                <h4 className="font-semibold text-neutral-300 mb-2 sticky top-0 bg-neutral-800 py-1 z-10">
+                                    {formatDateForAgendaHeading(day)}
+                                </h4>
+                                {events.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {events.map(event => {
+                                            const isFlexi = event.summary.toLowerCase().includes('flexi');
+                                            const isMeeting = event.summary.toLowerCase().includes('meeting');
+                                            const isEarlyShift = !isFlexi && !isMeeting && event.dtstart.getHours() < 12;
+
+                                            const shiftInfo = isFlexi
+                                                ? { border: 'border-green-400', icon: 'laptop_chromebook', iconColor: 'text-green-400' }
+                                                : isMeeting
+                                                ? { border: 'border-red-400', icon: 'groups', iconColor: 'text-red-400' }
+                                                : isEarlyShift
+                                                ? { border: 'border-orange-400', icon: 'wb_sunny', iconColor: 'text-orange-400' }
+                                                : { border: 'border-purple-400', icon: 'nightlight', iconColor: 'text-purple-400' };
+
+                                            return (
+                                                <div key={event.dtstart.toISOString()} className={`flex items-center gap-4 p-3 bg-neutral-900/70 rounded-lg border-l-4 ${shiftInfo.border}`}>
+                                                    <i className={`material-icons text-2xl ${shiftInfo.iconColor}`}>{shiftInfo.icon}</i>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-bold text-neutral-100 truncate">{event.summary}</p>
+                                                        <p className="text-sm text-neutral-400">{formatTime(event.dtstart)} - {formatTime(event.dtend)} Uhr</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-4 p-3 bg-neutral-900/40 rounded-lg border-l-4 border-neutral-700">
+                                        <i className="material-icons text-2xl text-neutral-500">event_busy</i>
+                                        <p className="text-sm text-neutral-500">Keine Einträge für diesen Tag.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+        </Card>
+    );
+};
+
+const RecentNotesWidget: React.FC<{ noteCount?: number }> = ({ noteCount }) => {
+    const { notes } = useNotes();
+    const count = noteCount === undefined ? 3 : noteCount;
+
+    const recentNotes = useMemo(() => {
+        return [...notes]
+            .sort((a, b) => b.lastModified - a.lastModified)
+            .slice(0, count);
+    }, [notes, count]);
+
+    const getNoteExcerpt = (content: string) => {
+        const lines = content.split('\n').filter(line => line.trim() !== '');
+        if (lines.length === 0) return 'Leere Notiz';
+        
+        let firstLine = lines[0].replace(/^#+\s*/, '');
+        
+        const maxLength = 80;
+        return firstLine.length > maxLength ? firstLine.substring(0, maxLength) + '...' : firstLine;
+    };
+
+    return (
+        <Card title="Letzte Notizen" icon="history_edu">
+            <div className="flex flex-col h-full">
+                {recentNotes.length > 0 ? (
+                    <div className="space-y-3 flex-grow notes-list-container">
+                        {recentNotes.map(note => (
+                            <div key={note.id} className="p-3 bg-neutral-900/70 rounded-lg transition-colors hover:bg-neutral-700/50 note-item">
+                                <p className="text-sm font-semibold text-neutral-200 truncate" title={getNoteExcerpt(note.content)}>
+                                    {getNoteExcerpt(note.content)}
+                                </p>
+                                <p className="text-xs text-neutral-500 mt-1">
+                                    {new Date(note.lastModified).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex-grow flex items-center justify-center">
+                        <p className="text-sm text-neutral-500">Keine Notizen vorhanden.</p>
+                    </div>
+                )}
+            </div>
+        </Card>
+    );
+};
+
 // --- MAIN PROFILE COMPONENT ---
 
 export const Profile: React.FC = () => {
     const [date, setDate] = useState(new Date());
+    const [selectedAgendaDate, setSelectedAgendaDate] = useState<Date | null>(null);
+    const { notes } = useNotes();
+    const [visibleNotesCount, setVisibleNotesCount] = useState(3);
+    
+    const gridRef = useRef<HTMLDivElement>(null);
+    const leftColRef = useRef<HTMLDivElement>(null);
+    const agendaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const timer = setInterval(() => setDate(new Date()), 60000);
         return () => clearInterval(timer);
+    }, []);
+
+    useLayoutEffect(() => {
+        const grid = gridRef.current;
+        const leftCol = leftColRef.current;
+        const agenda = agendaRef.current;
+
+        if (!grid || !leftCol || !agenda) {
+            if (notes.length === 0) setVisibleNotesCount(0);
+            return;
+        }
+
+        const calculate = () => {
+            // This logic should only apply on large screens where the layout is side-by-side
+            if (window.innerWidth < 1280) { // xl breakpoint from tailwind
+                setVisibleNotesCount(3);
+                return;
+            }
+
+            const calendarEl = leftCol.children[0] as HTMLElement;
+            const notesCardEl = leftCol.children[1] as HTMLElement;
+
+            if (!calendarEl || !notesCardEl) return;
+            
+            const agendaHeight = agenda.offsetHeight;
+            const calendarHeight = calendarEl.offsetHeight;
+
+            const gridGap = 24; // Corresponds to gap-6
+            const availableHeightForNotes = agendaHeight - calendarHeight - gridGap;
+
+            if (availableHeightForNotes <= 50) { // If not much space, show 1
+                setVisibleNotesCount(1);
+                return;
+            }
+
+            // Fix: Cast querySelector results to HTMLElement to access offsetHeight.
+            const noteItemEl = notesCardEl.querySelector<HTMLElement>('.note-item');
+            if (!noteItemEl) {
+                setVisibleNotesCount(0);
+                return;
+            }
+            // Fix: Cast querySelector results to HTMLElement to access offsetHeight.
+            const notesListEl = notesCardEl.querySelector<HTMLElement>('.notes-list-container');
+            if (!notesListEl) {
+                return;
+            }
+            
+            const cardChromeHeight = notesCardEl.offsetHeight - notesListEl.offsetHeight;
+            const availableHeightForNotesList = availableHeightForNotes - cardChromeHeight;
+            
+            const noteItemHeight = noteItemEl.offsetHeight;
+            const noteItemGap = 12; // From space-y-3
+            const effectiveNoteHeight = noteItemHeight + noteItemGap;
+
+            if (effectiveNoteHeight > 0) {
+                const count = 1 + Math.floor((availableHeightForNotesList - noteItemHeight) / effectiveNoteHeight);
+                setVisibleNotesCount(Math.min(notes.length, Math.max(1, count)));
+            } else {
+                setVisibleNotesCount(3); // Fallback
+            }
+        };
+        
+        const debounce = (func: () => void, delay: number) => {
+            let timeout: number;
+            return () => {
+                clearTimeout(timeout);
+                timeout = window.setTimeout(func, delay);
+            };
+        };
+        
+        const debouncedCalculate = debounce(calculate, 150);
+
+        const observer = new ResizeObserver(debouncedCalculate);
+        observer.observe(agenda);
+        observer.observe(leftCol);
+        
+        // Initial calculation
+        debouncedCalculate();
+        
+        return () => {
+            observer.disconnect();
+        };
+    }, [notes.length]);
+
+
+    const handleScrollComplete = useCallback(() => {
+        setSelectedAgendaDate(null);
     }, []);
 
     return (
@@ -410,11 +838,22 @@ export const Profile: React.FC = () => {
             </header>
 
             <main className="flex flex-col gap-6">
-                <DualCalendarWidget />
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <WeatherWidget />
                     <MetricsCard />
                     <FavoritesCard />
+                </div>
+                <div ref={gridRef} className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+                    <div ref={leftColRef} className="xl:col-span-2 flex flex-col gap-6">
+                        <DualCalendarWidget onDateSelect={setSelectedAgendaDate} />
+                        {visibleNotesCount > 0 && <RecentNotesWidget noteCount={visibleNotesCount} />}
+                    </div>
+                    <div ref={agendaRef} className="h-full">
+                        <AgendaWidget 
+                            selectedDate={selectedAgendaDate}
+                            onScrollComplete={handleScrollComplete}
+                        />
+                    </div>
                 </div>
             </main>
         </div>

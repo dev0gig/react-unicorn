@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext, useCallback, useMemo, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ContentArea } from './components/ContentArea';
-import { ViewName, ToolLink, ToolGroup, FavoritesContextType, Evidenzfall, EvidenzContextType, Note, NotesContextType, Contact, ContactsContextType, TemplateGroup, TemplatesContextType, Template, Signature, SignaturesContextType, DashboardContextType, TileConfig } from './types';
+import { ViewName, ToolLink, ToolGroup, FavoritesContextType, Evidenzfall, EvidenzContextType, Note, NotesContextType, Contact, ContactsContextType, TemplateGroup, TemplatesContextType, Template, Signature, SignaturesContextType, DashboardContextType, TileConfig, ScheduleContextType, ScheduleEvent } from './types';
 import { AddCaseModal } from './components/AddCaseModal';
 import { FavoritesModal } from './components/FavoritesModal';
 import { ExportModal } from './components/ExportModal';
@@ -14,6 +14,7 @@ import { ToolLinkModal } from './components/ToolLinkModal';
 import { TileEditModal } from './components/TileEditModal';
 import { ToolGroupModal } from './components/ToolGroupModal';
 import { DashboardHelpModal } from './components/DashboardHelpModal';
+import { InfoModal } from './components/InfoModal';
 
 // Initial Data
 import { initialContacts } from './data/initialContacts';
@@ -29,6 +30,7 @@ export const ContactsContext = createContext<ContactsContextType | null>(null);
 export const TemplatesContext = createContext<TemplatesContextType | null>(null);
 export const SignaturesContext = createContext<SignaturesContextType | null>(null);
 export const DashboardContext = createContext<DashboardContextType | null>(null);
+export const ScheduleContext = createContext<ScheduleContextType | null>(null);
 
 const GROUP_COLORS = [
     '#4c0519', // rose-950
@@ -87,6 +89,12 @@ export const useDashboard = () => {
     return context;
 }
 
+export const useSchedule = () => {
+    const context = useContext(ScheduleContext);
+    if (!context) throw new Error('useSchedule must be used within a ScheduleProvider');
+    return context;
+}
+
 
 function App(): React.ReactNode {
   const [activeView, setActiveView] = useState<ViewName>('Profil');
@@ -106,6 +114,20 @@ function App(): React.ReactNode {
     const savedConfigs: any[] = JSON.parse(localStorage.getItem('unicorn-tile-configs') || '[]');
     // Ensure all tiles are 1x1, migrating old data if necessary
     return savedConfigs.map(c => ({ ...c, size: '1x1' }));
+  });
+  const [schedule, setSchedule] = useState<Record<string, ScheduleEvent[]>>(() => {
+    const savedSchedule = localStorage.getItem('unicorn-schedule');
+    if (!savedSchedule) return {};
+    const parsed = JSON.parse(savedSchedule);
+    // Revive date objects from strings
+    Object.keys(parsed).forEach(dateKey => {
+        parsed[dateKey] = parsed[dateKey].map((event: any) => ({
+            ...event,
+            dtstart: new Date(event.dtstart),
+            dtend: new Date(event.dtend),
+        }));
+    });
+    return parsed;
   });
 
 
@@ -130,6 +152,7 @@ function App(): React.ReactNode {
   const [isDashboardHelpModalOpen, setIsDashboardHelpModalOpen] = useState(false);
   const [isToolGroupModalOpen, setIsToolGroupModalOpen] = useState(false);
   const [groupToEdit, setGroupToEdit] = useState<ToolGroup | null>(null);
+  const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; message: string; isError?: boolean } | null>(null);
 
 
   // Effects for localStorage persistence
@@ -143,6 +166,7 @@ function App(): React.ReactNode {
   useEffect(() => { localStorage.setItem('unicorn-templates', JSON.stringify(templateGroups)); }, [templateGroups]);
   useEffect(() => { localStorage.setItem('unicorn-signatures', JSON.stringify(signatures)); }, [signatures]);
   useEffect(() => { localStorage.setItem('unicorn-active-signature-id', JSON.stringify(activeSignatureId)); }, [activeSignatureId]);
+  useEffect(() => { localStorage.setItem('unicorn-schedule', JSON.stringify(schedule)); }, [schedule]);
 
     // Sync tile configs with tool groups
     useEffect(() => {
@@ -166,6 +190,92 @@ function App(): React.ReactNode {
 
 
   // --- Context Values & Functions ---
+
+  // Schedule
+  const importSchedule = useCallback((icsContent: string) => {
+    try {
+        const events: ScheduleEvent[] = [];
+        const lines = icsContent.replace(/\r\n /g, '').split(/\r\n/);
+        let currentEvent: Partial<ScheduleEvent> | null = null;
+        
+        const parseIcsDate = (dateStr: string): Date | null => {
+            // This parser handles floating local times and UTC times ending in 'Z'.
+            // It does not parse TZID timezone identifiers.
+            const isUtc = dateStr.endsWith('Z');
+            const cleanDateStr = isUtc ? dateStr.slice(0, -1) : dateStr;
+            
+            const match = cleanDateStr.match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+            if (!match) return null;
+
+            const [, year, month, day, hour, minute, second] = match.map(Number);
+            
+            if (isUtc) {
+                // Create a Date object from UTC components.
+                return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+            } else {
+                // Create a Date object from local time components for floating times.
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+        };
+
+        lines.forEach(line => {
+            if (line.startsWith('BEGIN:VEVENT')) {
+                currentEvent = {};
+            } else if (line.startsWith('END:VEVENT')) {
+                if (currentEvent && currentEvent.summary && currentEvent.dtstart && currentEvent.dtend) {
+                    events.push(currentEvent as ScheduleEvent);
+                }
+                currentEvent = null;
+            } else if (currentEvent) {
+                if (line.startsWith('SUMMARY:')) {
+                    currentEvent.summary = line.substring(8);
+                } else if (line.startsWith('DTSTART;')) { // Handles DTSTART;TZID=...
+                    const dateStr = line.split(':')[1];
+                    currentEvent.dtstart = parseIcsDate(dateStr) || undefined;
+                } else if (line.startsWith('DTSTART:')) {
+                    currentEvent.dtstart = parseIcsDate(line.substring(8)) || undefined;
+                } else if (line.startsWith('DTEND;')) { // Handles DTEND;TZID=...
+                    const dateStr = line.split(':')[1];
+                    currentEvent.dtend = parseIcsDate(dateStr) || undefined;
+                } else if (line.startsWith('DTEND:')) {
+                    currentEvent.dtend = parseIcsDate(line.substring(6)) || undefined;
+                }
+            }
+        });
+
+        if (events.length === 0) {
+            throw new Error("Keine Termine in der Datei gefunden. Bitte prüfen Sie das Format der Datei.");
+        }
+
+        const newSchedule: Record<string, ScheduleEvent[]> = {};
+        events.forEach(event => {
+            const d = event.dtstart;
+            const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            if (!newSchedule[dateKey]) {
+                newSchedule[dateKey] = [];
+            }
+            newSchedule[dateKey].push(event);
+            newSchedule[dateKey].sort((a,b) => a.dtstart.getTime() - b.dtstart.getTime());
+        });
+        
+        setSchedule(newSchedule);
+        setInfoModal({ 
+            isOpen: true, 
+            title: "Import erfolgreich", 
+            message: `${events.length} Termine wurden erfolgreich importiert. Vorherige Einträge wurden gelöscht.`,
+            isError: false,
+        });
+    } catch (e) {
+        console.error("ICS Import failed:", e);
+        setInfoModal({ 
+            isOpen: true, 
+            title: "Import fehlgeschlagen",
+            message: e instanceof Error ? e.message : 'Beim Verarbeiten der .ics-Datei ist ein unerwarteter Fehler aufgetreten.',
+            isError: true,
+        });
+    }
+  }, []);
+  const scheduleContextValue = useMemo(() => ({ schedule, importSchedule }), [schedule, importSchedule]);
 
   // Dashboard
   const addGroup = useCallback((title: string, icon: string) => {
@@ -530,75 +640,84 @@ function App(): React.ReactNode {
             <ContactsContext.Provider value={contactsContextValue}>
                 <TemplatesContext.Provider value={templatesContextValue}>
                     <SignaturesContext.Provider value={signaturesContextValue}>
-                        <div className="flex h-screen bg-neutral-900 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
-                            <Sidebar 
-                                activeView={activeView} 
-                                setActiveView={setActiveView} 
-                                onAddCaseClick={() => openCaseModal()}
-                                onFavoritesClick={() => setIsFavoritesModalOpen(true)}
-                                onExportClick={() => setIsExportModalOpen(true)}
-                                onImportClick={triggerImport}
-                                onDeleteClick={() => setIsDeleteModalOpen(true)}
-                            />
-                            <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
-                                <ContentArea 
+                        <ScheduleContext.Provider value={scheduleContextValue}>
+                            <div className="flex h-screen bg-neutral-900 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
+                                <Sidebar 
                                     activeView={activeView} 
-                                    onAddContact={() => openContactModal()}
-                                    onEditContact={openContactModal}
-                                    onAddTemplate={() => openTemplateModal()}
-                                    onEditTemplate={openTemplateModal}
-                                    onEditCase={openCaseModal}
-                                    onOpenSignatureModal={() => setIsSignatureModalOpen(true)}
-                                    onAddLink={openToolLinkModal}
-                                    onEditTile={openTileEditModal}
-                                    onAddGroup={() => openGroupModal(null)}
-                                    onEditGroup={openGroupModal}
-                                    onOpenHelp={() => setIsDashboardHelpModalOpen(true)}
+                                    setActiveView={setActiveView} 
+                                    onAddCaseClick={() => openCaseModal()}
+                                    onFavoritesClick={() => setIsFavoritesModalOpen(true)}
+                                    onExportClick={() => setIsExportModalOpen(true)}
+                                    onImportClick={triggerImport}
+                                    onDeleteClick={() => setIsDeleteModalOpen(true)}
                                 />
-                            </main>
-                            <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
-                            <FavoritesModal isOpen={isFavoritesModalOpen} onClose={() => setIsFavoritesModalOpen(false)} />
-                            <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExport={handleExport} />
-                            <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteDataRequest} />
-                            <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} contact={contactToEdit} />
-                            <TemplateModal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)} templateToEdit={templateToEdit} />
-                            <SignatureModal isOpen={isSignatureModalOpen} onClose={() => setIsSignatureModalOpen(false)} />
-                            <ToolLinkModal isOpen={isToolLinkModalOpen} onClose={() => setToolLinkModalOpen(false)} linkToEdit={linkToEdit} />
-                            <TileEditModal isOpen={!!tileToEdit} onClose={() => setTileToEdit(null)} tileToEdit={tileToEdit} />
-                            <ToolGroupModal 
-                                isOpen={isToolGroupModalOpen} 
-                                onClose={() => setIsToolGroupModalOpen(false)} 
-                                groupToEdit={groupToEdit} 
-                                onDelete={deleteGroup} 
-                            />
-                            <DashboardHelpModal isOpen={isDashboardHelpModalOpen} onClose={() => setIsDashboardHelpModalOpen(false)} />
-                            
-                            <ConfirmationModal 
-                                isOpen={isImportConfirmOpen}
-                                onClose={() => setIsImportConfirmOpen(false)}
-                                onConfirm={confirmImport}
-                                title="Backup importieren"
-                            >
-                                <p>Möchten Sie dieses Backup wirklich importieren? Alle vorhandenen Daten in den entsprechenden Kategorien werden überschrieben. Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                            </ConfirmationModal>
-                            <ConfirmationModal
-                                isOpen={!!itemToDelete}
-                                onClose={() => setItemToDelete(null)}
-                                onConfirm={handleConfirmDelete}
-                                title="Eintrag löschen"
-                            >
-                                Möchten Sie diesen Eintrag wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.
-                            </ConfirmationModal>
-                            <ConfirmationModal
-                                isOpen={!!categoriesToDelete}
-                                onClose={() => setCategoriesToDelete(null)}
-                                onConfirm={handleConfirmBulkDelete}
-                                title="Daten endgültig löschen"
-                            >
-                                Möchten Sie die ausgewählten Daten wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.
-                            </ConfirmationModal>
-                            <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                        </div>
+                                <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
+                                    <ContentArea 
+                                        activeView={activeView} 
+                                        onAddContact={() => openContactModal()}
+                                        onEditContact={openContactModal}
+                                        onAddTemplate={() => openTemplateModal()}
+                                        onEditTemplate={openTemplateModal}
+                                        onEditCase={openCaseModal}
+                                        onOpenSignatureModal={() => setIsSignatureModalOpen(true)}
+                                        onAddLink={openToolLinkModal}
+                                        onEditTile={openTileEditModal}
+                                        onAddGroup={() => openGroupModal(null)}
+                                        onEditGroup={openGroupModal}
+                                        onOpenHelp={() => setIsDashboardHelpModalOpen(true)}
+                                    />
+                                </main>
+                                <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
+                                <FavoritesModal isOpen={isFavoritesModalOpen} onClose={() => setIsFavoritesModalOpen(false)} />
+                                <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExport={handleExport} />
+                                <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteDataRequest} />
+                                <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} contact={contactToEdit} />
+                                <TemplateModal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)} templateToEdit={templateToEdit} />
+                                <SignatureModal isOpen={isSignatureModalOpen} onClose={() => setIsSignatureModalOpen(false)} />
+                                <ToolLinkModal isOpen={isToolLinkModalOpen} onClose={() => setToolLinkModalOpen(false)} linkToEdit={linkToEdit} />
+                                <TileEditModal isOpen={!!tileToEdit} onClose={() => setTileToEdit(null)} tileToEdit={tileToEdit} />
+                                <ToolGroupModal 
+                                    isOpen={isToolGroupModalOpen} 
+                                    onClose={() => setIsToolGroupModalOpen(false)} 
+                                    groupToEdit={groupToEdit} 
+                                    onDelete={deleteGroup} 
+                                />
+                                <DashboardHelpModal isOpen={isDashboardHelpModalOpen} onClose={() => setIsDashboardHelpModalOpen(false)} />
+                                
+                                <InfoModal
+                                    isOpen={!!infoModal}
+                                    onClose={() => setInfoModal(null)}
+                                    title={infoModal?.title || ''}
+                                    message={infoModal?.message || ''}
+                                    isError={infoModal?.isError}
+                                />
+                                <ConfirmationModal 
+                                    isOpen={isImportConfirmOpen}
+                                    onClose={() => setIsImportConfirmOpen(false)}
+                                    onConfirm={confirmImport}
+                                    title="Backup importieren"
+                                >
+                                    <p>Möchten Sie dieses Backup wirklich importieren? Alle vorhandenen Daten in den entsprechenden Kategorien werden überschrieben. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                                </ConfirmationModal>
+                                <ConfirmationModal
+                                    isOpen={!!itemToDelete}
+                                    onClose={() => setItemToDelete(null)}
+                                    onConfirm={handleConfirmDelete}
+                                    title="Eintrag löschen"
+                                >
+                                    Möchten Sie diesen Eintrag wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                                </ConfirmationModal>
+                                <ConfirmationModal
+                                    isOpen={!!categoriesToDelete}
+                                    onClose={() => setCategoriesToDelete(null)}
+                                    onConfirm={handleConfirmBulkDelete}
+                                    title="Daten endgültig löschen"
+                                >
+                                    Möchten Sie die ausgewählten Daten wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                                </ConfirmationModal>
+                                <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                            </div>
+                        </ScheduleContext.Provider>
                     </SignaturesContext.Provider>
                 </TemplatesContext.Provider>
             </ContactsContext.Provider>
