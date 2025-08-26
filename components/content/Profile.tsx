@@ -262,10 +262,10 @@ const MonthView: React.FC<{
                             const isHoliday = !!d.holidayName;
                             const scheduleEvent = d.scheduleEvents?.[0];
 
-                            const isFlexi = scheduleEvent && scheduleEvent.summary.toLowerCase().includes('flexi');
-                            const isMeeting = scheduleEvent && scheduleEvent.summary.toLowerCase().includes('meeting');
-                            const isEarlyShift = scheduleEvent && !isFlexi && !isMeeting && scheduleEvent.dtstart.getHours() < 12;
-                            const isLateShift = scheduleEvent && !isFlexi && !isMeeting && scheduleEvent.dtstart.getHours() >= 12;
+                            const isAbsence = scheduleEvent && scheduleEvent.summary.toLowerCase().includes('abwesenheit');
+                            const isFlexi = scheduleEvent && !isAbsence && scheduleEvent.summary.toLowerCase().includes('flexi');
+                            const isMeeting = scheduleEvent && !isAbsence && scheduleEvent.summary.toLowerCase().includes('meeting');
+                            const isEarlyShift = scheduleEvent && !isAbsence && !isFlexi && !isMeeting && scheduleEvent.dtstart.getHours() < 12;
 
                             const getDayClasses = () => {
                                 let base = 'w-12 h-12 flex flex-col items-center justify-center rounded-full text-sm transition-colors relative';
@@ -278,14 +278,16 @@ const MonthView: React.FC<{
                                 return `${finalClasses} hover:bg-neutral-700 cursor-pointer`;
                             };
                             
-                            const dayTitle = isFlexi ? "Home Office" : isMeeting ? "Meeting" : scheduleEvent ? scheduleEvent.summary : (d.holidayName || '');
+                            const dayTitle = isAbsence ? "Abwesenheit" : isFlexi ? "Home Office" : isMeeting ? "Meeting" : scheduleEvent ? scheduleEvent.summary : (d.holidayName || '');
 
                             const dayContent = (
                                 <>
                                     <span>{d.day}</span>
                                     {scheduleEvent && (
                                         <div className="absolute top-1 right-1">
-                                            {isFlexi ? (
+                                            {isAbsence ? (
+                                                <i className="material-icons text-sky-400" style={{fontSize: '14px'}} title="Abwesenheit">beach_access</i>
+                                            ) : isFlexi ? (
                                                 <i className="material-icons text-green-400" style={{fontSize: '14px'}} title="Home Office">laptop_chromebook</i>
                                             ) : isMeeting ? (
                                                 <i className="material-icons text-red-400" style={{fontSize: '14px'}} title="Meeting">groups</i>
@@ -640,11 +642,14 @@ const AgendaWidget: React.FC<{
                                 {events.length > 0 ? (
                                     <div className="space-y-3">
                                         {events.map(event => {
-                                            const isFlexi = event.summary.toLowerCase().includes('flexi');
-                                            const isMeeting = event.summary.toLowerCase().includes('meeting');
-                                            const isEarlyShift = !isFlexi && !isMeeting && event.dtstart.getHours() < 12;
+                                            const isAbsence = event.summary.toLowerCase().includes('abwesenheit');
+                                            const isFlexi = !isAbsence && event.summary.toLowerCase().includes('flexi');
+                                            const isMeeting = !isAbsence && event.summary.toLowerCase().includes('meeting');
+                                            const isEarlyShift = !isAbsence && !isFlexi && !isMeeting && event.dtstart.getHours() < 12;
 
-                                            const shiftInfo = isFlexi
+                                            const shiftInfo = isAbsence
+                                                ? { border: 'border-sky-400', icon: 'beach_access', iconColor: 'text-sky-400' }
+                                                : isFlexi
                                                 ? { border: 'border-green-400', icon: 'laptop_chromebook', iconColor: 'text-green-400' }
                                                 : isMeeting
                                                 ? { border: 'border-red-400', icon: 'groups', iconColor: 'text-red-400' }
