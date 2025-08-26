@@ -9,13 +9,12 @@ interface TileEditModalProps {
 }
 
 export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, tileToEdit }) => {
-  const { updateLink, updateGroup } = useDashboard();
+  const { toolGroups, updateLink } = useDashboard();
   
   const [formData, setFormData] = useState({
     linkName: '',
     linkUrl: '',
     groupTitle: '',
-    icon: '',
   });
 
   useEffect(() => {
@@ -24,12 +23,11 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
             linkName: tileToEdit.link.name,
             linkUrl: tileToEdit.link.url,
             groupTitle: tileToEdit.group.title,
-            icon: tileToEdit.group.icon,
         });
     }
   }, [isOpen, tileToEdit]);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -38,20 +36,16 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
     e.preventDefault();
     if (!tileToEdit) return;
 
-    const { linkName, linkUrl, groupTitle, icon } = formData;
-    if (linkName.trim() && linkUrl.trim() && groupTitle.trim() && icon.trim()) {
-        const originalGroupTitle = tileToEdit.group.title;
+    const { linkName, linkUrl, groupTitle } = formData;
+    if (linkName.trim() && linkUrl.trim() && groupTitle.trim()) {
+      const originalGroupTitle = tileToEdit.group.title;
+      const newLinkData = { name: linkName, url: linkUrl };
 
-        const linkChanged = linkName !== tileToEdit.link.name || linkUrl !== tileToEdit.link.url;
-        const groupChanged = groupTitle !== tileToEdit.group.title || icon !== tileToEdit.group.icon;
-
-        if (linkChanged) {
-            updateLink(originalGroupTitle, tileToEdit.link, { name: linkName, url: linkUrl });
-        }
-        if (groupChanged) {
-            updateGroup(originalGroupTitle, groupTitle, icon);
-        }
-        onClose();
+      const groupChanged = groupTitle !== originalGroupTitle;
+      
+      updateLink(originalGroupTitle, tileToEdit.link, newLinkData, groupChanged ? groupTitle : undefined);
+      
+      onClose();
     }
   };
   
@@ -120,36 +114,26 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
                   placeholder="https://beispiel.de"
                 />
               </div>
+              
               <hr className="border-neutral-700" />
-              <p className="text-sm text-neutral-400">Gruppeneigenschaften (wirkt sich auf alle Kacheln in dieser Gruppe aus)</p>
-               <div>
-                <label htmlFor="tile-group-title" className="block text-sm font-medium text-neutral-300 mb-1">Titel der Gruppe</label>
-                <input
-                  id="tile-group-title"
+              
+              <div>
+                <label htmlFor="tile-group-select" className="block text-sm font-medium text-neutral-300 mb-1">Gruppe</label>
+                <select
+                  id="tile-group-select"
                   name="groupTitle"
-                  type="text"
                   value={formData.groupTitle}
                   onChange={handleChange}
                   required
                   className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
-                />
+                >
+                  {toolGroups.map(group => (
+                    <option key={group.title} value={group.title}>{group.title}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-neutral-500 mt-1.5">Ändern Sie die Gruppe, um diese Kachel zu verschieben.</p>
               </div>
-               <div>
-                <label htmlFor="tile-group-icon" className="block text-sm font-medium text-neutral-300 mb-1">Icon der Gruppe</label>
-                <input
-                  id="tile-group-icon"
-                  name="icon"
-                  type="text"
-                  value={formData.icon}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
-                  placeholder="Material Icon Name"
-                />
-                <a href="https://fonts.google.com/icons?selected=Material+Icons" target="_blank" rel="noopener noreferrer" className="text-xs text-orange-400 hover:underline mt-1 block">
-                  Verfügbare Icons finden
-                </a>
-              </div>
+
               <div className="flex justify-end pt-2">
                  <button
                     type="button"

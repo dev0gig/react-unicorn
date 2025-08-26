@@ -24,6 +24,8 @@ import { CSS } from '@dnd-kit/utilities';
 interface DashboardProps {
   onAddLink: (link: null, groupTitle?: string) => void;
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
+  onAddGroup: () => void;
+  onEditGroup: (group: ToolGroup) => void;
   onOpenHelp: () => void;
 }
 
@@ -199,7 +201,8 @@ const SortableGroupNavItem: React.FC<{
   group: ToolGroup;
   activeGroup: string | null;
   onClick: (groupId: string) => void;
-}> = ({ group, activeGroup, onClick }) => {
+  onEdit: (group: ToolGroup) => void;
+}> = ({ group, activeGroup, onClick, onEdit }) => {
   const {
     attributes,
     listeners,
@@ -221,21 +224,17 @@ const SortableGroupNavItem: React.FC<{
       className={`relative transition-opacity duration-300 ${isDragging ? 'opacity-30 z-10' : ''}`}
       {...attributes}
     >
-      <div className="group flex items-center">
+      <div className="group flex items-center relative">
         <div
           {...listeners}
           className="absolute left-0 top-1/2 -translate-y-1/2 p-2 text-neutral-500 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
           title={`Gruppe "${group.title}" verschieben`}
         >
-          <div className="grid grid-cols-2 gap-0.5 w-3 h-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span key={i} className="block w-1 h-1 bg-current rounded-full" />
-            ))}
-          </div>
+          <i className="material-icons text-xl">drag_indicator</i>
         </div>
         <button
           onClick={() => onClick(group.title)}
-          className={`w-full text-left flex items-center gap-3 p-2 rounded-md transition-colors pl-8 ${
+          className={`w-full text-left flex items-center gap-3 p-2 rounded-md transition-colors pl-10 pr-8 ${
             activeGroup === group.title
               ? 'bg-orange-500/20 text-orange-400 font-semibold'
               : 'text-neutral-400 hover:bg-neutral-700/50 hover:text-neutral-200'
@@ -244,13 +243,20 @@ const SortableGroupNavItem: React.FC<{
           <i className="material-icons text-lg">{group.icon}</i>
           <span className="truncate text-sm">{group.title}</span>
         </button>
+        <button
+            onClick={(e) => { e.stopPropagation(); onEdit(group); }}
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full text-neutral-500 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity hover:text-white hover:bg-neutral-700"
+            title={`Gruppe "${group.title}" bearbeiten`}
+        >
+            <i className="material-icons text-base">edit</i>
+        </button>
       </div>
     </li>
   );
 };
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onOpenHelp }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp }) => {
   const { toolGroups, tileConfigs, deleteLink, reorderGroups, reorderLinks } = useDashboard();
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
   
@@ -484,6 +490,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onO
                 <i className="material-icons text-2xl text-neutral-100">{group.icon}</i>
                 <h2 id={`group-header-${group.title}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
                 <span className="text-sm font-medium bg-neutral-700 text-neutral-300 px-2.5 py-1 rounded-full">{group.links.length}</span>
+                <button
+                    onClick={() => onAddLink(null, group.title)}
+                    className="ml-2 w-7 h-7 flex items-center justify-center rounded-full text-neutral-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-neutral-700 hover:text-white"
+                    title={`Link zu "${group.title}" hinzufügen`}
+                >
+                    <i className="material-icons text-lg">add</i>
+                </button>
             </div>
             <SortableContext items={group.links.map(l => l.url)} strategy={rectSortingStrategy}>
                 <div className="tile-grid">
@@ -500,12 +513,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onO
   };
 
   const renderContent = () => {
-    if (toolGroups.flatMap(g => g.links).length === 0) {
+    if (toolGroups.flatMap(g => g.links).length === 0 && toolGroups.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-full text-neutral-600 p-8">
-          <i className="material-icons text-7xl mb-4">apps</i>
-          <h3 className="text-xl font-semibold">Keine Links für Kachelansicht</h3>
-          <p className="text-neutral-500 text-center">Fügen Sie Gruppen und Links hinzu, um sie hier zu sehen.</p>
+        <div className="flex flex-col items-center justify-center h-full text-center text-neutral-600 p-8">
+            <i className="material-icons text-8xl mb-4 text-neutral-700">category</i>
+            <h3 className="text-2xl font-semibold text-neutral-400 mb-2">Ihr Dashboard ist leer</h3>
+            <p className="text-neutral-500 mb-6 max-w-sm">Beginnen Sie, indem Sie Ihre erste Gruppe für Tools und Links erstellen, um alles nach Ihren Wünschen zu organisieren.</p>
+            <button
+            onClick={onAddGroup}
+            className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg text-base"
+            >
+            <i className="material-icons mr-2">add</i>
+            Erste Gruppe erstellen
+            </button>
         </div>
       );
     }
@@ -565,20 +585,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onO
                 <i className="material-icons mr-2 text-base">help_outline</i>
                 Anleitung
               </button>
-              <button
-                onClick={() => onAddLink(null)}
-                className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-              >
-                <i className="material-icons mr-2 text-base">add_link</i>
-                Link hinzufügen
-              </button>
             </div>
         </div>
         
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="flex-grow grid grid-cols-[200px_1fr] gap-8 min-h-0">
               <aside className="sticky top-0 h-full flex flex-col">
-                <h3 className="text-sm font-bold uppercase text-neutral-400 mb-3 px-2 flex-shrink-0">Gruppen</h3>
+                <div className="flex items-center justify-between mb-3 px-2 flex-shrink-0">
+                    <h3 className="text-sm font-bold uppercase text-neutral-400">Gruppen</h3>
+                    <button
+                        onClick={onAddGroup}
+                        className="w-7 h-7 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors"
+                        title="Neue Gruppe erstellen"
+                    >
+                        <i className="material-icons text-lg">add</i>
+                    </button>
+                </div>
                 <nav className="flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2 min-h-0">
                     <SortableContext items={(isSearchActive ? filteredToolGroups : toolGroups).map(g => g.title)} strategy={verticalListSortingStrategy}>
                         <ul className="space-y-1">
@@ -588,6 +610,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onO
                                     group={group} 
                                     activeGroup={activeGroup} 
                                     onClick={handleGroupNavClick}
+                                    onEdit={onEditGroup}
                                 />
                             ))}
                         </ul>

@@ -12,8 +12,10 @@ import { SignatureModal } from './components/SignatureModal';
 import { DeleteModal } from './components/DeleteModal';
 import { ToolLinkModal } from './components/ToolLinkModal';
 import { TileEditModal } from './components/TileEditModal';
+import { ToolGroupModal } from './components/ToolGroupModal';
 import { DashboardHelpModal } from './components/DashboardHelpModal';
 import CalendarModal from './components/CalendarModal';
+import WeatherModal from './components/WeatherModal';
 
 // Initial Data
 import { initialContacts } from './data/initialContacts';
@@ -128,7 +130,9 @@ function App(): React.ReactNode {
   const [linkToEdit, setLinkToEdit] = useState<{ link: ToolLink, groupTitle: string } | null>(null);
   const [tileToEdit, setTileToEdit] = useState<{ link: ToolLink; group: ToolGroup } | null>(null);
   const [isDashboardHelpModalOpen, setIsDashboardHelpModalOpen] = useState(false);
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [isToolGroupModalOpen, setIsToolGroupModalOpen] = useState(false);
+  const [groupToEdit, setGroupToEdit] = useState<ToolGroup | null>(null);
+  const [isCalendarViewOpen, setIsCalendarViewOpen] = useState(false);
 
 
   // Effects for localStorage persistence
@@ -191,13 +195,36 @@ function App(): React.ReactNode {
         return prev;
     });
   }, []);
-  const updateLink = useCallback((groupTitle: string, linkToUpdate: ToolLink, newLink: ToolLink) => {
-    setToolGroups(prev => prev.map(g => {
-        if (g.title === groupTitle) {
-            return { ...g, links: g.links.map(l => l.url === linkToUpdate.url ? newLink : l) };
-        }
-        return g;
-    }));
+  const updateLink = useCallback((groupTitle: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupTitle?: string) => {
+    const destinationGroupTitle = newGroupTitle || groupTitle;
+
+    // If not moving group, just update in place
+    if (destinationGroupTitle === groupTitle) {
+        setToolGroups(prev => prev.map(g => {
+            if (g.title === groupTitle) {
+                return { ...g, links: g.links.map(l => l.url === linkToUpdate.url ? newLink : l) };
+            }
+            return g;
+        }));
+    } else { // Moving group
+        setToolGroups(prev => {
+            const linkData = newLink; // The link to move is the updated one
+            
+            const groupsAfterRemoval = prev.map(g => {
+                if (g.title === groupTitle) {
+                    return { ...g, links: g.links.filter(l => l.url !== linkToUpdate.url) };
+                }
+                return g;
+            });
+
+            return groupsAfterRemoval.map(g => {
+                if (g.title === destinationGroupTitle) {
+                    return { ...g, links: [...g.links, linkData] };
+                }
+                return g;
+            });
+        });
+    }
 
     if (linkToUpdate.url !== newLink.url) {
       setTileConfigs(prev => prev.map(c => c.id === linkToUpdate.url ? { ...c, id: newLink.url } : c));
@@ -493,6 +520,10 @@ function App(): React.ReactNode {
   const openTileEditModal = (data: { link: ToolLink; group: ToolGroup }) => {
     setTileToEdit(data);
   };
+  const openGroupModal = (group: ToolGroup | null = null) => {
+    setGroupToEdit(group);
+    setIsToolGroupModalOpen(true);
+  };
 
   return (
     <DashboardContext.Provider value={dashboardContextValue}>
@@ -511,7 +542,7 @@ function App(): React.ReactNode {
                                 onExportClick={() => setIsExportModalOpen(true)}
                                 onImportClick={triggerImport}
                                 onDeleteClick={() => setIsDeleteModalOpen(true)}
-                                onCalendarClick={() => setIsCalendarModalOpen(true)}
+                                onCalendarClick={() => setIsCalendarViewOpen(true)}
                             />
                             <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
                                 <ContentArea 
@@ -524,6 +555,8 @@ function App(): React.ReactNode {
                                     onOpenSignatureModal={() => setIsSignatureModalOpen(true)}
                                     onAddLink={openToolLinkModal}
                                     onEditTile={openTileEditModal}
+                                    onAddGroup={() => openGroupModal(null)}
+                                    onEditGroup={openGroupModal}
                                     onOpenHelp={() => setIsDashboardHelpModalOpen(true)}
                                 />
                             </main>
@@ -536,8 +569,23 @@ function App(): React.ReactNode {
                             <SignatureModal isOpen={isSignatureModalOpen} onClose={() => setIsSignatureModalOpen(false)} />
                             <ToolLinkModal isOpen={isToolLinkModalOpen} onClose={() => setToolLinkModalOpen(false)} linkToEdit={linkToEdit} />
                             <TileEditModal isOpen={!!tileToEdit} onClose={() => setTileToEdit(null)} tileToEdit={tileToEdit} />
+                            <ToolGroupModal 
+                                isOpen={isToolGroupModalOpen} 
+                                onClose={() => setIsToolGroupModalOpen(false)} 
+                                groupToEdit={groupToEdit} 
+                                onDelete={deleteGroup} 
+                            />
                             <DashboardHelpModal isOpen={isDashboardHelpModalOpen} onClose={() => setIsDashboardHelpModalOpen(false)} />
-                            <CalendarModal isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)} />
+                            
+                            {isCalendarViewOpen && (
+                                <div
+                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 gap-6 animate-fade-in-fast"
+                                    onClick={() => setIsCalendarViewOpen(false)}
+                                >
+                                    <CalendarModal onClose={() => setIsCalendarViewOpen(false)} />
+                                    <WeatherModal onClose={() => setIsCalendarViewOpen(false)} />
+                                </div>
+                            )}
 
                             <ConfirmationModal 
                                 isOpen={isImportConfirmOpen}

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { HolidayInfoModal } from './HolidayInfoModal';
 
 // --- UTILITY FUNCTIONS ---
 
@@ -71,21 +72,35 @@ const getAustrianHolidays = (year: number): Map<string, string> => {
   return holidays;
 };
 
+const holidayDescriptions: Record<string, string> = {
+    'Neujahr': 'Der erste Tag des neuen Jahres, an dem der Beginn des Kalenderjahres gefeiert wird.',
+    'Heilige Drei Könige': 'Christliches Fest, das an die Weisen aus dem Morgenland erinnert, die das Jesuskind besuchten.',
+    'Ostermontag': 'Der Tag nach Ostersonntag, der die Auferstehung Jesu Christi feiert.',
+    'Staatsfeiertag': 'Der internationale Tag der Arbeit, in Österreich als Staatsfeiertag begangen.',
+    'Christi Himmelfahrt': 'Fest 40 Tage nach Ostern, das die Aufnahme Christi in den Himmel feiert.',
+    'Pfingstmontag': 'Der Tag nach Pfingstsonntag, an dem die Sendung des Heiligen Geistes gefeiert wird.',
+    'Fronleichnam': 'Katholisches Fest zur Feier der Eucharistie, 60 Tage nach Ostern.',
+    'Mariä Himmelfahrt': 'Katholisches Hochfest der leiblichen Aufnahme Mariens in den Himmel.',
+    'Nationalfeiertag': 'Feiertag zur Erinnerung an die Verabschiedung des Neutralitätsgesetzes im Jahr 1955.',
+    'Allerheiligen': 'Gedenktag für alle Heiligen der Kirche.',
+    'Mariä Empfängnis': 'Katholisches Hochfest, das die unbefleckte Empfängnis der Gottesmutter Maria feiert.',
+    'Christtag': 'Der erste Weihnachtsfeiertag zur Feier der Geburt Jesu Christi.',
+    'Stefanitag': 'Der zweite Weihnachtsfeiertag, Gedenktag des Heiligen Stephanus.'
+};
+
 
 interface CalendarModalProps {
-  isOpen: boolean;
   onClose: () => void;
 }
 
-const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose }) => {
+const CalendarModal: React.FC<CalendarModalProps> = ({ onClose }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [now, setNow] = useState(new Date());
+  const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; description: string; position: { top: number; left: number } } | null>(null);
 
   const today = new Date();
 
   useEffect(() => {
-    if (!isOpen) return;
-
     const timerId = setInterval(() => {
         setNow(new Date());
     }, 1000);
@@ -101,7 +116,7 @@ const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose }) => {
       clearInterval(timerId);
       window.removeEventListener('keydown', handleEsc);
     };
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   const changeMonth = (offset: number) => {
     setCurrentDate(prevDate => {
@@ -115,6 +130,21 @@ const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose }) => {
   const goToToday = () => {
     setCurrentDate(new Date());
   };
+  
+  const handleHolidayClick = (e: React.MouseEvent<HTMLButtonElement>, holidayName: string) => {
+    const description = holidayDescriptions[holidayName];
+    if (!description) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    setSelectedHoliday({
+        name: holidayName,
+        description,
+        position: {
+            top: rect.top,
+            left: rect.left - 280 // 256px width + 24px gap
+        }
+    });
+};
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -160,13 +190,14 @@ const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose }) => {
       second: '2-digit'
   });
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in-fast"
-      onClick={onClose}
-    >
+    <>
+      {selectedHoliday && (
+          <HolidayInfoModal
+              {...selectedHoliday}
+              onClose={() => setSelectedHoliday(null)}
+          />
+      )}
       <div
         className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col border border-neutral-700"
         onClick={(e) => e.stopPropagation()}
@@ -206,24 +237,41 @@ const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose }) => {
                     {week.days.map((d, dayIndex) => {
                         const isToday = d.isCurrentMonth && d.day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                         const isWeekend = (d.date.getDay() === 6 || d.date.getDay() === 0);
+                        const isHoliday = !!d.holidayName;
 
                         const getDayClasses = () => {
-                            const base = 'w-10 h-10 flex items-center justify-center rounded-full text-sm transition-colors';
+                            let base = 'w-10 h-10 flex items-center justify-center rounded-full text-sm transition-colors';
+                            if (isHoliday) base += ' cursor-pointer';
+
                             if (!d.isCurrentMonth) return `${base} text-neutral-600`;
                             if (isToday) return `${base} bg-orange-500 font-bold text-white`;
-                            if (d.holidayName) return `${base} bg-sky-800/50 border border-sky-600 text-sky-300 font-semibold`;
+                            if (isHoliday) return `${base} bg-sky-800/50 border border-sky-600 text-sky-300 font-semibold hover:bg-sky-700/50`;
                             if (isWeekend) return `${base} text-neutral-400`;
                             return `${base} text-neutral-100`;
                         };
 
+                        // FIX: Replaced dynamic DayElement with explicit conditional rendering to resolve TypeScript error on props.
+                        if (isHoliday) {
+                          return (
+                            <button
+                                key={dayIndex}
+                                title={d.holidayName || ''}
+                                className={getDayClasses()}
+                                onClick={(e) => handleHolidayClick(e, d.holidayName!)}
+                            >
+                                {d.day}
+                            </button>
+                          );
+                        }
+
                         return (
-                            <div
+                          <div
                             key={dayIndex}
                             title={d.holidayName || ''}
                             className={getDayClasses()}
-                            >
+                          >
                             {d.day}
-                            </div>
+                          </div>
                         );
                     })}
                 </React.Fragment>
@@ -253,7 +301,7 @@ const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose }) => {
             </button>
         </footer>
       </div>
-    </div>
+    </>
   );
 };
 

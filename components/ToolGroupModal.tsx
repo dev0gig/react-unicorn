@@ -6,10 +6,11 @@ interface ToolGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   groupToEdit: ToolGroup | null;
+  onDelete: (title: string) => void;
 }
 
-export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose, groupToEdit }) => {
-  const { addGroup, updateGroup } = useDashboard();
+export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose, groupToEdit, onDelete }) => {
+  const { addGroup, updateGroup, deleteGroup } = useDashboard();
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState('');
   
@@ -39,7 +40,14 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
     }
   };
   
-    useEffect(() => {
+  const handleDelete = () => {
+    if (isEditMode) {
+        onDelete(groupToEdit.title);
+        onClose();
+    }
+  };
+
+  useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -104,20 +112,34 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
                   Verfügbare Icons finden
                 </a>
               </div>
-              <div className="flex justify-end pt-2">
-                 <button
-                    type="button"
-                    onClick={onClose}
-                    className="mr-3 py-2 px-4 rounded-lg text-neutral-300 hover:bg-neutral-700 transition-colors"
-                 >
-                    Abbrechen
-                 </button>
-                 <button
-                    type="submit"
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200"
-                 >
-                    {isEditMode ? 'Speichern' : 'Gruppe erstellen'}
-                 </button>
+              <div className="flex justify-between items-center pt-2">
+                <div>
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="flex items-center gap-2 text-red-400 hover:bg-red-500/10 font-semibold py-2 px-4 rounded-lg transition-colors"
+                    >
+                      <i className="material-icons text-base">delete</i>
+                      <span>Löschen</span>
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="py-2 px-4 rounded-lg text-neutral-300 hover:bg-neutral-700 transition-colors"
+                    >
+                        Abbrechen
+                    </button>
+                    <button
+                        type="submit"
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200"
+                    >
+                        {isEditMode ? 'Speichern' : 'Erstellen'}
+                    </button>
+                </div>
               </div>
             </form>
           </div>

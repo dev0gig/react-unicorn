@@ -3,7 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   // App icon
-  'assets/icons/favicon.png',
+  'assets/icons/unicorn_icon.png',
   // Third-party CSS and scripts
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap',

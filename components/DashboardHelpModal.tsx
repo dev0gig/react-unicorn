@@ -61,29 +61,31 @@ export const DashboardHelpModal: React.FC<DashboardHelpModalProps> = ({ isOpen, 
                 </HelpItem>
 
                 <HelpItem icon="mouse" title="Interaktion mit Kacheln">
-                    <p>Ein <strong>Rechtsklick</strong> auf eine Kachel öffnet ein Menü mit allen wichtigen Aktionen:</p>
+                    <p>Ein <strong>Rechtsklick</strong> auf eine Kachel öffnet ein Menü mit Aktionen für diesen Link:</p>
                     <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li><strong>Favoriten:</strong> Links zu Ihren Favoriten hinzufügen oder entfernen.</li>
-                        <li><strong>Bearbeiten:</strong> Name und URL des Links sowie Titel und Icon der Gruppe ändern.</li>
+                        <li><strong>Favoriten:</strong> Link zu Ihren Favoriten hinzufügen oder entfernen.</li>
+                        <li><strong>Bearbeiten:</strong> Name, URL und Gruppenzugehörigkeit des Links ändern.</li>
                         <li><strong>Löschen:</strong> Den Link dauerhaft entfernen.</li>
+                        <li><strong>Link hinzufügen:</strong> Einen weiteren Link zur selben Gruppe hinzufügen.</li>
                     </ul>
                 </HelpItem>
 
                 <HelpItem icon="add_circle" title="Inhalte hinzufügen">
-                    <p>Klicken Sie oben rechts auf den Button <span className="inline-flex items-center bg-orange-500/80 text-white text-xs px-1.5 py-0.5 rounded-md">Link hinzufügen</span>. In diesem Dialog können Sie einen Link erstellen und ihn einer bestehenden Gruppe zuweisen oder direkt eine neue Gruppe anlegen.</p>
-                    <p className="mt-2">Sie können auch mit der rechten Maustaste auf eine Kachel klicken, um einen Link zur selben Gruppe hinzuzufügen.</p>
-                </HelpItem>
-                
-                <HelpItem icon="drag_indicator" title="Anordnen">
-                     <p>Klicken und ziehen Sie eine Kachel, um die Anordnung auf dem Dashboard zu ändern.</p>
-                </HelpItem>
-                
-                <HelpItem icon="emoji_emotions" title="Gruppen-Icons">
-                    <p>
-                        Beim Anlegen oder Bearbeiten einer Gruppe können Sie einen Icon-Namen festlegen. Eine vollständige Liste finden Sie auf der <a href="https://fonts.google.com/icons?selected=Material+Icons" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Google Fonts Webseite</a>.
-                    </p>
+                    <p>In jeder Gruppenüberschrift finden Sie einen <i className="material-icons text-sm align-middle">add</i> Button, um einen neuen Link direkt zu dieser Gruppe hinzuzufügen.</p>
                 </HelpItem>
 
+                <HelpItem icon="category" title="Gruppen verwalten">
+                    <p>Die Gruppenliste in der linken Seitenleiste bietet mehrere Verwaltungsoptionen:</p>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                        <li><strong>Hinzufügen:</strong> Erstellen Sie eine neue, leere Gruppe mit dem <i className="material-icons text-sm align-middle">add</i> Button neben der "Gruppen"-Überschrift.</li>
+                        <li><strong>Bearbeiten:</strong> Fahren Sie mit der Maus über einen Gruppennamen und klicken Sie auf das erscheinende <i className="material-icons text-sm align-middle">edit</i> Icon, um Titel, Icon und Farbe zu ändern oder die Gruppe zu löschen.</li>
+                    </ul>
+                </HelpItem>
+
+                <HelpItem icon="drag_handle" title="Anordnen per Drag & Drop">
+                    <p>Sie können sowohl einzelne Kacheln (innerhalb ihrer Gruppe) als auch ganze Gruppen in der Seitenleiste per Drag & Drop verschieben. Fahren Sie mit der Maus über eine Gruppe und ziehen Sie sie am erscheinenden <i className="material-icons text-sm align-middle">drag_indicator</i> Icon, um die Reihenfolge zu ändern.</p>
+                </HelpItem>
+                
                  <HelpItem icon="star" title="Favoriten verwalten">
                     <p>Fügen Sie Ihre wichtigsten Links über das Rechtsklick-Menü zu den Favoriten hinzu. Sie können Ihre Favoriten jederzeit über den <span className="inline-flex items-center text-yellow-400 text-sm font-medium">Favoriten</span>-Button in der linken Seitenleiste aufrufen.</p>
                 </HelpItem>

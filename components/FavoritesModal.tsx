@@ -1,17 +1,16 @@
 import React, { useEffect, useMemo } from 'react';
 import { useFavorites, useDashboard } from '../App';
-import type { ToolLink, ToolGroup, TileConfig } from '../types';
+import type { ToolLink, ToolGroup } from '../types';
 
 interface FavoritesModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const FavoriteTile: React.FC<{
-  config: TileConfig;
+const FavoriteListItem: React.FC<{
   data: { link: ToolLink; group: ToolGroup };
   onRemove: (url: string) => void;
-}> = ({ config, data, onRemove }) => {
+}> = ({ data, onRemove }) => {
     
     const handleClick = (e: React.MouseEvent) => {
         if ((e.target as HTMLElement).closest('button')) {
@@ -27,25 +26,23 @@ const FavoriteTile: React.FC<{
     }
     
     return (
-      <div className={`tile-wrapper size-${config.size} group`}>
-          <div
-            className={`tile size-${config.size}`}
-            style={{ backgroundColor: data.group.color || '#f97316' }}
-            onClick={handleClick}
-          >
-            <i className="material-icons tile-icon">{data.group.icon}</i>
-            <div>
-              <span className="tile-group-label">{data.group.title}</span>
-              <span className="tile-label">{data.link.name}</span>
-            </div>
-             <button
-              onClick={handleRemoveClick}
-              className="absolute top-1.5 right-1.5 p-1.5 rounded-full text-white/70 bg-black/30 hover:bg-red-500 hover:text-white transition-[color,background-color,opacity,transform] duration-150 ease-in-out scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 focus:scale-100 focus:opacity-100"
-              aria-label="Favorit entfernen"
-            >
-              <i className="material-icons text-base leading-none">close</i>
-            </button>
-          </div>
+      <div
+        className="group relative flex items-center w-full h-16 px-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-orange-500 transition-colors duration-200"
+        style={{ backgroundColor: data.group.color || '#f97316' }}
+        onClick={handleClick}
+      >
+        <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">{data.group.icon}</i>
+        <div className="flex-grow min-w-0">
+          <p className="text-xs text-white/80 truncate">{data.group.title}</p>
+          <p className="font-semibold text-white truncate">{data.link.name}</p>
+        </div>
+        <button
+          onClick={handleRemoveClick}
+          className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-red-500/90 hover:bg-red-500 transition-all scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"
+          aria-label="Favorit entfernen"
+        >
+          <i className="material-icons text-base">close</i>
+        </button>
       </div>
     );
 };
@@ -87,7 +84,7 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
           onClick={onClose}
         >
           <div
-            className="bg-neutral-800 rounded-2xl shadow-2xl w-auto max-h-[80vh] flex flex-col border border-neutral-700"
+            className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col border border-neutral-700"
             onClick={(e) => e.stopPropagation()}
           >
             <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">
@@ -104,39 +101,39 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
               </button>
             </header>
 
-            <div className="p-6 overflow-y-auto custom-scrollbar text-center">
+            <div className="p-6 overflow-y-auto custom-scrollbar">
               {favorites.length > 0 ? (
-                 <div className="tile-grid" style={{ display: 'inline-grid', maxWidth: '760px' }}>
+                 <div className="space-y-3">
                     {favorites.map((fav) => {
                       const data = allLinksMap.get(fav.url);
-                      const config = { id: fav.url, size: '1x1' as const };
-
+                      
                       if (!data) {
                         // Render a fallback tile for orphaned favorites that might still exist
                         return (
-                           <div key={fav.url} className="tile-wrapper size-1x1">
-                             <div className="tile size-1x1 group relative" style={{ backgroundColor: '#3f3f46' /* neutral-700 */ }}>
-                                <i className="material-icons tile-icon">link_off</i>
-                                <div>
-                                    <span className="tile-group-label">Verwaister Favorit</span>
-                                    <span className="tile-label break-all" title={fav.name}>{fav.name}</span>
-                                </div>
-                                <button
-                                    onClick={() => removeFavorite(fav.url)}
-                                    className="absolute top-1.5 right-1.5 p-1.5 rounded-full text-white/70 bg-black/30 hover:bg-red-500 hover:text-white transition-all scale-90 opacity-100"
-                                    aria-label="Verwaisten Favorit entfernen"
-                                >
-                                    <i className="material-icons text-base leading-none">close</i>
-                                </button>
-                             </div>
-                           </div>
+                           <div
+                            key={fav.url}
+                            className="group relative flex items-center w-full h-16 px-4 rounded-lg"
+                            style={{ backgroundColor: '#3f3f46' /* neutral-700 */ }}
+                          >
+                            <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">link_off</i>
+                            <div className="flex-grow min-w-0">
+                              <p className="text-xs text-white/80 truncate">Verwaister Favorit</p>
+                              <p className="font-semibold text-white truncate">{fav.name}</p>
+                            </div>
+                            <button
+                              onClick={() => removeFavorite(fav.url)}
+                              className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-red-500/90 hover:bg-red-500 transition-all"
+                              aria-label="Verwaisten Favorit entfernen"
+                            >
+                              <i className="material-icons text-base">close</i>
+                            </button>
+                          </div>
                         );
                       }
                       
                       return (
-                          <FavoriteTile
+                          <FavoriteListItem
                               key={fav.url}
-                              config={config}
                               data={data}
                               onRemove={removeFavorite}
                           />

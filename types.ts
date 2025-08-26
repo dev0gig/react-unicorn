@@ -30,7 +30,7 @@ export interface DashboardContextType {
   deleteGroup: (title:string) => void;
   addLink: (groupTitle: string, link: ToolLink) => void;
   addLinkAndMaybeGroup: (link: ToolLink, groupTitle: string, newGroupIcon?: string) => void;
-  updateLink: (groupTitle: string, linkToUpdate: ToolLink, newLink: ToolLink) => void;
+  updateLink: (groupTitle: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupTitle?: string) => void;
   deleteLink: (groupTitle: string, url: string) => void;
   reorderGroups: (groups: ToolGroup[]) => void;
   reorderLinks: (groupTitle: string, reorderedLinks: ToolLink[]) => void;
