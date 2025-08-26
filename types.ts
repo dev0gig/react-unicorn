@@ -1,4 +1,4 @@
-export type ViewName = 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Notizen' | 'Evidenzfälle' | 'WiWo-Terminpflege';
+export type ViewName = 'Profil' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Notizen' | 'Evidenzfälle' | 'WiWo-Terminpflege';
 
 export interface MenuItem {
   id: ViewName;

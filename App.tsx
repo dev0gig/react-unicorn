@@ -14,8 +14,6 @@ import { ToolLinkModal } from './components/ToolLinkModal';
 import { TileEditModal } from './components/TileEditModal';
 import { ToolGroupModal } from './components/ToolGroupModal';
 import { DashboardHelpModal } from './components/DashboardHelpModal';
-import CalendarModal from './components/CalendarModal';
-import WeatherModal from './components/WeatherModal';
 
 // Initial Data
 import { initialContacts } from './data/initialContacts';
@@ -91,7 +89,7 @@ export const useDashboard = () => {
 
 
 function App(): React.ReactNode {
-  const [activeView, setActiveView] = useState<ViewName>('Dashboard');
+  const [activeView, setActiveView] = useState<ViewName>('Profil');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // States
@@ -132,7 +130,6 @@ function App(): React.ReactNode {
   const [isDashboardHelpModalOpen, setIsDashboardHelpModalOpen] = useState(false);
   const [isToolGroupModalOpen, setIsToolGroupModalOpen] = useState(false);
   const [groupToEdit, setGroupToEdit] = useState<ToolGroup | null>(null);
-  const [isCalendarViewOpen, setIsCalendarViewOpen] = useState(false);
 
 
   // Effects for localStorage persistence
@@ -542,7 +539,6 @@ function App(): React.ReactNode {
                                 onExportClick={() => setIsExportModalOpen(true)}
                                 onImportClick={triggerImport}
                                 onDeleteClick={() => setIsDeleteModalOpen(true)}
-                                onCalendarClick={() => setIsCalendarViewOpen(true)}
                             />
                             <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
                                 <ContentArea 
@@ -577,16 +573,6 @@ function App(): React.ReactNode {
                             />
                             <DashboardHelpModal isOpen={isDashboardHelpModalOpen} onClose={() => setIsDashboardHelpModalOpen(false)} />
                             
-                            {isCalendarViewOpen && (
-                                <div
-                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 gap-6 animate-fade-in-fast"
-                                    onClick={() => setIsCalendarViewOpen(false)}
-                                >
-                                    <CalendarModal onClose={() => setIsCalendarViewOpen(false)} />
-                                    <WeatherModal onClose={() => setIsCalendarViewOpen(false)} />
-                                </div>
-                            )}
-
                             <ConfirmationModal 
                                 isOpen={isImportConfirmOpen}
                                 onClose={() => setIsImportConfirmOpen(false)}

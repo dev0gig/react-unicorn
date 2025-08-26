@@ -6,6 +6,7 @@ import { MailTemplates } from './content/MailTemplates';
 import { Notizen } from './content/Notizen';
 import { Evidenzfaelle } from './content/Evidenzfaelle';
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
+import { Profile } from './content/Profile';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -26,6 +27,8 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
   const { activeView, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp } = props;
   const renderContent = () => {
     switch (activeView) {
+      case 'Profil':
+        return <Profile />;
       case 'Dashboard':
         return <Dashboard 
                   onAddLink={onAddLink} 
@@ -45,7 +48,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
       default:
-        return <Dashboard onAddLink={onAddLink} onEditTile={onEditTile} onAddGroup={onAddGroup} onEditGroup={onEditGroup} onOpenHelp={onOpenHelp} />;
+        return <Profile />;
     }
   };
 

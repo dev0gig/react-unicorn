@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { ViewName, MenuItem } from '../types';
 
 const menuItems: MenuItem[] = [
+  { id: 'Profil', label: 'Profil', icon: 'account_circle' },
   { id: 'Dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'Kontakte', label: 'Kontakte', icon: 'people' },
   { id: 'Mail Vorlagen', label: 'Mail Vorlagen', icon: 'drafts' },
@@ -18,7 +19,6 @@ interface SidebarProps {
   onExportClick: () => void;
   onImportClick: () => void;
   onDeleteClick: () => void;
-  onCalendarClick: () => void;
 }
 
 const NavItem: React.FC<{
@@ -44,7 +44,7 @@ const NavItem: React.FC<{
   </li>
 );
 
-const DateTimeWidget: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+const DateTimeWidget: React.FC = () => {
     const [now, setNow] = useState(new Date());
 
     useEffect(() => {
@@ -70,19 +70,19 @@ const DateTimeWidget: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     });
 
     return (
-        <button onClick={onClick} className="text-center py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg transition-shadow">
+        <div className="text-center py-2 w-full">
             <p className="text-4xl font-bold text-neutral-100 tracking-wider">{formattedTime}</p>
             <p className="mt-2 text-lg font-medium text-neutral-300">{formattedDate}</p>
-        </button>
+        </div>
     );
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onAddCaseClick, onFavoritesClick, onExportClick, onImportClick, onDeleteClick, onCalendarClick }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onAddCaseClick, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
   return (
     <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0">
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
         <div className="mb-8 bg-neutral-900 p-4 rounded-2xl">
-          <DateTimeWidget onClick={onCalendarClick} />
+          <DateTimeWidget />
         </div>
 
         <div className="mb-8">

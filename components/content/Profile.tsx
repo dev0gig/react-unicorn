@@ -1,0 +1,422 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useContacts, useTemplates, useFavorites, useDashboard, useNotes, useEvidenz } from '../../App';
+import type { ToolLink, ToolGroup } from '../../types';
+import { HolidayInfoModal } from '../HolidayInfoModal';
+
+// --- CARD COMPONENT ---
+const Card: React.FC<{ title?: string; icon?: string; children: React.ReactNode; className?: string, headerContent?: React.ReactNode }> = ({ title, icon, children, className = '', headerContent }) => (
+    <div className={`bg-neutral-800 rounded-2xl p-5 flex flex-col ${className}`}>
+        {(title || headerContent) && (
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                    {icon && <i className="material-icons text-xl text-orange-400 mr-3">{icon}</i>}
+                    {title && <h3 className="text-lg font-bold text-neutral-100 capitalize">{title}</h3>}
+                </div>
+                {headerContent}
+            </div>
+        )}
+        <div className="flex-grow">{children}</div>
+    </div>
+);
+
+// --- CALENDAR HELPERS ---
+const getWeekNumber = (date: Date): number => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return weekNo;
+};
+
+const getEaster = (year: number): Date => {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+};
+
+const getAustrianHolidays = (year: number): Map<string, string> => {
+  const holidays = new Map<string, string>();
+  const easter = getEaster(year);
+  const addHoliday = (date: Date, name: string) => {
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    holidays.set(key, name);
+  };
+  const addDays = (date: Date, days: number): Date => {
+      const result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
+  };
+  addHoliday(new Date(year, 0, 1), 'Neujahr');
+  addHoliday(new Date(year, 0, 6), 'Heilige Drei Könige');
+  addHoliday(new Date(year, 4, 1), 'Staatsfeiertag');
+  addHoliday(new Date(year, 7, 15), 'Mariä Himmelfahrt');
+  addHoliday(new Date(year, 9, 26), 'Nationalfeiertag');
+  addHoliday(new Date(year, 10, 1), 'Allerheiligen');
+  addHoliday(new Date(year, 11, 8), 'Mariä Empfängnis');
+  addHoliday(new Date(year, 11, 25), 'Christtag');
+  addHoliday(new Date(year, 11, 26), 'Stefanitag');
+  addHoliday(addDays(easter, 1), 'Ostermontag');
+  addHoliday(addDays(easter, 39), 'Christi Himmelfahrt');
+  addHoliday(addDays(easter, 50), 'Pfingstmontag');
+  addHoliday(addDays(easter, 60), 'Fronleichnam');
+  return holidays;
+};
+
+const holidayDescriptions: Record<string, string> = {
+    'Neujahr': 'Der erste Tag des neuen Jahres, an dem der Beginn des Kalenderjahres gefeiert wird.',
+    'Heilige Drei Könige': 'Christliches Fest, das an die Weisen aus dem Morgenland erinnert, die das Jesuskind besuchten.',
+    'Ostermontag': 'Der Tag nach Ostersonntag, der die Auferstehung Jesu Christi feiert.',
+    'Staatsfeiertag': 'Der internationale Tag der Arbeit, in Österreich als Staatsfeiertag begangen.',
+    'Christi Himmelfahrt': 'Fest 40 Tage nach Ostern, das die Aufnahme Christi in den Himmel feiert.',
+    'Pfingstmontag': 'Der Tag nach Pfingstsonntag, an dem die Sendung des Heiligen Geistes gefeiert wird.',
+    'Fronleichnam': 'Katholisches Fest zur Feier der Eucharistie, 60 Tage nach Ostern.',
+    'Mariä Himmelfahrt': 'Katholisches Hochfest der leiblichen Aufnahme Mariens in den Himmel.',
+    'Nationalfeiertag': 'Feiertag zur Erinnerung an die Verabschiedung des Neutralitätsgesetzes im Jahr 1955.',
+    'Allerheiligen': 'Gedenktag für alle Heiligen der Kirche.',
+    'Mariä Empfängnis': 'Katholisches Hochfest, das die unbefleckte Empfängnis der Gottesmutter Maria feiert.',
+    'Christtag': 'Der erste Weihnachtsfeiertag zur Feier der Geburt Jesu Christi.',
+    'Stefanitag': 'Der zweite Weihnachtsfeiertag, Gedenktag des Heiligen Stephanus.'
+};
+
+// --- WEATHER CONSTANTS ---
+const WEATHER_CODES: { [key: number]: { text: string; icon: string; background: string } } = {
+    0: { text: 'Klarer Himmel', icon: 'wb_sunny', background: 'bg-gradient-to-br from-sky-400 to-blue-600' },
+    1: { text: 'Leicht bewölkt', icon: 'wb_cloudy', background: 'bg-gradient-to-br from-slate-400 to-gray-600' },
+    2: { text: 'Teilweise bewölkt', icon: 'wb_cloudy', background: 'bg-gradient-to-br from-slate-500 to-gray-700' },
+    3: { text: 'Bedeckt', icon: 'cloud', background: 'bg-gradient-to-br from-gray-600 to-slate-800' },
+    45: { text: 'Nebel', icon: 'foggy', background: 'bg-gradient-to-br from-slate-400 to-gray-500' },
+    48: { text: 'Reifnebel', icon: 'ac_unit', background: 'bg-gradient-to-br from-slate-300 to-gray-400' },
+    51: { text: 'Leichter Nieselregen', icon: 'grain', background: 'bg-gradient-to-br from-blue-300 to-gray-500' },
+    53: { text: 'Mäßiger Nieselregen', icon: 'grain', background: 'bg-gradient-to-br from-blue-400 to-gray-600' },
+    55: { text: 'Starker Nieselregen', icon: 'grain', background: 'bg-gradient-to-br from-blue-500 to-gray-700' },
+    61: { text: 'Leichter Regen', icon: 'rainy', background: 'bg-gradient-to-br from-sky-500 to-slate-700' },
+    63: { text: 'Mäßiger Regen', icon: 'rainy', background: 'bg-gradient-to-br from-sky-600 to-slate-800' },
+    65: { text: 'Starker Regen', icon: 'rainy', background: 'bg-gradient-to-br from-sky-700 to-slate-900' },
+    80: { text: 'Leichte Schauer', icon: 'rainy', background: 'bg-gradient-to-br from-sky-500 to-slate-700' },
+    81: { text: 'Mäßige Schauer', icon: 'rainy', background: 'bg-gradient-to-br from-sky-600 to-slate-800' },
+    82: { text: 'Starke Schauer', icon: 'rainy', background: 'bg-gradient-to-br from-sky-700 to-slate-900' },
+    71: { text: 'Leichter Schneefall', icon: 'ac_unit', background: 'bg-gradient-to-br from-blue-200 to-slate-400' },
+    73: { text: 'Mäßiger Schneefall', icon: 'ac_unit', background: 'bg-gradient-to-br from-blue-300 to-slate-500' },
+    75: { text: 'Starker Schneefall', icon: 'ac_unit', background: 'bg-gradient-to-br from-blue-400 to-slate-600' },
+    95: { text: 'Gewitter', icon: 'thunderstorm', background: 'bg-gradient-to-br from-slate-700 to-indigo-900' },
+    96: { text: 'Gewitter mit Hagel', icon: 'thunderstorm', background: 'bg-gradient-to-br from-slate-800 to-indigo-950' },
+    99: { text: 'Gewitter mit starkem Hagel', icon: 'thunderstorm', background: 'bg-gradient-to-br from-slate-900 to-indigo-950' },
+};
+const UNKNOWN_WEATHER = { text: 'Unbekannt', icon: 'help_outline', background: 'bg-gray-700' };
+
+interface WeatherData {
+    current: { temperature: number; weatherCode: number; windSpeed: number; };
+    daily: { time: string[]; weatherCode: number[]; tempMax: number[]; tempMin: number[]; };
+}
+
+
+// --- WIDGET COMPONENTS ---
+
+const WeatherWidget: React.FC = () => {
+    const [weather, setWeather] = useState<WeatherData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchWeather = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const lat = 48.21, lon = 16.37; // Vienna
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe/Vienna&forecast_days=6`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Wetterdaten konnten nicht geladen werden.');
+                const data = await response.json();
+                setWeather({
+                    current: { temperature: Math.round(data.current.temperature_2m), weatherCode: data.current.weather_code, windSpeed: Math.round(data.current.wind_speed_10m) },
+                    daily: { time: data.daily.time, weatherCode: data.daily.weather_code, tempMax: data.daily.temperature_2m_max, tempMin: data.daily.temperature_2m_min },
+                });
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchWeather();
+    }, []);
+
+    const currentWeatherData = weather ? (WEATHER_CODES[weather.current.weatherCode] || UNKNOWN_WEATHER) : UNKNOWN_WEATHER;
+
+    if (loading) return <div className="rounded-2xl bg-neutral-800 p-5 flex flex-col items-center justify-center h-full text-white/80"><i className="material-icons text-5xl animate-spin">sync</i><p className="mt-2">Lade Wetterdaten...</p></div>;
+    if (error) return <div className="rounded-2xl bg-neutral-800 p-5 flex flex-col items-center justify-center h-full text-red-300 text-center"><i className="material-icons text-5xl">error_outline</i><p className="mt-2">{error}</p></div>;
+    if (!weather) return <div className="rounded-2xl bg-neutral-800 p-5 flex items-center justify-center h-full text-white/80">Keine Wetterdaten verfügbar.</div>;
+
+    const todayForecast = { max: Math.round(weather.daily.tempMax[0]), min: Math.round(weather.daily.tempMin[0]) };
+
+    return (
+        <div className={`rounded-2xl text-white p-5 flex flex-col justify-between ${currentWeatherData.background}`}>
+            <div className="text-center">
+                <p className="font-medium">Wien, Österreich</p>
+                <div className="flex items-center justify-center gap-2 my-1">
+                     <i className="material-icons text-6xl">{currentWeatherData.icon}</i>
+                     <h2 className="text-6xl font-bold">{weather.current.temperature}°</h2>
+                </div>
+                <p className="text-lg capitalize">{currentWeatherData.text}</p>
+                <div className="flex justify-center gap-4 mt-2 text-sm">
+                    <span>Max: {todayForecast.max}°</span>
+                    <span>Min: {todayForecast.min}°</span>
+                    <span>Wind: {weather.current.windSpeed} km/h</span>
+                </div>
+            </div>
+            <div className="pt-4">
+                <div className="flex justify-between">
+                    {weather.daily.time.slice(1).map((time, index) => {
+                        const date = new Date(time);
+                        const dayWeather = WEATHER_CODES[weather.daily.weatherCode[index + 1]] || UNKNOWN_WEATHER;
+                        return (
+                            <div key={time} className="flex flex-col items-center gap-1 text-center w-1/5">
+                                <p className="text-xs font-semibold">{date.toLocaleDateString('de-DE', { weekday: 'short' })}</p>
+                                <i className="material-icons text-2xl">{dayWeather.icon}</i>
+                                <p className="text-xs">{Math.round(weather.daily.tempMax[index + 1])}°<span className="opacity-70">/{Math.round(weather.daily.tempMin[index + 1])}°</span></p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const MonthView: React.FC<{
+    dateForMonth: Date;
+    today: Date;
+    onHolidayClick: (e: React.MouseEvent<HTMLButtonElement>, holidayName: string) => void;
+}> = ({ dateForMonth, today, onHolidayClick }) => {
+    const year = dateForMonth.getFullYear();
+    const month = dateForMonth.getMonth();
+    
+    const calendarWeeks = useMemo(() => {
+        const holidays = getAustrianHolidays(year);
+        const days = [];
+        const firstDayOfMonth = new Date(year, month, 1);
+        const firstDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
+        for (let i = 0; i < 42; i++) {
+            const date = new Date(firstDayOfMonth);
+            date.setDate(date.getDate() - firstDayIndex + i);
+            const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            days.push({ day: date.getDate(), isCurrentMonth: date.getMonth() === month, date: date, holidayName: holidays.get(dayKey) });
+        }
+        const weeksData = [];
+        for (let i = 0; i < days.length; i += 7) {
+          weeksData.push({ weekNumber: getWeekNumber(days[i].date), days: days.slice(i, i + 7) });
+        }
+        return weeksData;
+    }, [year, month]);
+
+    const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+    return (
+        <div>
+            <h4 className="text-lg font-bold text-neutral-100 capitalize text-center mb-4">
+                {dateForMonth.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
+            </h4>
+            <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-y-1 justify-items-center">
+                <div className="text-xs font-bold text-neutral-500 uppercase pb-2 w-10 text-center">KW</div>
+                {weekDays.map(day => <div key={day} className="text-xs font-bold text-neutral-400 uppercase pb-2 w-10 text-center">{day}</div>)}
+                {calendarWeeks.map((week, weekIndex) => (
+                    <React.Fragment key={`${year}-${month}-${weekIndex}`}>
+                        <div className="w-10 h-10 flex items-center justify-center text-xs text-neutral-500 font-medium">{week.weekNumber}</div>
+                        {week.days.map((d, dayIndex) => {
+                            const isToday = d.isCurrentMonth && d.day === today.getDate() && d.date.getMonth() === today.getMonth() && d.date.getFullYear() === today.getFullYear();
+                            const isWeekend = (d.date.getDay() === 6 || d.date.getDay() === 0);
+                            const isHoliday = !!d.holidayName;
+                            const getDayClasses = () => {
+                                let base = 'w-10 h-10 flex items-center justify-center rounded-full text-sm transition-colors';
+                                if (isHoliday) base += ' cursor-pointer';
+                                if (!d.isCurrentMonth) return `${base} text-neutral-600`;
+                                if (isToday) return `${base} bg-orange-500 font-bold text-white`;
+                                if (isHoliday) return `${base} bg-sky-800/50 border border-sky-600 text-sky-300 font-semibold hover:bg-sky-700/50`;
+                                if (isWeekend) return `${base} text-neutral-400`;
+                                return `${base} text-neutral-100`;
+                            };
+                            return isHoliday ? (
+                                <button key={dayIndex} title={d.holidayName || ''} className={getDayClasses()} onClick={(e) => onHolidayClick(e, d.holidayName!)}>{d.day}</button>
+                            ) : (
+                                <div key={dayIndex} title={d.holidayName || ''} className={getDayClasses()}>{d.day}</div>
+                            );
+                        })}
+                    </React.Fragment>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const DualCalendarWidget: React.FC = () => {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [now, setNow] = useState(new Date());
+    const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; description: string; position: { top: number; left: number } } | null>(null);
+    const today = new Date();
+
+    useEffect(() => {
+        const timerId = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(timerId);
+    }, []);
+
+    const changeMonth = (offset: number) => {
+        setCurrentDate(prevDate => {
+          const newDate = new Date(prevDate);
+          newDate.setDate(1);
+          newDate.setMonth(newDate.getMonth() + offset);
+          return newDate;
+        });
+    };
+
+    const goToToday = () => setCurrentDate(new Date());
+  
+    const handleHolidayClick = (e: React.MouseEvent<HTMLButtonElement>, holidayName: string) => {
+        const description = holidayDescriptions[holidayName];
+        if (!description) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        setSelectedHoliday({ name: holidayName, description: description, position: { top: rect.bottom + 5, left: rect.left } });
+    };
+
+    const nextMonthDate = useMemo(() => {
+        const next = new Date(currentDate);
+        next.setDate(1);
+        next.setMonth(next.getMonth() + 1);
+        return next;
+    }, [currentDate]);
+
+    const formattedTimeWithSeconds = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    return (
+        <>
+            {selectedHoliday && <HolidayInfoModal {...selectedHoliday} onClose={() => setSelectedHoliday(null)} />}
+            <Card>
+                <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                            <i className="material-icons text-xl text-orange-400 mr-3">calendar_month</i>
+                            <h3 className="text-lg font-bold text-neutral-100 capitalize">Kalender</h3>
+                        </div>
+                        <div className="flex items-center">
+                            <button onClick={() => changeMonth(-1)} className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors" aria-label="Vorheriger Monat"><i className="material-icons">chevron_left</i></button>
+                            <button onClick={() => changeMonth(1)} className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors" aria-label="Nächster Monat"><i className="material-icons">chevron_right</i></button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                        <MonthView dateForMonth={currentDate} today={today} onHolidayClick={handleHolidayClick} />
+                        <MonthView dateForMonth={nextMonthDate} today={today} onHolidayClick={handleHolidayClick} />
+                    </div>
+
+                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-neutral-700/50">
+                        <button onClick={goToToday} className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-all">Heute</button>
+                        <div className="text-2xl font-bold text-neutral-100 tracking-wider">{formattedTimeWithSeconds}</div>
+                    </div>
+                </div>
+            </Card>
+        </>
+    );
+};
+
+const MetricsCard: React.FC = () => {
+    const { contacts } = useContacts();
+    const { notes } = useNotes();
+    const { faelle } = useEvidenz();
+    const { templateGroups } = useTemplates();
+    const totalTemplates = templateGroups.reduce((acc, group) => acc + group.templates.length, 0);
+    const metrics = [
+        { icon: 'people', value: contacts.length, label: 'Kontakte' },
+        { icon: 'note_alt', value: notes.length, label: 'Notizen' },
+        { icon: 'gavel', value: faelle.length, label: 'Evidenzfälle' },
+        { icon: 'drafts', value: totalTemplates, label: 'Vorlagen' },
+    ];
+    return (
+        <Card title="Auf einen Blick" icon="query_stats">
+            <div className="grid grid-cols-2 gap-4 h-full">
+                {metrics.map(metric => (
+                    <div key={metric.label} className="bg-neutral-900/70 p-3 rounded-lg flex flex-col items-center justify-center text-center">
+                        <i className="material-icons text-3xl text-neutral-400">{metric.icon}</i>
+                        <span className="text-2xl font-bold mt-1 text-neutral-100">{metric.value}</span>
+                        <span className="text-xs text-neutral-500">{metric.label}</span>
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+};
+
+const FavoritesCard: React.FC = () => {
+    const { favorites } = useFavorites();
+    const { toolGroups } = useDashboard();
+    
+    const allLinksMap = useMemo(() => {
+        const map = new Map<string, { link: ToolLink; group: ToolGroup }>();
+        toolGroups.forEach(group => group.links.forEach(link => map.set(link.url, { link, group })));
+        return map;
+    }, [toolGroups]);
+
+    const favoriteItems = favorites.slice(0, 8).map(fav => allLinksMap.get(fav.url)).filter(Boolean as any as (x: any) => x is { link: ToolLink; group: ToolGroup });
+
+    return (
+        <Card title="Favoriten" icon="star">
+            {favoriteItems.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {favoriteItems.map(item => (
+                        <a key={item.link.url} href={item.link.url} target="_blank" rel="noopener noreferrer" 
+                           className="flex items-center gap-2 p-2 rounded-md transition-colors hover:bg-neutral-700/50"
+                           style={{ color: 'white' }}
+                        >
+                            <div className="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center" style={{backgroundColor: item.group.color}}>
+                                <i className="material-icons text-base">{item.group.icon}</i>
+                            </div>
+                            <span className="text-sm font-medium truncate">{item.link.name}</span>
+                        </a>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-sm text-neutral-500 h-full flex items-center justify-center">Keine Favoriten festgelegt.</p>
+            )}
+        </Card>
+    );
+};
+
+// --- MAIN PROFILE COMPONENT ---
+
+export const Profile: React.FC = () => {
+    const [date, setDate] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setDate(new Date()), 60000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="h-full overflow-y-auto custom-scrollbar p-6">
+            <header className="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-6">
+                <h1 className="text-4xl font-bold text-neutral-100">Profilübersicht</h1>
+                <p className="text-neutral-400 font-medium">
+                    {date.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+            </header>
+
+            <main className="flex flex-col gap-6">
+                <DualCalendarWidget />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <WeatherWidget />
+                    <MetricsCard />
+                    <FavoritesCard />
+                </div>
+            </main>
+        </div>
+    );
+};
