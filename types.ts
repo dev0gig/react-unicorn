@@ -141,4 +141,5 @@ export interface ScheduleEvent {
 export interface ScheduleContextType {
   schedule: Record<string, ScheduleEvent[]>;
   importSchedule: (icsContent: string) => void;
+  clearSchedule: () => void;
 }

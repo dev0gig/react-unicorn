@@ -275,7 +275,10 @@ function App(): React.ReactNode {
         });
     }
   }, []);
-  const scheduleContextValue = useMemo(() => ({ schedule, importSchedule }), [schedule, importSchedule]);
+  const clearSchedule = useCallback(() => {
+    setSchedule({});
+  }, []);
+  const scheduleContextValue = useMemo(() => ({ schedule, importSchedule, clearSchedule }), [schedule, importSchedule, clearSchedule]);
 
   // Dashboard
   const addGroup = useCallback((title: string, icon: string) => {
@@ -598,6 +601,9 @@ function App(): React.ReactNode {
     if (categoriesToDelete.signatures) {
       setSignatures([]);
       setActiveSignatureId(null);
+    }
+    if (categoriesToDelete.schedule) {
+      clearSchedule();
     }
     
     setCategoriesToDelete(null);

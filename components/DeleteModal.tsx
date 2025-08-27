@@ -8,6 +8,7 @@ interface DeleteOptions {
     contacts: boolean;
     templates: boolean;
     signatures: boolean;
+    schedule: boolean;
 }
 
 interface DeleteModalProps {
@@ -36,6 +37,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
     contacts: false,
     templates: false,
     signatures: false,
+    schedule: false,
   });
 
   const handleOptionChange = (key: keyof DeleteOptions, value: boolean) => {
@@ -43,7 +45,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
   };
   
   const handleSelectAll = (checked: boolean) => {
-      setOptions({ dashboard: checked, favorites: checked, faelle: checked, notes: checked, contacts: checked, templates: checked, signatures: checked });
+      setOptions({ dashboard: checked, favorites: checked, faelle: checked, notes: checked, contacts: checked, templates: checked, signatures: checked, schedule: checked });
   }
 
   const allSelected = Object.values(options).every(Boolean);
@@ -57,7 +59,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
   
   useEffect(() => {
     if (!isOpen) {
-        setOptions({ dashboard: false, favorites: false, faelle: false, notes: false, contacts: false, templates: false, signatures: false });
+        setOptions({ dashboard: false, favorites: false, faelle: false, notes: false, contacts: false, templates: false, signatures: false, schedule: false });
     }
   }, [isOpen]);
 
@@ -109,6 +111,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
                     <Checkbox label="Kontakte" checked={options.contacts} onChange={(c) => handleOptionChange('contacts', c)} />
                     <Checkbox label="Mail Vorlagen" checked={options.templates} onChange={(c) => handleOptionChange('templates', c)} />
                     <Checkbox label="Signaturen" checked={options.signatures} onChange={(c) => handleOptionChange('signatures', c)} />
+                    <Checkbox label="Kalender / Dienstplan" checked={options.schedule} onChange={(c) => handleOptionChange('schedule', c)} />
                 </div>
 
                 <div className="pt-2">
