@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useContacts, useTemplates, useFavorites, useDashboard, useNotes, useEvidenz, useSchedule } from '../../App';
 import type { ToolLink, ToolGroup, ScheduleEvent } from '../../types';
 import { HolidayInfoModal } from '../HolidayInfoModal';
@@ -117,17 +117,17 @@ const WEATHER_CODES: { [key: number]: { text: string; icon: string; background: 
     1: { text: 'Leicht bewölkt', icon: 'wb_cloudy', background: 'bg-gradient-to-br from-slate-400 to-gray-600' },
     2: { text: 'Teilweise bewölkt', icon: 'wb_cloudy', background: 'bg-gradient-to-br from-slate-500 to-gray-700' },
     3: { text: 'Bedeckt', icon: 'cloud', background: 'bg-gradient-to-br from-gray-600 to-slate-800' },
-    45: { text: 'Nebel', icon: 'foggy', background: 'bg-gradient-to-br from-slate-400 to-gray-500' },
+    45: { text: 'Nebel', icon: 'dehaze', background: 'bg-gradient-to-br from-slate-400 to-gray-500' },
     48: { text: 'Reifnebel', icon: 'ac_unit', background: 'bg-gradient-to-br from-slate-300 to-gray-400' },
     51: { text: 'Leichter Nieselregen', icon: 'grain', background: 'bg-gradient-to-br from-blue-300 to-gray-500' },
     53: { text: 'Mäßiger Nieselregen', icon: 'grain', background: 'bg-gradient-to-br from-blue-400 to-gray-600' },
     55: { text: 'Starker Nieselregen', icon: 'grain', background: 'bg-gradient-to-br from-blue-500 to-gray-700' },
-    61: { text: 'Leichter Regen', icon: 'rainy', background: 'bg-gradient-to-br from-sky-500 to-slate-700' },
-    63: { text: 'Mäßiger Regen', icon: 'rainy', background: 'bg-gradient-to-br from-sky-600 to-slate-800' },
-    65: { text: 'Starker Regen', icon: 'rainy', background: 'bg-gradient-to-br from-sky-700 to-slate-900' },
-    80: { text: 'Leichte Schauer', icon: 'rainy', background: 'bg-gradient-to-br from-sky-500 to-slate-700' },
-    81: { text: 'Mäßige Schauer', icon: 'rainy', background: 'bg-gradient-to-br from-sky-600 to-slate-800' },
-    82: { text: 'Starke Schauer', icon: 'rainy', background: 'bg-gradient-to-br from-sky-700 to-slate-900' },
+    61: { text: 'Leichter Regen', icon: 'water_drop', background: 'bg-gradient-to-br from-sky-500 to-slate-700' },
+    63: { text: 'Mäßiger Regen', icon: 'water_drop', background: 'bg-gradient-to-br from-sky-600 to-slate-800' },
+    65: { text: 'Starker Regen', icon: 'water_drop', background: 'bg-gradient-to-br from-sky-700 to-slate-900' },
+    80: { text: 'Leichte Schauer', icon: 'water_drop', background: 'bg-gradient-to-br from-sky-500 to-slate-700' },
+    81: { text: 'Mäßige Schauer', icon: 'water_drop', background: 'bg-gradient-to-br from-sky-600 to-slate-800' },
+    82: { text: 'Starke Schauer', icon: 'water_drop', background: 'bg-gradient-to-br from-sky-700 to-slate-900' },
     71: { text: 'Leichter Schneefall', icon: 'ac_unit', background: 'bg-gradient-to-br from-blue-200 to-slate-400' },
     73: { text: 'Mäßiger Schneefall', icon: 'ac_unit', background: 'bg-gradient-to-br from-blue-300 to-slate-500' },
     75: { text: 'Starker Schneefall', icon: 'ac_unit', background: 'bg-gradient-to-br from-blue-400 to-slate-600' },
@@ -683,15 +683,14 @@ const AgendaWidget: React.FC<{
     );
 };
 
-const RecentNotesWidget: React.FC<{ noteCount?: number }> = ({ noteCount }) => {
+const RecentNotesWidget: React.FC = () => {
     const { notes } = useNotes();
-    const count = noteCount === undefined ? 3 : noteCount;
 
     const recentNotes = useMemo(() => {
         return [...notes]
             .sort((a, b) => b.lastModified - a.lastModified)
-            .slice(0, count);
-    }, [notes, count]);
+            .slice(0, 8);
+    }, [notes]);
 
     const getNoteExcerpt = (content: string) => {
         const lines = content.split('\n').filter(line => line.trim() !== '');
@@ -704,12 +703,12 @@ const RecentNotesWidget: React.FC<{ noteCount?: number }> = ({ noteCount }) => {
     };
 
     return (
-        <Card title="Letzte Notizen" icon="history_edu">
+        <Card title="Letzte Notizen" icon="history_edu" className="h-full">
             <div className="flex flex-col h-full">
                 {recentNotes.length > 0 ? (
-                    <div className="space-y-3 flex-grow notes-list-container">
+                    <div className="space-y-3 flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2">
                         {recentNotes.map(note => (
-                            <div key={note.id} className="p-3 bg-neutral-900/70 rounded-lg transition-colors hover:bg-neutral-700/50 note-item">
+                            <div key={note.id} className="p-3 bg-neutral-900/70 rounded-lg transition-colors hover:bg-neutral-700/50">
                                 <p className="text-sm font-semibold text-neutral-200 truncate" title={getNoteExcerpt(note.content)}>
                                     {getNoteExcerpt(note.content)}
                                 </p>
@@ -729,105 +728,52 @@ const RecentNotesWidget: React.FC<{ noteCount?: number }> = ({ noteCount }) => {
     );
 };
 
+const OpenEvidenceCasesWidget: React.FC = () => {
+    const { faelle } = useEvidenz();
+
+    const openCases = useMemo(() => {
+        return faelle
+            .filter(f => f.column !== 'fertig')
+            .sort((a, b) => parseInt(b.id) - parseInt(a.id)) // Newest first
+            .slice(0, 8);
+    }, [faelle]);
+
+    return (
+        <Card title="Offene Evidenzfälle" icon="folder_open" className="h-full">
+            <div className="flex flex-col h-full">
+                {openCases.length > 0 ? (
+                    <div className="space-y-3 flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2">
+                        {openCases.map(fall => (
+                            <div key={fall.id} className="p-3 bg-neutral-900/70 rounded-lg">
+                                <p className="text-sm font-semibold text-neutral-200 truncate" title={fall.gpvk}>
+                                    {fall.gpvk}
+                                </p>
+                                <p className="text-xs text-neutral-400 mt-1 truncate" title={fall.description}>
+                                    {fall.description || 'Keine Beschreibung'}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex-grow flex items-center justify-center">
+                        <p className="text-sm text-neutral-500">Keine offenen Fälle.</p>
+                    </div>
+                )}
+            </div>
+        </Card>
+    );
+};
+
 // --- MAIN PROFILE COMPONENT ---
 
 export const Profile: React.FC = () => {
     const [date, setDate] = useState(new Date());
     const [selectedAgendaDate, setSelectedAgendaDate] = useState<Date | null>(null);
-    const { notes } = useNotes();
-    const [visibleNotesCount, setVisibleNotesCount] = useState(3);
-    
-    const gridRef = useRef<HTMLDivElement>(null);
-    const leftColRef = useRef<HTMLDivElement>(null);
-    const agendaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const timer = setInterval(() => setDate(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
-
-    useLayoutEffect(() => {
-        const grid = gridRef.current;
-        const leftCol = leftColRef.current;
-        const agenda = agendaRef.current;
-
-        if (!grid || !leftCol || !agenda) {
-            if (notes.length === 0) setVisibleNotesCount(0);
-            return;
-        }
-
-        const calculate = () => {
-            // This logic should only apply on large screens where the layout is side-by-side
-            if (window.innerWidth < 1280) { // xl breakpoint from tailwind
-                setVisibleNotesCount(3);
-                return;
-            }
-
-            const calendarEl = leftCol.children[0] as HTMLElement;
-            const notesCardEl = leftCol.children[1] as HTMLElement;
-
-            if (!calendarEl || !notesCardEl) return;
-            
-            const agendaHeight = agenda.offsetHeight;
-            const calendarHeight = calendarEl.offsetHeight;
-
-            const gridGap = 24; // Corresponds to gap-6
-            const availableHeightForNotes = agendaHeight - calendarHeight - gridGap;
-
-            if (availableHeightForNotes <= 50) { // If not much space, show 1
-                setVisibleNotesCount(1);
-                return;
-            }
-
-            // Fix: Cast querySelector results to HTMLElement to access offsetHeight.
-            const noteItemEl = notesCardEl.querySelector<HTMLElement>('.note-item');
-            if (!noteItemEl) {
-                setVisibleNotesCount(0);
-                return;
-            }
-            // Fix: Cast querySelector results to HTMLElement to access offsetHeight.
-            const notesListEl = notesCardEl.querySelector<HTMLElement>('.notes-list-container');
-            if (!notesListEl) {
-                return;
-            }
-            
-            const cardChromeHeight = notesCardEl.offsetHeight - notesListEl.offsetHeight;
-            const availableHeightForNotesList = availableHeightForNotes - cardChromeHeight;
-            
-            const noteItemHeight = noteItemEl.offsetHeight;
-            const noteItemGap = 12; // From space-y-3
-            const effectiveNoteHeight = noteItemHeight + noteItemGap;
-
-            if (effectiveNoteHeight > 0) {
-                const count = 1 + Math.floor((availableHeightForNotesList - noteItemHeight) / effectiveNoteHeight);
-                setVisibleNotesCount(Math.min(notes.length, Math.max(1, count)));
-            } else {
-                setVisibleNotesCount(3); // Fallback
-            }
-        };
-        
-        const debounce = (func: () => void, delay: number) => {
-            let timeout: number;
-            return () => {
-                clearTimeout(timeout);
-                timeout = window.setTimeout(func, delay);
-            };
-        };
-        
-        const debouncedCalculate = debounce(calculate, 150);
-
-        const observer = new ResizeObserver(debouncedCalculate);
-        observer.observe(agenda);
-        observer.observe(leftCol);
-        
-        // Initial calculation
-        debouncedCalculate();
-        
-        return () => {
-            observer.disconnect();
-        };
-    }, [notes.length]);
-
 
     const handleScrollComplete = useCallback(() => {
         setSelectedAgendaDate(null);
@@ -848,12 +794,17 @@ export const Profile: React.FC = () => {
                     <MetricsCard />
                     <FavoritesCard />
                 </div>
-                <div ref={gridRef} className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-                    <div ref={leftColRef} className="xl:col-span-2 flex flex-col gap-6">
-                        <DualCalendarWidget onDateSelect={setSelectedAgendaDate} />
-                        {visibleNotesCount > 0 && <RecentNotesWidget noteCount={visibleNotesCount} />}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div className="xl:col-span-2 flex flex-col gap-6">
+                        <div className="flex-shrink-0">
+                            <DualCalendarWidget onDateSelect={setSelectedAgendaDate} />
+                        </div>
+                        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 min-h-0">
+                            <RecentNotesWidget />
+                            <OpenEvidenceCasesWidget />
+                        </div>
                     </div>
-                    <div ref={agendaRef} className="h-full">
+                    <div className="h-full">
                         <AgendaWidget 
                             selectedDate={selectedAgendaDate}
                             onScrollComplete={handleScrollComplete}
