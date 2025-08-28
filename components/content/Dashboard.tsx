@@ -11,6 +11,7 @@ import {
   DragOverlay,
   DragEndEvent,
   DragStartEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -22,7 +23,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 interface DashboardProps {
-  onAddLink: (link: null, groupTitle?: string) => void;
+  onAddLink: (link: null, groupId?: string) => void;
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
@@ -33,15 +34,16 @@ const TileContextMenu: React.FC<{
   x: number;
   y: number;
   tileId: string;
+  groupId: string;
   groupTitle: string;
   isFav: boolean;
   onClose: () => void;
   onEdit: (id: string) => void;
   onToggleFavorite: (id: string) => void;
-  onAddLink: (link: null, groupTitle: string) => void;
-  onDeleteLink: (groupTitle: string, url: string) => void;
+  onAddLink: (link: null, groupId: string) => void;
+  onDeleteLink: (groupId: string, url: string) => void;
 }> = (props) => {
-  const { x, y, tileId, groupTitle, isFav, onClose, onEdit, onToggleFavorite, onAddLink, onDeleteLink } = props;
+  const { x, y, tileId, groupId, groupTitle, isFav, onClose, onEdit, onToggleFavorite, onAddLink, onDeleteLink } = props;
   const menuRef = useRef<HTMLDivElement>(null);
   const [style, setStyle] = useState<React.CSSProperties>({
     position: 'fixed',
@@ -115,14 +117,14 @@ const TileContextMenu: React.FC<{
           <span>Bearbeiten</span>
         </button>
         <button
-          onClick={() => { onDeleteLink(groupTitle, tileId); onClose(); }}
+          onClick={() => { onDeleteLink(groupId, tileId); onClose(); }}
           className="w-full text-left text-neutral-200 px-2 py-1.5 rounded-md hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2"
         >
           <i className="material-icons text-base">delete</i>
           <span>Löschen</span>
         </button>
         <button
-          onClick={() => { onAddLink(null, groupTitle); onClose(); }}
+          onClick={() => { onAddLink(null, groupId); onClose(); }}
           className="w-full text-left text-neutral-200 px-2 py-1.5 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2"
         >
           <i className="material-icons text-base">add</i>
@@ -138,7 +140,7 @@ const Tile: React.FC<{
   data: { link: ToolLink; group: ToolGroup };
   isFavorite: boolean;
   isOverlay?: boolean;
-  onContextMenu: (e: React.MouseEvent, tileId: string, groupTitle: string) => void;
+  onContextMenu: (e: React.MouseEvent, tileId: string, groupId: string, groupTitle: string) => void;
 }> = ({ config, data, isFavorite, isOverlay, onContextMenu }) => {
     
     const handleClick = (e: React.MouseEvent) => {
@@ -152,7 +154,7 @@ const Tile: React.FC<{
         className={`tile size-${config.size}`}
         style={{ backgroundColor: data.group.color || '#f97316' }}
         onClick={handleClick}
-        onContextMenu={(e) => onContextMenu(e, config.id, data.group.title)}
+        onContextMenu={(e) => onContextMenu(e, config.id, data.group.id, data.group.title)}
       >
         <i className="material-icons tile-icon">{data.group.icon}</i>
         <div>
@@ -168,7 +170,7 @@ const SortableTile: React.FC<{
   config: TileConfig;
   data: { link: ToolLink; group: ToolGroup };
   isFavorite: boolean;
-  onContextMenu: (e: React.MouseEvent, tileId: string, groupTitle: string) => void;
+  onContextMenu: (e: React.MouseEvent, tileId: string, groupId: string, groupTitle: string) => void;
 }> = ({ config, data, isFavorite, onContextMenu }) => {
   const {
     attributes,
@@ -210,7 +212,7 @@ const SortableGroupNavItem: React.FC<{
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: group.title, data: { type: 'group', group } });
+  } = useSortable({ id: group.id, data: { type: 'group', group } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -233,9 +235,9 @@ const SortableGroupNavItem: React.FC<{
           <i className="material-icons text-xl">drag_indicator</i>
         </div>
         <button
-          onClick={() => onClick(group.title)}
+          onClick={() => onClick(group.id)}
           className={`w-full text-left flex items-center gap-3 p-2 rounded-md transition-colors pl-10 pr-8 ${
-            activeGroup === group.title
+            activeGroup === group.id
               ? 'bg-orange-500/20 text-orange-400 font-semibold'
               : 'text-neutral-400 hover:bg-neutral-700/50 hover:text-neutral-200'
           }`}
@@ -263,7 +265,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
   const [activeItem, setActiveItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-  const [contextMenu, setContextMenu] = useState<{x: number; y: number; tileId: string; groupTitle: string; isFav: boolean;} | null>(null);
+  const [contextMenu, setContextMenu] = useState<{x: number; y: number; tileId: string; groupId: string; groupTitle: string; isFav: boolean;} | null>(null);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const groupRefs = useRef<Map<string, HTMLElement | null>>(new Map());
   const activeIntersections = useRef(new Map<string, IntersectionObserverEntry>());
@@ -374,39 +376,86 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     setActiveItem(null);
 
     const { active, over } = event;
-    if (!over || !active.data.current || active.id === over.id) return;
+    if (!over || !active.data.current) return;
     
     const activeType = active.data.current.type;
 
-    if (activeType === 'group') {
-      const oldIndex = toolGroups.findIndex(g => g.title === active.id);
-      const newIndex = toolGroups.findIndex(g => g.title === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        reorderGroups(arrayMove(toolGroups, oldIndex, newIndex));
-      }
-    } else if (activeType === 'tile') {
-      const overGroupTitle = over.data.current?.data?.group?.title;
-      const activeGroupTitle = active.data.current?.data?.group?.title;
-      
-      // Handle reordering within the same group
-      if (activeGroupTitle && activeGroupTitle === overGroupTitle) {
-        const group = toolGroups.find(g => g.title === activeGroupTitle);
-        if (group) {
-          const oldIndex = group.links.findIndex(l => l.url === active.id);
-          const newIndex = group.links.findIndex(l => l.url === over.id);
-          
-          if (oldIndex !== -1 && newIndex !== -1) {
-            const reordered = arrayMove(group.links, oldIndex, newIndex);
-            reorderLinks(activeGroupTitle, reordered);
-          }
+    // Handle group reordering
+    if (activeType === 'group' && active.id !== over.id) {
+        const oldIndex = toolGroups.findIndex(g => g.id === active.id);
+        const newIndex = toolGroups.findIndex(g => g.id === over.id);
+        if (oldIndex !== -1 && newIndex !== -1) {
+            reorderGroups(arrayMove(toolGroups, oldIndex, newIndex));
         }
-      }
+        return;
+    }
+    
+    // Handle tile dragging (reorder or move between groups)
+    if (activeType === 'tile') {
+        const activeId = active.id.toString();
+        const overId = over.id.toString();
+        
+        const activeGroupId = active.data.current.data.group.id;
+        const activeLink = active.data.current.data.link;
+
+        const overData = over.data.current;
+        let overGroupId: string | null = null;
+        
+        // Determine the destination group's ID
+        if (overData?.type === 'tile') {
+            overGroupId = overData.data.group.id;
+        } else if (overData?.type === 'group-container') {
+            overGroupId = overId;
+        }
+
+        if (!activeGroupId || !overGroupId || !activeLink || active.id === over.id) {
+            return;
+        }
+
+        // Case 1: Reordering within the same group
+        if (activeGroupId === overGroupId) {
+            const group = toolGroups.find(g => g.id === activeGroupId);
+            if (group) {
+                const oldIndex = group.links.findIndex(l => l.url === activeId);
+                const newIndex = group.links.findIndex(l => l.url === overId);
+                
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    const reordered = arrayMove(group.links, oldIndex, newIndex);
+                    reorderLinks(activeGroupId, reordered);
+                }
+            }
+        } 
+        // Case 2: Moving to a different group
+        else {
+            let nextToolGroups = [...toolGroups];
+            const sourceGroupIndex = nextToolGroups.findIndex(g => g.id === activeGroupId);
+            const destinationGroupIndex = nextToolGroups.findIndex(g => g.id === overGroupId);
+
+            if (sourceGroupIndex === -1 || destinationGroupIndex === -1) return;
+
+            // 1. Remove link from source group
+            const sourceLinks = nextToolGroups[sourceGroupIndex].links.filter(l => l.url !== activeId);
+            nextToolGroups[sourceGroupIndex] = { ...nextToolGroups[sourceGroupIndex], links: sourceLinks };
+
+            // 2. Add link to destination group
+            let destinationLinks = [...nextToolGroups[destinationGroupIndex].links];
+            const overIndex = destinationLinks.findIndex(l => l.url === overId);
+
+            if (overIndex !== -1) { // Dropped on a tile
+                destinationLinks.splice(overIndex, 0, activeLink);
+            } else { // Dropped on the container
+                destinationLinks.push(activeLink);
+            }
+            nextToolGroups[destinationGroupIndex] = { ...nextToolGroups[destinationGroupIndex], links: destinationLinks };
+            
+            reorderGroups(nextToolGroups);
+        }
     }
   };
   
-  const handleContextMenu = (e: React.MouseEvent, tileId: string, groupTitle: string) => {
+  const handleContextMenu = (e: React.MouseEvent, tileId: string, groupId: string, groupTitle: string) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, tileId, groupTitle, isFav: isFavorite(tileId) });
+    setContextMenu({ x: e.clientX, y: e.clientY, tileId, groupId, groupTitle, isFav: isFavorite(tileId) });
   };
   
   const handleEditTileRequest = (tileId: string) => {
@@ -428,13 +477,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     setContextMenu(null);
   }
   
-  const handleAddLinkFromContextMenu = (groupTitle: string) => {
-      onAddLink(null, groupTitle);
+  const handleAddLinkFromContextMenu = (groupId: string) => {
+      onAddLink(null, groupId);
       setContextMenu(null);
   }
 
-  const handleDeleteLinkFromContextMenu = (groupTitle: string, url: string) => {
-    deleteLink(groupTitle, url);
+  const handleDeleteLinkFromContextMenu = (groupId: string, url: string) => {
+    deleteLink(groupId, url);
     setContextMenu(null);
   }
 
@@ -464,7 +513,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
   }
 
   const GroupSection = ({ group }: { group: ToolGroup }) => {
-    if (group.links.length === 0) return null;
+    const { setNodeRef } = useDroppable({
+        id: group.id,
+        data: {
+            type: 'group-container',
+            group,
+        },
+    });
+
+    if (isSearchActive && group.links.length === 0) {
+        return null;
+    }
 
     const groupTileConfigs = group.links.map(link => 
         tileConfigs.find(c => c.id === link.url)
@@ -472,26 +531,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
     return (
         <section 
-            key={group.title} 
-            id={group.title}
-            aria-labelledby={`group-header-${group.title}`} 
+            ref={setNodeRef}
+            key={group.id} 
+            id={group.id}
+            aria-labelledby={`group-header-${group.id}`} 
             className="scroll-mt-4"
         >
             <div
               ref={(el) => {
                   if (el) {
-                      groupRefs.current.set(group.title, el);
+                      groupRefs.current.set(group.id, el);
                   } else {
-                      groupRefs.current.delete(group.title);
+                      groupRefs.current.delete(group.id);
                   }
               }}
               className="group flex items-center gap-2 mb-4"
             >
                 <i className="material-icons text-2xl text-neutral-100">{group.icon}</i>
-                <h2 id={`group-header-${group.title}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
+                <h2 id={`group-header-${group.id}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
                 <span className="text-sm font-medium bg-neutral-700 text-neutral-300 px-2.5 py-1 rounded-full">{group.links.length}</span>
                 <button
-                    onClick={() => onAddLink(null, group.title)}
+                    onClick={() => onAddLink(null, group.id)}
                     className="ml-2 w-7 h-7 flex items-center justify-center rounded-full text-neutral-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-neutral-700 hover:text-white"
                     title={`Link zu "${group.title}" hinzufügen`}
                 >
@@ -499,13 +559,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                 </button>
             </div>
             <SortableContext items={group.links.map(l => l.url)} strategy={rectSortingStrategy}>
-                <div className="tile-grid">
+                <div className="tile-grid min-h-[128px] relative">
                     {groupTileConfigs.map(config => {
                         const data = allLinksMap.get(config.id);
                         if (!data) return null;
                         const isFav = isFavorite(config.id);
                         return <SortableTile key={config.id} config={config} data={data} isFavorite={isFav} onContextMenu={handleContextMenu} />;
                     })}
+                    {group.links.length === 0 && !isSearchActive && (
+                        <div className="absolute inset-0 flex items-center justify-center text-neutral-600 pointer-events-none">
+                            <p>Kachel hierher ziehen</p>
+                        </div>
+                    )}
                 </div>
             </SortableContext>
         </section>
@@ -544,7 +609,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
     return (
         <div className="space-y-10">
-            {groupsToRender.map(group => <GroupSection key={group.title} group={group} />)}
+            {groupsToRender.map(group => <GroupSection key={group.id} group={group} />)}
         </div>
     );
   };
@@ -602,11 +667,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                     </button>
                 </div>
                 <nav className="flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2 min-h-0">
-                    <SortableContext items={(isSearchActive ? filteredToolGroups : toolGroups).map(g => g.title)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(isSearchActive ? filteredToolGroups : toolGroups).map(g => g.id)} strategy={verticalListSortingStrategy}>
                         <ul className="space-y-1">
                             {(isSearchActive ? filteredToolGroups : toolGroups).map(group => (
                                 <SortableGroupNavItem 
-                                    key={group.title} 
+                                    key={group.id} 
                                     group={group} 
                                     activeGroup={activeGroup} 
                                     onClick={handleGroupNavClick}

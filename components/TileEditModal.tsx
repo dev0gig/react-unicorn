@@ -14,7 +14,7 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
   const [formData, setFormData] = useState({
     linkName: '',
     linkUrl: '',
-    groupTitle: '',
+    groupId: '',
   });
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
         setFormData({
             linkName: tileToEdit.link.name,
             linkUrl: tileToEdit.link.url,
-            groupTitle: tileToEdit.group.title,
+            groupId: tileToEdit.group.id,
         });
     }
   }, [isOpen, tileToEdit]);
@@ -36,14 +36,14 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
     e.preventDefault();
     if (!tileToEdit) return;
 
-    const { linkName, linkUrl, groupTitle } = formData;
-    if (linkName.trim() && linkUrl.trim() && groupTitle.trim()) {
-      const originalGroupTitle = tileToEdit.group.title;
+    const { linkName, linkUrl, groupId } = formData;
+    if (linkName.trim() && linkUrl.trim() && groupId.trim()) {
+      const originalGroupId = tileToEdit.group.id;
       const newLinkData = { name: linkName, url: linkUrl };
 
-      const groupChanged = groupTitle !== originalGroupTitle;
+      const groupChanged = groupId !== originalGroupId;
       
-      updateLink(originalGroupTitle, tileToEdit.link, newLinkData, groupChanged ? groupTitle : undefined);
+      updateLink(originalGroupId, tileToEdit.link, newLinkData, groupChanged ? groupId : undefined);
       
       onClose();
     }
@@ -121,14 +121,14 @@ export const TileEditModal: React.FC<TileEditModalProps> = ({ isOpen, onClose, t
                 <label htmlFor="tile-group-select" className="block text-sm font-medium text-neutral-300 mb-1">Gruppe</label>
                 <select
                   id="tile-group-select"
-                  name="groupTitle"
-                  value={formData.groupTitle}
+                  name="groupId"
+                  value={formData.groupId}
                   onChange={handleChange}
                   required
                   className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
                 >
                   {toolGroups.map(group => (
-                    <option key={group.title} value={group.title}>{group.title}</option>
+                    <option key={group.id} value={group.id}>{group.title}</option>
                   ))}
                 </select>
                 <p className="text-xs text-neutral-500 mt-1.5">Ändern Sie die Gruppe, um diese Kachel zu verschieben.</p>

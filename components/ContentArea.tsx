@@ -16,7 +16,7 @@ interface ContentAreaProps {
   onEditTemplate: (template: Template, category: string) => void;
   onEditCase: (fall: Evidenzfall) => void;
   onOpenSignatureModal: () => void;
-  onAddLink: (link: ToolLink | null, groupTitle?: string) => void;
+  onAddLink: (link: ToolLink | null, groupId?: string) => void;
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;

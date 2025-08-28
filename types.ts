@@ -12,6 +12,7 @@ export interface ToolLink {
 }
 
 export interface ToolGroup {
+  id: string;
   title: string;
   icon: string;
   links: ToolLink[];
@@ -26,14 +27,13 @@ export interface TileConfig {
 export interface DashboardContextType {
   toolGroups: ToolGroup[];
   addGroup: (title: string, icon: string) => void;
-  updateGroup: (oldTitle: string, newTitle: string, newIcon: string) => void;
-  deleteGroup: (title:string) => void;
-  addLink: (groupTitle: string, link: ToolLink) => void;
-  addLinkAndMaybeGroup: (link: ToolLink, groupTitle: string, newGroupIcon?: string) => void;
-  updateLink: (groupTitle: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupTitle?: string) => void;
-  deleteLink: (groupTitle: string, url: string) => void;
+  updateGroup: (groupId: string, newTitle: string, newIcon: string) => void;
+  deleteGroup: (groupId: string) => void;
+  addLink: (groupId: string, link: ToolLink) => void;
+  updateLink: (originalGroupId: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupId?: string) => void;
+  deleteLink: (groupId: string, url: string) => void;
   reorderGroups: (groups: ToolGroup[]) => void;
-  reorderLinks: (groupTitle: string, reorderedLinks: ToolLink[]) => void;
+  reorderLinks: (groupId: string, reorderedLinks: ToolLink[]) => void;
   tileConfigs: TileConfig[];
   reorderTiles: (items: TileConfig[]) => void;
 }

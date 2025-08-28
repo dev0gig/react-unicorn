@@ -102,7 +102,27 @@ function App(): React.ReactNode {
   
   // States
   const [favorites, setFavorites] = useState<ToolLink[]>(() => JSON.parse(localStorage.getItem('unicorn-favorites') || '[]'));
-  const [toolGroups, setToolGroups] = useState<ToolGroup[]>(() => JSON.parse(localStorage.getItem('unicorn-dashboard') || JSON.stringify(initialToolGroups)));
+  const [toolGroups, setToolGroups] = useState<ToolGroup[]>(() => {
+    const saved = localStorage.getItem('unicorn-dashboard');
+    let groups: any[] = saved ? JSON.parse(saved) : initialToolGroups;
+
+    // Migration: ensure every group has a unique ID for stability
+    let needsUpdate = false;
+    groups = groups.map(group => {
+      if (!group.id) {
+        needsUpdate = true;
+        // Using a more robust unique ID generation
+        return { ...group, id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}` };
+      }
+      return group;
+    });
+    
+    // Persist migrated data immediately if changes were made
+    if (needsUpdate) {
+        localStorage.setItem('unicorn-dashboard', JSON.stringify(groups));
+    }
+    return groups;
+  });
   const [faelle, setFaelle] = useState<Evidenzfall[]>(() => JSON.parse(localStorage.getItem('unicorn-faelle') || '[]'));
   const [archivedFaelle, setArchivedFaelle] = useState<Evidenzfall[]>(() => JSON.parse(localStorage.getItem('unicorn-archived-faelle') || '[]'));
   const [notes, setNotes] = useState<Note[]>(() => JSON.parse(localStorage.getItem('unicorn-notes') || JSON.stringify(initialNotes)));
@@ -147,7 +167,7 @@ function App(): React.ReactNode {
   const [itemToDelete, setItemToDelete] = useState<any | null>(null);
   const [categoriesToDelete, setCategoriesToDelete] = useState<any>(null);
   const [isToolLinkModalOpen, setToolLinkModalOpen] = useState(false);
-  const [linkToEdit, setLinkToEdit] = useState<{ link: ToolLink, groupTitle: string } | null>(null);
+  const [linkToEdit, setLinkToEdit] = useState<{ link: ToolLink, groupId: string } | null>(null);
   const [tileToEdit, setTileToEdit] = useState<{ link: ToolLink; group: ToolGroup } | null>(null);
   const [isDashboardHelpModalOpen, setIsDashboardHelpModalOpen] = useState(false);
   const [isToolGroupModalOpen, setIsToolGroupModalOpen] = useState(false);
@@ -283,76 +303,75 @@ function App(): React.ReactNode {
   // Dashboard
   const addGroup = useCallback((title: string, icon: string) => {
     setToolGroups(prev => {
-        const color = GROUP_COLORS[prev.length % GROUP_COLORS.length];
-        return [...prev, { title, icon, color, links: [] }];
-    });
-  }, []);
-  const updateGroup = useCallback((oldTitle: string, newTitle: string, newIcon: string) => {
-      setToolGroups(prev => prev.map(g => (g.title === oldTitle ? { ...g, title: newTitle, icon: newIcon } : g)));
-  }, []);
-  const deleteGroup = useCallback((title: string) => setItemToDelete({ type: 'toolGroup', title }), []);
-  const addLink = useCallback((groupTitle: string, link: ToolLink) => setToolGroups(prev => prev.map(g => g.title === groupTitle ? { ...g, links: [...g.links, link] } : g)), []);
-  const addLinkAndMaybeGroup = useCallback((link: ToolLink, groupTitle: string, newGroupIcon?: string) => {
-    setToolGroups(prev => {
-        const groupExists = prev.some(g => g.title === groupTitle);
-        if (groupExists) {
-            return prev.map(g => g.title === groupTitle ? { ...g, links: [...g.links, link] } : g);
-        } else if (newGroupIcon) {
-            const color = GROUP_COLORS[prev.length % GROUP_COLORS.length];
-            const newGroup: ToolGroup = { title: groupTitle, icon: newGroupIcon, color, links: [link] };
-            return [...prev, newGroup];
+        if (prev.some(g => g.title.toLowerCase() === title.toLowerCase())) {
+            setInfoModal({ isOpen: true, title: "Fehler", message: `Eine Gruppe mit dem Titel "${title}" existiert bereits.`, isError: true });
+            return prev;
         }
-        return prev;
+        const newGroup: ToolGroup = {
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            title,
+            icon,
+            color: GROUP_COLORS[prev.length % GROUP_COLORS.length],
+            links: []
+        };
+        return [...prev, newGroup];
     });
   }, []);
-  const updateLink = useCallback((groupTitle: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupTitle?: string) => {
-    const destinationGroupTitle = newGroupTitle || groupTitle;
+  const updateGroup = useCallback((groupId: string, newTitle: string, newIcon: string) => {
+      setToolGroups(prev => {
+        if (prev.some(g => g.title.toLowerCase() === newTitle.toLowerCase() && g.id !== groupId)) {
+            setInfoModal({ isOpen: true, title: "Fehler", message: `Eine Gruppe mit dem Titel "${newTitle}" existiert bereits.`, isError: true });
+            return prev;
+        }
+        return prev.map(g => (g.id === groupId ? { ...g, title: newTitle, icon: newIcon } : g));
+      });
+  }, []);
+  const deleteGroup = useCallback((groupId: string) => setItemToDelete({ type: 'toolGroup', id: groupId }), []);
+  const addLink = useCallback((groupId: string, link: ToolLink) => setToolGroups(prev => prev.map(g => g.id === groupId ? { ...g, links: [...g.links, link] } : g)), []);
+  const updateLink = useCallback((originalGroupId: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupId?: string) => {
+    const destinationGroupId = newGroupId || originalGroupId;
 
-    // If not moving group, just update in place
-    if (destinationGroupTitle === groupTitle) {
-        setToolGroups(prev => prev.map(g => {
-            if (g.title === groupTitle) {
-                return { ...g, links: g.links.map(l => l.url === linkToUpdate.url ? newLink : l) };
-            }
-            return g;
-        }));
-    } else { // Moving group
-        setToolGroups(prev => {
-            const linkData = newLink; // The link to move is the updated one
-            
-            const groupsAfterRemoval = prev.map(g => {
-                if (g.title === groupTitle) {
+    setToolGroups(prev => {
+        let groupsAfterRemoval = prev;
+        // If moving group, remove from original first
+        if (originalGroupId !== destinationGroupId) {
+            groupsAfterRemoval = prev.map(g => {
+                if (g.id === originalGroupId) {
                     return { ...g, links: g.links.filter(l => l.url !== linkToUpdate.url) };
                 }
                 return g;
             });
-
-            return groupsAfterRemoval.map(g => {
-                if (g.title === destinationGroupTitle) {
-                    return { ...g, links: [...g.links, linkData] };
-                }
-                return g;
-            });
+        }
+        
+        // Add/update in the destination group
+        return groupsAfterRemoval.map(g => {
+            if (g.id === destinationGroupId) {
+                const newLinks = originalGroupId === destinationGroupId 
+                    ? g.links.map(l => l.url === linkToUpdate.url ? newLink : l)
+                    : [...g.links, newLink];
+                return { ...g, links: newLinks };
+            }
+            return g;
         });
-    }
+    });
 
     if (linkToUpdate.url !== newLink.url) {
       setTileConfigs(prev => prev.map(c => c.id === linkToUpdate.url ? { ...c, id: newLink.url } : c));
     }
   }, []);
-  const deleteLink = useCallback((groupTitle: string, url: string) => setItemToDelete({ type: 'toolLink', groupTitle, url }), []);
+  const deleteLink = useCallback((groupId: string, url: string) => setItemToDelete({ type: 'toolLink', groupId, url }), []);
   const reorderGroups = useCallback((groups: ToolGroup[]) => {
       setToolGroups(groups);
   }, []);
-  const reorderLinks = useCallback((groupTitle: string, reorderedLinks: ToolLink[]) => {
+  const reorderLinks = useCallback((groupId: string, reorderedLinks: ToolLink[]) => {
     setToolGroups(prev =>
-        prev.map(g => (g.title === groupTitle ? { ...g, links: reorderedLinks } : g))
+        prev.map(g => (g.id === groupId ? { ...g, links: reorderedLinks } : g))
     );
   }, []);
   const reorderTiles = useCallback((items: TileConfig[]) => {
       setTileConfigs(items);
   }, []);
-  const dashboardContextValue = useMemo(() => ({ toolGroups, addGroup, updateGroup, deleteGroup, addLink, addLinkAndMaybeGroup, updateLink, deleteLink, reorderGroups, reorderLinks, tileConfigs, reorderTiles }), [toolGroups, addGroup, updateGroup, deleteGroup, addLink, addLinkAndMaybeGroup, updateLink, deleteLink, reorderGroups, reorderLinks, tileConfigs, reorderTiles]);
+  const dashboardContextValue = useMemo(() => ({ toolGroups, addGroup, updateGroup, deleteGroup, addLink, updateLink, deleteLink, reorderGroups, reorderLinks, tileConfigs, reorderTiles }), [toolGroups, addGroup, updateGroup, deleteGroup, addLink, updateLink, deleteLink, reorderGroups, reorderLinks, tileConfigs, reorderTiles]);
 
 
   // Favorites
@@ -508,9 +527,11 @@ function App(): React.ReactNode {
     if (!dataToImport) return;
     
     if (dataToImport.toolGroups) {
-      const importedGroups: ToolGroup[] = dataToImport.toolGroups;
+      let importedGroups: any[] = dataToImport.toolGroups;
+      // Migration for imported groups to add IDs and colors
       const newToolGroups = importedGroups.map((group, index) => ({
         ...group,
+        id: group.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         color: GROUP_COLORS[index % GROUP_COLORS.length]
       }));
       setToolGroups(newToolGroups);
@@ -564,11 +585,11 @@ function App(): React.ReactNode {
                 }
                 break;
             case 'toolGroup':
-                setToolGroups(prev => prev.filter(g => g.title !== itemToDelete.title));
+                setToolGroups(prev => prev.filter(g => g.id !== itemToDelete.id));
                 break;
             case 'toolLink':
                  setToolGroups(prev => prev.map(g => {
-                    if (g.title === itemToDelete.groupTitle) {
+                    if (g.id === itemToDelete.groupId) {
                         return { ...g, links: g.links.filter(l => l.url !== itemToDelete.url) };
                     }
                     return g;
@@ -623,10 +644,10 @@ function App(): React.ReactNode {
       setTemplateToEdit(template && category ? { template, category } : null);
       setIsTemplateModalOpen(true);
   };
-  const openToolLinkModal = (link: ToolLink | null, groupTitle?: string) => {
+  const openToolLinkModal = (link: ToolLink | null, groupId?: string) => {
     setLinkToEdit({ 
         link: link || { name: '', url: '' }, 
-        groupTitle: groupTitle || '' 
+        groupId: groupId || '' 
     });
     setToolLinkModalOpen(true);
   };

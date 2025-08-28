@@ -6,18 +6,20 @@ interface ToolGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   groupToEdit: ToolGroup | null;
-  onDelete: (title: string) => void;
+  onDelete: (groupId: string) => void;
 }
 
 export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose, groupToEdit, onDelete }) => {
-  const { addGroup, updateGroup, deleteGroup } = useDashboard();
+  const { toolGroups, addGroup, updateGroup } = useDashboard();
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState('');
+  const [error, setError] = useState('');
   
   const isEditMode = groupToEdit !== null;
 
   useEffect(() => {
     if (isOpen) {
+      setError('');
       if (isEditMode) {
         setTitle(groupToEdit.title);
         setIcon(groupToEdit.icon);
@@ -30,19 +32,34 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim() && icon.trim()) {
-       if (isEditMode) {
-          updateGroup(groupToEdit.title, title, icon);
-       } else {
-          addGroup(title, icon);
-       }
-      onClose();
+    setError('');
+
+    if (!title.trim() || !icon.trim()) {
+        setError("Titel und Icon dürfen nicht leer sein.");
+        return;
     }
+    
+    const titleExists = toolGroups.some(g => 
+        g.title.toLowerCase() === title.trim().toLowerCase() && 
+        (!isEditMode || g.id !== groupToEdit.id)
+    );
+
+    if (titleExists) {
+        setError('Eine Gruppe mit diesem Titel existiert bereits.');
+        return;
+    }
+    
+    if (isEditMode) {
+        updateGroup(groupToEdit.id, title.trim(), icon.trim());
+    } else {
+        addGroup(title.trim(), icon.trim());
+    }
+    onClose();
   };
   
   const handleDelete = () => {
     if (isEditMode) {
-        onDelete(groupToEdit.title);
+        onDelete(groupToEdit.id);
         onClose();
     }
   };
@@ -112,6 +129,7 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
                   Verfügbare Icons finden
                 </a>
               </div>
+              {error && <p className="text-red-400 text-sm">{error}</p>}
               <div className="flex justify-between items-center pt-2">
                 <div>
                   {isEditMode && (
