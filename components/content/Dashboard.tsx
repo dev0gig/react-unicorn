@@ -18,7 +18,6 @@ import {
   SortableContext,
   useSortable,
   rectSortingStrategy,
-  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -28,6 +27,7 @@ interface DashboardProps {
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
   onOpenHelp: () => void;
+  onOpenReorderModal: () => void;
 }
 
 const TileContextMenu: React.FC<{
@@ -199,44 +199,18 @@ const SortableTile: React.FC<{
   );
 };
 
-const SortableGroupNavItem: React.FC<{
+const GroupNavItem: React.FC<{
   group: ToolGroup;
   activeGroup: string | null;
   onClick: (groupId: string) => void;
   onEdit: (group: ToolGroup) => void;
 }> = ({ group, activeGroup, onClick, onEdit }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: group.id, data: { type: 'group', group } });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className={`relative transition-opacity duration-300 ${isDragging ? 'opacity-30 z-10' : ''}`}
-      {...attributes}
-    >
+    <li className="relative">
       <div className="group flex items-center relative">
-        <div
-          {...listeners}
-          className="absolute left-0 top-1/2 -translate-y-1/2 p-2 text-neutral-500 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-          title={`Gruppe "${group.title}" verschieben`}
-        >
-          <i className="material-icons text-xl">drag_indicator</i>
-        </div>
         <button
           onClick={() => onClick(group.id)}
-          className={`w-full text-left flex items-center gap-3 p-2 rounded-md transition-colors pl-10 pr-8 ${
+          className={`w-full text-left flex items-center gap-3 p-2 rounded-md transition-colors pl-4 pr-8 ${
             activeGroup === group.id
               ? 'bg-orange-500/20 text-orange-400 font-semibold'
               : 'text-neutral-400 hover:bg-neutral-700/50 hover:text-neutral-200'
@@ -258,7 +232,7 @@ const SortableGroupNavItem: React.FC<{
 };
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal }) => {
   const { toolGroups, tileConfigs, deleteLink, reorderGroups, reorderLinks } = useDashboard();
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
   
@@ -361,13 +335,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const { type, config, data, group } = active.data.current || {};
+    const { type, config, data } = active.data.current || {};
     
     document.body.style.cursor = 'grabbing';
     if (type === 'tile' && config && data) {
       setActiveItem({ type: 'tile', config, data });
-    } else if (type === 'group' && group) {
-      setActiveItem({ type: 'group', group });
     }
   };
 
@@ -380,16 +352,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     
     const activeType = active.data.current.type;
 
-    // Handle group reordering
-    if (activeType === 'group' && active.id !== over.id) {
-        const oldIndex = toolGroups.findIndex(g => g.id === active.id);
-        const newIndex = toolGroups.findIndex(g => g.id === over.id);
-        if (oldIndex !== -1 && newIndex !== -1) {
-            reorderGroups(arrayMove(toolGroups, oldIndex, newIndex));
-        }
-        return;
-    }
-    
     // Handle tile dragging (reorder or move between groups)
     if (activeType === 'tile') {
         const activeId = active.id.toString();
@@ -499,16 +461,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
         return <Tile config={activeItem.config} data={activeItem.data} isFavorite={isFav} isOverlay={true} onContextMenu={() => {}} />;
     }
     
-    if (activeItem.type === 'group') {
-        const { group } = activeItem;
-        return (
-            <div className="p-4 rounded-lg bg-neutral-700/80 backdrop-blur-sm shadow-2xl flex items-center gap-3 w-64" style={{ pointerEvents: 'none' }}>
-                <i className="material-icons text-orange-400">{group.icon}</i>
-                <span className="font-semibold text-neutral-100 truncate">{group.title}</span>
-            </div>
-        );
-    }
-
     return null;
   }
 
@@ -643,6 +595,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                   )}
               </div>
               <button
+                onClick={onOpenReorderModal}
+                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                title="Gruppen anordnen"
+              >
+                <i className="material-icons mr-2 text-base">view_quilt</i>
+                Anordnen
+              </button>
+              <button
                 onClick={onOpenHelp}
                 className="flex items-center bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
                 title="Anleitung anzeigen"
@@ -667,19 +627,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                     </button>
                 </div>
                 <nav className="flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2 min-h-0">
-                    <SortableContext items={(isSearchActive ? filteredToolGroups : toolGroups).map(g => g.id)} strategy={verticalListSortingStrategy}>
-                        <ul className="space-y-1">
-                            {(isSearchActive ? filteredToolGroups : toolGroups).map(group => (
-                                <SortableGroupNavItem 
-                                    key={group.id} 
-                                    group={group} 
-                                    activeGroup={activeGroup} 
-                                    onClick={handleGroupNavClick}
-                                    onEdit={onEditGroup}
-                                />
-                            ))}
-                        </ul>
-                    </SortableContext>
+                    <ul className="space-y-1">
+                        {(isSearchActive ? filteredToolGroups : toolGroups).map(group => (
+                            <GroupNavItem 
+                                key={group.id} 
+                                group={group} 
+                                activeGroup={activeGroup} 
+                                onClick={handleGroupNavClick}
+                                onEdit={onEditGroup}
+                            />
+                        ))}
+                    </ul>
                 </nav>
               </aside>
               

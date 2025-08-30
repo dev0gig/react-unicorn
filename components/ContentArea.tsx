@@ -21,10 +21,11 @@ interface ContentAreaProps {
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
   onOpenHelp: () => void;
+  onOpenReorderModal: () => void;
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
-  const { activeView, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp } = props;
+  const { activeView, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal } = props;
   const renderContent = () => {
     switch (activeView) {
       case 'Profil':
@@ -36,6 +37,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
                   onAddGroup={onAddGroup}
                   onEditGroup={onEditGroup}
                   onOpenHelp={onOpenHelp}
+                  onOpenReorderModal={onOpenReorderModal}
                />;
       case 'Kontakte':
         return <Kontakte onAdd={onAddContact} onEdit={onEditContact} />;

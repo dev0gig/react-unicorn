@@ -15,6 +15,7 @@ import { TileEditModal } from './components/TileEditModal';
 import { ToolGroupModal } from './components/ToolGroupModal';
 import { DashboardHelpModal } from './components/DashboardHelpModal';
 import { InfoModal } from './components/InfoModal';
+import { ReorderGroupsModal } from './components/ReorderGroupsModal';
 
 // Initial Data
 import { initialContacts } from './data/initialContacts';
@@ -173,6 +174,7 @@ function App(): React.ReactNode {
   const [isToolGroupModalOpen, setIsToolGroupModalOpen] = useState(false);
   const [groupToEdit, setGroupToEdit] = useState<ToolGroup | null>(null);
   const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; message: string; isError?: boolean } | null>(null);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
 
 
   // Effects for localStorage persistence
@@ -692,6 +694,7 @@ function App(): React.ReactNode {
                                         onAddGroup={() => openGroupModal(null)}
                                         onEditGroup={openGroupModal}
                                         onOpenHelp={() => setIsDashboardHelpModalOpen(true)}
+                                        onOpenReorderModal={() => setIsReorderModalOpen(true)}
                                     />
                                 </main>
                                 <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
@@ -710,6 +713,7 @@ function App(): React.ReactNode {
                                     onDelete={deleteGroup} 
                                 />
                                 <DashboardHelpModal isOpen={isDashboardHelpModalOpen} onClose={() => setIsDashboardHelpModalOpen(false)} />
+                                <ReorderGroupsModal isOpen={isReorderModalOpen} onClose={() => setIsReorderModalOpen(false)} />
                                 
                                 <InfoModal
                                     isOpen={!!infoModal}

@@ -11,7 +11,7 @@ import {
   arrayMove,
   SortableContext,
   useSortable,
-  rectSortingStrategy,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDashboard } from '../App';
@@ -30,7 +30,7 @@ const SortableGroup: React.FC<{ group: ToolGroup }> = ({ group }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: group.title });
+  } = useSortable({ id: group.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -88,8 +88,8 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
 
     if (over && active.id !== over.id) {
       setItems((currentItems) => {
-        const oldIndex = currentItems.findIndex((item) => item.title === active.id);
-        const newIndex = currentItems.findIndex((item) => item.title === over.id);
+        const oldIndex = currentItems.findIndex((item) => item.id === active.id);
+        const newIndex = currentItems.findIndex((item) => item.id === over.id);
         if (oldIndex > -1 && newIndex > -1) {
             return arrayMove(currentItems, oldIndex, newIndex);
         }
@@ -106,7 +106,7 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
           onClick={handleDone}
         >
           <div
-            className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col border border-neutral-700"
+            className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col border border-neutral-700"
             onClick={(e) => e.stopPropagation()}
           >
             <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">
@@ -129,10 +129,10 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
                 >
-                    <SortableContext items={items.map(item => item.title)} strategy={rectSortingStrategy}>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-3">
                             {items.map(group => (
-                                <SortableGroup key={group.title} group={group} />
+                                <SortableGroup key={group.id} group={group} />
                             ))}
                         </div>
                     </SortableContext>
