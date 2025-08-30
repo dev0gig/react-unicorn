@@ -78,12 +78,12 @@ export const DashboardHelpModal: React.FC<DashboardHelpModalProps> = ({ isOpen, 
                     <p>Die Gruppenliste in der linken Seitenleiste bietet mehrere Verwaltungsoptionen:</p>
                     <ul className="list-disc list-inside mt-2 space-y-1">
                         <li><strong>Hinzufügen:</strong> Erstellen Sie eine neue, leere Gruppe mit dem <i className="material-icons text-sm align-middle">add</i> Button neben der "Gruppen"-Überschrift.</li>
-                        <li><strong>Bearbeiten:</strong> Fahren Sie mit der Maus über einen Gruppennamen und klicken Sie auf das erscheinende <i className="material-icons text-sm align-middle">edit</i> Icon, um Titel, Icon und Farbe zu ändern oder die Gruppe zu löschen.</li>
+                        <li><strong>Bearbeiten:</strong> Fahren Sie mit der Maus über einen Gruppennamen und klicken Sie auf das erscheinende <i className="material-icons text-sm align-middle">edit</i> Icon, um Titel und Icon zu ändern oder die Gruppe zu löschen.</li>
                     </ul>
                 </HelpItem>
 
                 <HelpItem icon="drag_handle" title="Anordnen per Drag & Drop">
-                    <p>Sie können sowohl einzelne Kacheln (innerhalb ihrer Gruppe) als auch ganze Gruppen in der Seitenleiste per Drag & Drop verschieben. Fahren Sie mit der Maus über eine Gruppe und ziehen Sie sie am erscheinenden <i className="material-icons text-sm align-middle">drag_indicator</i> Icon, um die Reihenfolge zu ändern.</p>
+                     <p>Sie können einzelne Kacheln innerhalb und zwischen Gruppen verschieben. Um die Reihenfolge der Gruppen selbst zu ändern, klicken Sie auf den <span className="inline-flex items-center bg-neutral-700 px-2 py-0.5 rounded-md text-sm font-semibold"><i className="material-icons text-sm mr-1">view_quilt</i>Anordnen</span> Button in der Kopfzeile des Dashboards. In dem neuen Fenster können Sie die Gruppen per Drag & Drop sortieren.</p>
                 </HelpItem>
                 
                  <HelpItem icon="star" title="Favoriten verwalten">
