@@ -63,18 +63,24 @@ const DropdownField: React.FC<{
 
 export const TextGenerator: React.FC = () => {
     const [contactMethod, setContactMethod] = useState('Mail');
+    const [idThrough, setIdThrough] = useState('');
     const [ticketNumber, setTicketNumber] = useState('');
     const [sdStatus, setSdStatus] = useState('SD aktuell');
     const [customerIssue, setCustomerIssue] = useState('');
     const [suggestion, setSuggestion] = useState('');
-    const [initials, setInitials] = useState('');
+    const [initials, setInitials] = useState(() => localStorage.getItem('unicorn-hk-initials') || '');
 
     const [isCopied, setIsCopied] = useState(false);
     const copyTimeoutRef = useRef<number | null>(null);
+    
+    useEffect(() => {
+        localStorage.setItem('unicorn-hk-initials', initials);
+    }, [initials]);
 
     const generatedText = useMemo(() => {
         const parts = [];
         if (contactMethod) parts.push(contactMethod);
+        if (idThrough.trim()) parts.push(idThrough.trim());
         if (ticketNumber.trim()) parts.push(ticketNumber.trim());
         if (sdStatus) parts.push(sdStatus);
 
@@ -93,7 +99,7 @@ export const TextGenerator: React.FC = () => {
         }
         
         return result.trim();
-    }, [contactMethod, ticketNumber, sdStatus, customerIssue, suggestion, initials]);
+    }, [contactMethod, idThrough, ticketNumber, sdStatus, customerIssue, suggestion, initials]);
 
     const handleCopy = () => {
         if (!generatedText || !navigator.clipboard) return;
@@ -106,11 +112,12 @@ export const TextGenerator: React.FC = () => {
     
     const handleReset = () => {
         setContactMethod('Mail');
+        setIdThrough('');
         setTicketNumber('');
         setSdStatus('SD aktuell');
         setCustomerIssue('');
         setSuggestion('');
-        setInitials('');
+        // Initials are intentionally not reset to persist them.
     };
     
     useEffect(() => {
@@ -142,6 +149,13 @@ export const TextGenerator: React.FC = () => {
                         options={['Mail', 'Persönlich', 'Telefonisch']}
                      />
                      <InputField
+                        id="id-through"
+                        label="ID durch"
+                        value={idThrough}
+                        onChange={(e) => setIdThrough(e.target.value)}
+                        placeholder="GP, VK, Ausweis..."
+                     />
+                     <InputField
                         id="ticket-number"
                         label="Ticketnummer"
                         value={ticketNumber}
@@ -153,7 +167,7 @@ export const TextGenerator: React.FC = () => {
                         label="SD geprüft"
                         value={sdStatus}
                         onChange={(e) => setSdStatus(e.target.value)}
-                        options={['SD aktuell', 'SD vergessen', 'SD konnte nicht geprüft werden']}
+                        options={['SD aktuell', 'SD vergessen', 'SD nicht geprüft']}
                      />
                      <TextareaField
                         id="customer-issue"
