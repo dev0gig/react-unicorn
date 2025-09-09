@@ -80,8 +80,8 @@ export const TextGenerator: React.FC = () => {
     const generatedText = useMemo(() => {
         const parts = [];
         if (contactMethod) parts.push(contactMethod);
-        if (idThrough.trim()) parts.push(idThrough.trim());
         if (ticketNumber.trim()) parts.push(ticketNumber.trim());
+        if (idThrough.trim()) parts.push(`ID durch ${idThrough.trim()}`);
         if (sdStatus) parts.push(sdStatus);
 
         const issueAndSuggestion = [];
@@ -91,7 +91,7 @@ export const TextGenerator: React.FC = () => {
         if (issueAndSuggestion.length > 0) {
             parts.push(issueAndSuggestion.join(' ; '));
         }
-
+        
         let result = parts.join(' | ');
 
         if (initials.trim()) {
@@ -149,18 +149,18 @@ export const TextGenerator: React.FC = () => {
                         options={['Mail', 'Persönlich', 'Telefonisch']}
                      />
                      <InputField
-                        id="id-through"
-                        label="ID durch"
-                        value={idThrough}
-                        onChange={(e) => setIdThrough(e.target.value)}
-                        placeholder="GP, VK, Ausweis..."
-                     />
-                     <InputField
                         id="ticket-number"
                         label="Ticketnummer"
                         value={ticketNumber}
                         onChange={(e) => setTicketNumber(e.target.value)}
                         placeholder="z.B. T123456"
+                     />
+                     <InputField
+                        id="id-through"
+                        label="ID durch"
+                        value={idThrough}
+                        onChange={(e) => setIdThrough(e.target.value)}
+                        placeholder="GP, VK, Ausweis..."
                      />
                      <DropdownField
                         id="sd-status"
