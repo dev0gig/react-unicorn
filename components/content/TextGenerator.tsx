@@ -61,23 +61,40 @@ const DropdownField: React.FC<{
     </div>
 );
 
+const STORAGE_KEY = 'unicorn-hk-generator-data';
+
 export const TextGenerator: React.FC = () => {
-    const [contactMethod, setContactMethod] = useState('Mail');
-    const [idThrough, setIdThrough] = useState('');
-    const [ticketNumber, setTicketNumber] = useState('');
-    const [sdStatus, setSdStatus] = useState('SD aktuell');
-    const [customerIssue, setCustomerIssue] = useState('');
-    const [suggestion, setSuggestion] = useState('');
-    const [initials, setInitials] = useState(() => localStorage.getItem('unicorn-hk-initials') || '');
+    const [formData, setFormData] = useState(() => {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            try {
+                return JSON.parse(savedData);
+            } catch (e) {
+                console.error("Failed to parse HK Generator data from localStorage", e);
+            }
+        }
+        // Migration from old initials storage for backward compatibility
+        const savedInitials = localStorage.getItem('unicorn-hk-initials');
+        return {
+            contactMethod: 'Mail',
+            idThrough: '',
+            ticketNumber: '',
+            sdStatus: 'SD aktuell',
+            customerIssue: '',
+            suggestion: '',
+            initials: savedInitials || '',
+        };
+    });
 
     const [isCopied, setIsCopied] = useState(false);
     const copyTimeoutRef = useRef<number | null>(null);
     
     useEffect(() => {
-        localStorage.setItem('unicorn-hk-initials', initials);
-    }, [initials]);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    }, [formData]);
 
     const generatedText = useMemo(() => {
+        const { contactMethod, idThrough, ticketNumber, sdStatus, customerIssue, suggestion, initials } = formData;
         const parts = [];
         if (contactMethod) parts.push(contactMethod);
         if (ticketNumber.trim()) parts.push(ticketNumber.trim());
@@ -99,7 +116,7 @@ export const TextGenerator: React.FC = () => {
         }
         
         return result.trim();
-    }, [contactMethod, idThrough, ticketNumber, sdStatus, customerIssue, suggestion, initials]);
+    }, [formData]);
 
     const handleCopy = () => {
         if (!generatedText || !navigator.clipboard) return;
@@ -111,15 +128,24 @@ export const TextGenerator: React.FC = () => {
     };
     
     const handleReset = () => {
-        setContactMethod('Mail');
-        setIdThrough('');
-        setTicketNumber('');
-        setSdStatus('SD aktuell');
-        setCustomerIssue('');
-        setSuggestion('');
-        // Initials are intentionally not reset to persist them.
+        setFormData((prev: any) => ({
+            contactMethod: 'Mail',
+            idThrough: '',
+            ticketNumber: '',
+            sdStatus: 'SD aktuell',
+            customerIssue: '',
+            suggestion: '',
+            initials: prev.initials, // Keep initials
+        }));
     };
     
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { id, value } = e.target;
+        // Convert kebab-case id to camelCase state key (e.g., 'contact-method' -> 'contactMethod')
+        const key = id.replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
+        setFormData((prev: any) => ({ ...prev, [key]: value }));
+    };
+
     useEffect(() => {
         return () => {
             if (copyTimeoutRef.current) {
@@ -144,50 +170,50 @@ export const TextGenerator: React.FC = () => {
                      <DropdownField
                         id="contact-method"
                         label="Kontaktaufnahme"
-                        value={contactMethod}
-                        onChange={(e) => setContactMethod(e.target.value)}
+                        value={formData.contactMethod}
+                        onChange={handleChange}
                         options={['Mail', 'Persönlich', 'Telefonisch']}
                      />
                      <InputField
                         id="ticket-number"
                         label="Ticketnummer"
-                        value={ticketNumber}
-                        onChange={(e) => setTicketNumber(e.target.value)}
+                        value={formData.ticketNumber}
+                        onChange={handleChange}
                         placeholder="z.B. T123456"
                      />
                      <InputField
                         id="id-through"
                         label="ID durch"
-                        value={idThrough}
-                        onChange={(e) => setIdThrough(e.target.value)}
+                        value={formData.idThrough}
+                        onChange={handleChange}
                         placeholder="GP, VK, Ausweis..."
                      />
                      <DropdownField
                         id="sd-status"
                         label="SD geprüft"
-                        value={sdStatus}
-                        onChange={(e) => setSdStatus(e.target.value)}
-                        options={['SD aktuell', 'SD vergessen', 'SD nicht geprüft']}
+                        value={formData.sdStatus}
+                        onChange={handleChange}
+                        options={['SD aktuell', 'SD vergessen', 'SD nicht geprüft', 'sd prüf. nicht möglich']}
                      />
                      <TextareaField
                         id="customer-issue"
                         label="Kundenanliegen"
-                        value={customerIssue}
-                        onChange={(e) => setCustomerIssue(e.target.value)}
+                        value={formData.customerIssue}
+                        onChange={handleChange}
                         placeholder="Was ist das Problem des Kunden?"
                      />
                      <TextareaField
                         id="suggestion"
                         label="Vorschlag / Lösung"
-                        value={suggestion}
-                        onChange={(e) => setSuggestion(e.target.value)}
+                        value={formData.suggestion}
+                        onChange={handleChange}
                         placeholder="Was wurde vorgeschlagen oder getan?"
                      />
                      <InputField
                         id="initials"
                         label="Kürzel"
-                        value={initials}
-                        onChange={(e) => setInitials(e.target.value)}
+                        value={formData.initials}
+                        onChange={handleChange}
                         placeholder="Ihre Initialen"
                      />
                 </div>
