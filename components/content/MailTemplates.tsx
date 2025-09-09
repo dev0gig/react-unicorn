@@ -32,7 +32,6 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
     const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [openCategories, setOpenCategories] = useState<string[]>([]);
 
     const { selectedTemplate, selectedCategory } = useMemo(() => {
         if (!selectedTemplateId) {
@@ -77,31 +76,11 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
             const firstGroup = filteredTemplateGroups[0];
             const firstTemplate = firstGroup.templates[0];
             setSelectedTemplateId(firstTemplate.id);
-
-            // Auto-open the category for the new selection if it's not already open
-            if (!openCategories.includes(firstGroup.category)) {
-                setOpenCategories(prev => [...prev, firstGroup.category]);
-            }
         } else {
             // 3. If there's nothing to select, clear the selection
             setSelectedTemplateId(null);
         }
-    }, [filteredTemplateGroups, selectedTemplateId, openCategories]);
-
-
-     useEffect(() => {
-        if(searchTerm) {
-            setOpenCategories(filteredTemplateGroups.map(g => g.category));
-        }
-    }, [searchTerm, filteredTemplateGroups]);
-
-    const toggleCategory = (category: string) => {
-        setOpenCategories(prev =>
-            prev.includes(category)
-                ? prev.filter(c => c !== category)
-                : [...prev, category]
-        );
-    };
+    }, [filteredTemplateGroups, selectedTemplateId]);
 
     const handleSelectTemplate = (template: Template, category: string) => {
         setSelectedTemplateId(template.id);
@@ -188,43 +167,31 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     <div className="overflow-y-auto pr-4 custom-scrollbar">
                         <div className="space-y-4">
                             {filteredTemplateGroups.length > 0 ? (
-                                filteredTemplateGroups.map(group => {
-                                    const isOpen = openCategories.includes(group.category);
-                                    return (
+                                filteredTemplateGroups.map(group => (
                                     <div key={group.category} className="bg-neutral-800/50 rounded-lg overflow-hidden transition-colors duration-300 border border-neutral-700">
-                                        <button
-                                            onClick={() => toggleCategory(group.category)}
-                                            className="w-full flex items-center justify-between p-4 text-left transition-colors duration-200"
+                                        <div
+                                            className="w-full flex items-center justify-between p-4 text-left"
                                         >
                                             <h2 className="text-lg font-bold text-neutral-100">{group.category}</h2>
-                                            <i
-                                                className={`material-icons text-neutral-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                                            >
-                                                expand_more
-                                            </i>
-                                        </button>
-                                        {isOpen && (
-                                            <div className="overflow-hidden">
-                                                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 p-4 pt-0">
-                                                    {group.templates.map(template => (
-                                                        <button
-                                                            key={template.id}
-                                                            onClick={() => handleSelectTemplate(template, group.category)}
-                                                            className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${
-                                                                selectedTemplateId === template.id
-                                                                    ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
-                                                                    : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
-                                                            }`}
-                                                            title={template.title}
-                                                        >
-                                                            {template.title}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 p-4 pt-0">
+                                            {group.templates.map(template => (
+                                                <button
+                                                    key={template.id}
+                                                    onClick={() => handleSelectTemplate(template, group.category)}
+                                                    className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${
+                                                        selectedTemplateId === template.id
+                                                            ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
+                                                            : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
+                                                    }`}
+                                                    title={template.title}
+                                                >
+                                                    {template.title}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    )}
+                                    )
                                 )
                             ) : (
                                 <div className="text-center py-10 px-4 text-neutral-500">
