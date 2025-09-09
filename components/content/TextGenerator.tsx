@@ -15,6 +15,7 @@ const InputField: React.FC<{
             value={value}
             onChange={onChange}
             placeholder={placeholder}
+            autoComplete="off"
             className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
         />
     </div>
@@ -36,6 +37,7 @@ const TextareaField: React.FC<{
             onChange={onChange}
             placeholder={placeholder}
             rows={rows}
+            autoComplete="off"
             className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all resize-y custom-scrollbar"
         />
     </div>
@@ -193,7 +195,7 @@ export const TextGenerator: React.FC = () => {
                         label="SD geprüft"
                         value={formData.sdStatus}
                         onChange={handleChange}
-                        options={['SD aktuell', 'SD vergessen', 'SD nicht geprüft', 'sd prüf. nicht möglich']}
+                        options={['SD aktuell', 'SD vergessen', 'SD nicht geprüft', 'SD Prüf. nicht möglich']}
                      />
                      <TextareaField
                         id="customer-issue"
