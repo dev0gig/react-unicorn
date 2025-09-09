@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useContacts, useTemplates, useFavorites, useDashboard, useNotes, useEvidenz, useSchedule } from '../../App';
-import type { ToolLink, ToolGroup, ScheduleEvent } from '../../types';
+import type { ViewName, ToolLink, ToolGroup, ScheduleEvent, Note } from '../../types';
 import { HolidayInfoModal } from '../HolidayInfoModal';
+
+interface ProfileProps {
+    setActiveView: (view: ViewName) => void;
+    setHighlightedNoteId: (id: string | null) => void;
+}
 
 const toLocalDateKey = (date: Date): string => {
     const year = date.getFullYear();
@@ -434,7 +439,7 @@ const DualCalendarWidget: React.FC<{onDateSelect: (date: Date) => void}> = ({ on
     );
 };
 
-const MetricsCard: React.FC = () => {
+const MetricsCard: React.FC<{ setActiveView: (view: ViewName) => void }> = ({ setActiveView }) => {
     const { contacts } = useContacts();
     const { notes } = useNotes();
     const { faelle } = useEvidenz();
@@ -444,20 +449,24 @@ const MetricsCard: React.FC = () => {
     const totalTemplates = templateGroups.reduce((acc, group) => acc + group.templates.length, 0);
 
     const metrics = [
-        { icon: 'people', value: contacts.length, label: 'Kontakte' },
-        { icon: 'note_alt', value: notes.length, label: 'Notizen' },
-        { icon: 'gavel', value: activeFaelleCount, label: 'Evidenzfälle' },
-        { icon: 'drafts', value: totalTemplates, label: 'Vorlagen' },
+        { icon: 'people', value: contacts.length, label: 'Kontakte', view: 'Kontakte' as ViewName },
+        { icon: 'note_alt', value: notes.length, label: 'Notizen', view: 'Notizen' as ViewName },
+        { icon: 'gavel', value: activeFaelleCount, label: 'Evidenzfälle', view: 'Evidenzfälle' as ViewName },
+        { icon: 'drafts', value: totalTemplates, label: 'Vorlagen', view: 'Mail Vorlagen' as ViewName },
     ];
     return (
         <Card title="Auf einen Blick" icon="query_stats">
             <div className="grid grid-cols-2 gap-4 h-full">
                 {metrics.map(metric => (
-                    <div key={metric.label} className="bg-neutral-900/70 p-3 rounded-lg flex flex-col items-center justify-center text-center">
+                     <button 
+                        key={metric.label}
+                        onClick={() => setActiveView(metric.view)}
+                        className="bg-neutral-900/70 p-3 rounded-lg flex flex-col items-center justify-center text-center transition-colors hover:bg-neutral-700/80 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
                         <i className="material-icons text-3xl text-neutral-400">{metric.icon}</i>
                         <span className="text-2xl font-bold mt-1 text-neutral-100">{metric.value}</span>
                         <span className="text-xs text-neutral-500">{metric.label}</span>
-                    </div>
+                    </button>
                 ))}
             </div>
         </Card>
@@ -467,6 +476,8 @@ const MetricsCard: React.FC = () => {
 const FavoritesCard: React.FC = () => {
     const { favorites } = useFavorites();
     const { toolGroups } = useDashboard();
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
     
     const allLinksMap = useMemo(() => {
         const map = new Map<string, { link: ToolLink; group: ToolGroup }>();
@@ -474,30 +485,69 @@ const FavoritesCard: React.FC = () => {
         return map;
     }, [toolGroups]);
 
-    const favoriteItems = favorites.slice(0, 8).map(fav => allLinksMap.get(fav.url)).filter(Boolean as any as (x: any) => x is { link: ToolLink; group: ToolGroup });
+    const favoriteItems = favorites.map(fav => allLinksMap.get(fav.url)).filter(Boolean as any as (x: any) => x is { link: ToolLink; group: ToolGroup });
+
+    const totalPages = Math.ceil(favoriteItems.length / itemsPerPage);
+    const paginatedItems = favoriteItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
 
     return (
         <Card title="Favoriten" icon="star">
-            {favoriteItems.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {favoriteItems.map(item => (
-                        <a key={item.link.url} href={item.link.url} target="_blank" rel="noopener noreferrer" 
-                           className="flex items-center gap-2 p-2 rounded-md transition-colors hover:bg-neutral-700/50"
-                           style={{ color: 'white' }}
-                        >
-                            <div className="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center" style={{backgroundColor: item.group.color}}>
-                                <i className="material-icons text-base">{item.group.icon}</i>
-                            </div>
-                            <span className="text-sm font-medium truncate">{item.link.name}</span>
-                        </a>
-                    ))}
+            <div className="flex flex-col h-full">
+                <div className="flex-grow min-h-[200px]">
+                    {favoriteItems.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {paginatedItems.map(item => (
+                                <a key={item.link.url} href={item.link.url} target="_blank" rel="noopener noreferrer" 
+                                   className="flex items-center gap-2 p-2 rounded-md transition-colors hover:bg-neutral-700/50"
+                                   style={{ color: 'white' }}
+                                >
+                                    <div className="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center" style={{backgroundColor: item.group.color}}>
+                                        <i className="material-icons text-base">{item.group.icon}</i>
+                                    </div>
+                                    <span className="text-sm font-medium truncate">{item.link.name}</span>
+                                </a>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex h-full items-center justify-center">
+                            <p className="text-sm text-neutral-500">Keine Favoriten festgelegt.</p>
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <p className="text-sm text-neutral-500 h-full flex items-center justify-center">Keine Favoriten festgelegt.</p>
-            )}
+
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center pt-4 flex-shrink-0">
+                        <button 
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                            disabled={currentPage === 1} 
+                            className="p-1 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
+                        >
+                            <i className="material-icons">chevron_left</i>
+                        </button>
+                        <span className="text-neutral-400 text-sm mx-2">
+                            Seite {currentPage} von {totalPages}
+                        </span>
+                        <button 
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                            disabled={currentPage === totalPages} 
+                            className="p-1 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
+                        >
+                            <i className="material-icons">chevron_right</i>
+                        </button>
+                    </div>
+                )}
+            </div>
         </Card>
     );
 };
+
 
 const AgendaWidget: React.FC<{
     selectedDate: Date | null;
@@ -683,7 +733,7 @@ const AgendaWidget: React.FC<{
     );
 };
 
-const RecentNotesWidget: React.FC = () => {
+const RecentNotesWidget: React.FC<{ onNoteClick: (noteId: string) => void }> = ({ onNoteClick }) => {
     const { notes } = useNotes();
 
     const recentNotes = useMemo(() => {
@@ -692,31 +742,29 @@ const RecentNotesWidget: React.FC = () => {
             .slice(0, 8);
     }, [notes]);
 
-    const getNoteExcerpt = (content: string) => {
-        const lines = content.split('\n').filter(line => line.trim() !== '');
-        if (lines.length === 0) return 'Leere Notiz';
-        
-        let firstLine = lines[0].replace(/^#+\s*/, '');
-        
-        const maxLength = 80;
-        return firstLine.length > maxLength ? firstLine.substring(0, maxLength) + '...' : firstLine;
-    };
-
     return (
         <Card title="Letzte Notizen" icon="history_edu" className="h-full">
             <div className="flex flex-col h-full">
                 {recentNotes.length > 0 ? (
-                    <div className="space-y-3 flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2">
-                        {recentNotes.map(note => (
-                            <div key={note.id} className="p-3 bg-neutral-900/70 rounded-lg transition-colors hover:bg-neutral-700/50">
-                                <p className="text-sm font-semibold text-neutral-200 truncate" title={getNoteExcerpt(note.content)}>
-                                    {getNoteExcerpt(note.content)}
-                                </p>
-                                <p className="text-xs text-neutral-500 mt-1">
-                                    {new Date(note.lastModified).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                            </div>
-                        ))}
+                    <div className="flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {recentNotes.map(note => (
+                                <button
+                                    key={note.id}
+                                    onClick={() => onNoteClick(note.id)}
+                                    className="p-3 bg-neutral-900/70 rounded-lg transition-colors hover:bg-neutral-700/50 text-left flex flex-col h-28 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                >
+                                    <div className="flex-grow overflow-hidden">
+                                        <p className="text-sm font-normal text-neutral-200" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={note.content}>
+                                            {note.content.replace(/^#+\s*/, '').trim() || '...'}
+                                        </p>
+                                    </div>
+                                    <p className="text-xs text-neutral-500 mt-1 flex-shrink-0">
+                                        {new Date(note.lastModified).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 ) : (
                     <div className="flex-grow flex items-center justify-center">
@@ -728,45 +776,9 @@ const RecentNotesWidget: React.FC = () => {
     );
 };
 
-const OpenEvidenceCasesWidget: React.FC = () => {
-    const { faelle } = useEvidenz();
-
-    const openCases = useMemo(() => {
-        return faelle
-            .filter(f => f.column !== 'fertig')
-            .sort((a, b) => parseInt(b.id) - parseInt(a.id)) // Newest first
-            .slice(0, 8);
-    }, [faelle]);
-
-    return (
-        <Card title="Offene Evidenzfälle" icon="folder_open" className="h-full">
-            <div className="flex flex-col h-full">
-                {openCases.length > 0 ? (
-                    <div className="space-y-3 flex-grow overflow-y-auto custom-scrollbar pr-2 -mr-2">
-                        {openCases.map(fall => (
-                            <div key={fall.id} className="p-3 bg-neutral-900/70 rounded-lg">
-                                <p className="text-sm font-semibold text-neutral-200 truncate" title={fall.gpvk}>
-                                    {fall.gpvk}
-                                </p>
-                                <p className="text-xs text-neutral-400 mt-1 truncate" title={fall.description}>
-                                    {fall.description || 'Keine Beschreibung'}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex-grow flex items-center justify-center">
-                        <p className="text-sm text-neutral-500">Keine offenen Fälle.</p>
-                    </div>
-                )}
-            </div>
-        </Card>
-    );
-};
-
 // --- MAIN PROFILE COMPONENT ---
 
-export const Profile: React.FC = () => {
+export const Profile: React.FC<ProfileProps> = ({ setActiveView, setHighlightedNoteId }) => {
     const [date, setDate] = useState(new Date());
     const [selectedAgendaDate, setSelectedAgendaDate] = useState<Date | null>(null);
 
@@ -774,6 +786,11 @@ export const Profile: React.FC = () => {
         const timer = setInterval(() => setDate(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
+
+    const handleNoteClick = useCallback((noteId: string) => {
+        setHighlightedNoteId(noteId);
+        setActiveView('Notizen');
+    }, [setActiveView, setHighlightedNoteId]);
 
     const handleScrollComplete = useCallback(() => {
         setSelectedAgendaDate(null);
@@ -791,7 +808,7 @@ export const Profile: React.FC = () => {
             <main className="flex flex-col gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <WeatherWidget />
-                    <MetricsCard />
+                    <MetricsCard setActiveView={setActiveView} />
                     <FavoritesCard />
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -799,9 +816,8 @@ export const Profile: React.FC = () => {
                         <div className="flex-shrink-0">
                             <DualCalendarWidget onDateSelect={setSelectedAgendaDate} />
                         </div>
-                        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 min-h-0">
-                            <RecentNotesWidget />
-                            <OpenEvidenceCasesWidget />
+                        <div className="flex-grow min-h-0">
+                           <RecentNotesWidget onNoteClick={handleNoteClick} />
                         </div>
                     </div>
                     <div className="h-full">

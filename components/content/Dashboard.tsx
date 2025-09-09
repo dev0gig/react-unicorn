@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useFavorites, useDashboard } from '../../App';
 import { ToolLink, ToolGroup, TileConfig } from '../../types';
@@ -30,138 +30,24 @@ interface DashboardProps {
   onOpenReorderModal: () => void;
 }
 
-const TileContextMenu: React.FC<{
-  x: number;
-  y: number;
-  tileId: string;
-  groupId: string;
-  groupTitle: string;
-  isFav: boolean;
-  onClose: () => void;
-  onEdit: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
-  onAddLink: (link: null, groupId: string) => void;
-  onDeleteLink: (groupId: string, url: string) => void;
-}> = (props) => {
-  const { x, y, tileId, groupId, groupTitle, isFav, onClose, onEdit, onToggleFavorite, onAddLink, onDeleteLink } = props;
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [style, setStyle] = useState<React.CSSProperties>({
-    position: 'fixed',
-    top: y,
-    left: x,
-    visibility: 'hidden',
-  });
-
-  useLayoutEffect(() => {
-    if (menuRef.current) {
-      const menuRect = menuRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      let newLeft = x;
-      let newTop = y;
-
-      // Adjust horizontally if it overflows the right edge
-      if (x + menuRect.width > viewportWidth) {
-        newLeft = x - menuRect.width;
-      }
-
-      // Adjust vertically if it overflows the bottom edge
-      if (y + menuRect.height > viewportHeight) {
-        newTop = y - menuRect.height;
-      }
-
-      // Ensure it doesn't go off-screen on the top or left after adjustment
-      if (newLeft < 5) newLeft = 5;
-      if (newTop < 5) newTop = 5;
-
-      setStyle(prev => ({ ...prev, top: newTop, left: newLeft, visibility: 'visible' }));
-    }
-  }, [x, y]);
-
-  useEffect(() => {
-    const handleClickOutside = () => onClose();
-    const handleEscape = (e: KeyboardEvent) => {
-        if(e.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('click', handleClickOutside);
-    window.addEventListener('contextmenu', handleClickOutside, true);
-    window.addEventListener('keydown', handleEscape);
-    return () => {
-        window.removeEventListener('click', handleClickOutside);
-        window.removeEventListener('contextmenu', handleClickOutside, true);
-        window.removeEventListener('keydown', handleEscape);
-    }
-  }, [onClose]);
-
-  return ReactDOM.createPortal(
-    <div
-      ref={menuRef}
-      style={style}
-      className="fixed bg-neutral-800 border border-neutral-700 rounded-lg shadow-2xl p-2 z-50 text-sm animate-fade-in-fast flex flex-col gap-1 w-48"
-      onClick={(e) => e.stopPropagation()}
-    >
-        <button
-          onClick={() => { onToggleFavorite(tileId); onClose(); }}
-          className="w-full text-left text-neutral-200 px-2 py-1.5 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2"
-        >
-          <i className="material-icons text-base text-yellow-400">{isFav ? 'star' : 'star_outline'}</i>
-          <span>{isFav ? 'Von Favoriten entfernen' : 'Zu Favoriten'}</span>
-        </button>
-       <button
-          onClick={() => { onEdit(tileId); onClose(); }}
-          className="w-full text-left text-neutral-200 px-2 py-1.5 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2"
-        >
-          <i className="material-icons text-base">edit</i>
-          <span>Bearbeiten</span>
-        </button>
-        <button
-          onClick={() => { onDeleteLink(groupId, tileId); onClose(); }}
-          className="w-full text-left text-neutral-200 px-2 py-1.5 rounded-md hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2"
-        >
-          <i className="material-icons text-base">delete</i>
-          <span>Löschen</span>
-        </button>
-        <button
-          onClick={() => { onAddLink(null, groupId); onClose(); }}
-          className="w-full text-left text-neutral-200 px-2 py-1.5 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2"
-        >
-          <i className="material-icons text-base">add</i>
-          <span>Link hinzufügen</span>
-        </button>
-    </div>,
-    document.body
-  );
-};
-
 const Tile: React.FC<{
   config: TileConfig;
   data: { link: ToolLink; group: ToolGroup };
   isFavorite: boolean;
-  isOverlay?: boolean;
-  onContextMenu: (e: React.MouseEvent, tileId: string, groupId: string, groupTitle: string) => void;
-}> = ({ config, data, isFavorite, isOverlay, onContextMenu }) => {
-    
-    const handleClick = (e: React.MouseEvent) => {
-        if (e.defaultPrevented) return; // to prevent click on drag
-        e.preventDefault();
-        window.open(data.link.url, '_blank', 'noopener,noreferrer');
-    }
-    
+}> = ({ config, data, isFavorite }) => {
     return (
       <div
         className={`tile size-${config.size}`}
         style={{ backgroundColor: data.group.color || '#f97316' }}
-        onClick={handleClick}
-        onContextMenu={(e) => onContextMenu(e, config.id, data.group.id, data.group.title)}
       >
+        {isFavorite && (
+            <i className="material-icons favorite-star" title="Favorit">star</i>
+        )}
         <i className="material-icons tile-icon">{data.group.icon}</i>
         <div>
           <span className="tile-group-label">{data.group.title}</span>
           <span className="tile-label">{data.link.name}</span>
         </div>
-        {isFavorite && <i className="material-icons tile-favorite-star">grade</i>}
       </div>
     );
 };
@@ -170,8 +56,10 @@ const SortableTile: React.FC<{
   config: TileConfig;
   data: { link: ToolLink; group: ToolGroup };
   isFavorite: boolean;
-  onContextMenu: (e: React.MouseEvent, tileId: string, groupId: string, groupTitle: string) => void;
-}> = ({ config, data, isFavorite, onContextMenu }) => {
+  onEdit: (data: { link: ToolLink; group: ToolGroup }) => void;
+  onDelete: (groupId: string, url: string) => void;
+  onToggleFavorite: (link: ToolLink) => void;
+}> = ({ config, data, isFavorite, onEdit, onDelete, onToggleFavorite }) => {
   const {
     attributes,
     listeners,
@@ -179,22 +67,75 @@ const SortableTile: React.FC<{
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: config.id, data: { type: 'tile', config, data } });
+  } = useSortable({ id: config.id, data: { type: 'tile', config, data, isFavorite } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  
+  const handleClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.tile-actions')) {
+        return;
+    }
+    if (e.defaultPrevented) return; // to prevent click on drag
+    e.preventDefault();
+    window.open(data.link.url, '_blank', 'noopener,noreferrer');
+  }
+
+  // To prevent drag from starting when clicking on actions
+  const handleActionInteraction = (e: React.PointerEvent) => {
+    e.stopPropagation();
+  };
+
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`tile-wrapper size-${config.size} touch-none transition-opacity duration-300 ${isDragging ? 'opacity-30' : ''}`}
+      className={`tile-wrapper group relative size-${config.size} touch-none transition-opacity duration-300 ${isDragging ? 'opacity-30' : ''}`}
     >
-        <Tile config={config} data={data} isFavorite={isFavorite} onContextMenu={onContextMenu} />
+      {!isDragging && (
+        <div 
+            className="tile-actions absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-neutral-900 backdrop-blur-sm p-1 rounded-full border border-neutral-700 shadow-lg transform group-hover:-translate-y-1"
+            onPointerDown={handleActionInteraction}
+        >
+            <button
+                onClick={() => onToggleFavorite(data.link)}
+                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+            >
+                <i className="material-icons text-base" style={{ color: isFavorite ? '#fbbf24' : 'currentColor' }}>{isFavorite ? 'star' : 'star_border'}</i>
+            </button>
+            <button
+                onClick={() => onEdit(data)}
+                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                title="Bearbeiten"
+            >
+                <i className="material-icons text-base">edit</i>
+            </button>
+            <button
+                onClick={() => onDelete(data.group.id, data.link.url)}
+                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-red-500 transition-colors"
+                title="Löschen"
+            >
+                <i className="material-icons text-base">delete</i>
+            </button>
+        </div>
+      )}
+
+      <div
+        {...attributes}
+        {...listeners}
+        onClick={handleClick}
+        className="w-full h-full"
+      >
+        <Tile 
+            config={config} 
+            data={data}
+            isFavorite={isFavorite}
+        />
+      </div>
     </div>
   );
 };
@@ -234,12 +175,11 @@ const GroupNavItem: React.FC<{
 
 export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal }) => {
   const { toolGroups, tileConfigs, deleteLink, reorderGroups, reorderLinks } = useDashboard();
-  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   
   const [activeItem, setActiveItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-  const [contextMenu, setContextMenu] = useState<{x: number; y: number; tileId: string; groupId: string; groupTitle: string; isFav: boolean;} | null>(null);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const groupRefs = useRef<Map<string, HTMLElement | null>>(new Map());
   const activeIntersections = useRef(new Map<string, IntersectionObserverEntry>());
@@ -335,11 +275,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const { type, config, data } = active.data.current || {};
+    const { type, config, data, isFavorite } = active.data.current || {};
     
     document.body.style.cursor = 'grabbing';
     if (type === 'tile' && config && data) {
-      setActiveItem({ type: 'tile', config, data });
+      setActiveItem({ type: 'tile', config, data, isFavorite });
     }
   };
 
@@ -415,40 +355,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     }
   };
   
-  const handleContextMenu = (e: React.MouseEvent, tileId: string, groupId: string, groupTitle: string) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, tileId, groupId, groupTitle, isFav: isFavorite(tileId) });
-  };
-  
-  const handleEditTileRequest = (tileId: string) => {
-    const data = allLinksMap.get(tileId);
-    if (data) {
-        onEditTile(data);
-    }
-    setContextMenu(null); // Close context menu after initiating edit
-  };
-
-  const handleToggleFavorite = (tileId: string) => {
-    const data = allLinksMap.get(tileId);
-    if (!data) return;
-    if (isFavorite(tileId)) {
-        removeFavorite(tileId);
+  const handleToggleFavorite = (link: ToolLink) => {
+    if (isFavorite(link.url)) {
+        removeFavorite(link.url);
     } else {
-        addFavorite(data.link);
+        addFavorite(link);
     }
-    setContextMenu(null);
   }
   
-  const handleAddLinkFromContextMenu = (groupId: string) => {
-      onAddLink(null, groupId);
-      setContextMenu(null);
-  }
-
-  const handleDeleteLinkFromContextMenu = (groupId: string, url: string) => {
-    deleteLink(groupId, url);
-    setContextMenu(null);
-  }
-
   const handleGroupNavClick = (groupId: string) => {
     groupRefs.current.get(groupId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -457,8 +371,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     if (!activeItem) return null;
 
     if (activeItem.type === 'tile') {
-        const isFav = isFavorite(activeItem.config.id);
-        return <Tile config={activeItem.config} data={activeItem.data} isFavorite={isFav} isOverlay={true} onContextMenu={() => {}} />;
+        return <Tile 
+                    config={activeItem.config} 
+                    data={activeItem.data}
+                    isFavorite={activeItem.isFavorite}
+                />;
     }
     
     return null;
@@ -516,7 +433,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                         const data = allLinksMap.get(config.id);
                         if (!data) return null;
                         const isFav = isFavorite(config.id);
-                        return <SortableTile key={config.id} config={config} data={data} isFavorite={isFav} onContextMenu={handleContextMenu} />;
+                        return <SortableTile 
+                                    key={config.id} 
+                                    config={config} 
+                                    data={data} 
+                                    isFavorite={isFav} 
+                                    onEdit={onEditTile} 
+                                    onDelete={deleteLink} 
+                                    onToggleFavorite={handleToggleFavorite}
+                                />;
                     })}
                     {group.links.length === 0 && !isSearchActive && (
                         <div className="absolute inset-0 flex items-center justify-center text-neutral-600 pointer-events-none">
@@ -653,17 +578,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                 document.body
             )}
         </DndContext>
-
-        {contextMenu && 
-            <TileContextMenu 
-                {...contextMenu} 
-                onClose={() => setContextMenu(null)} 
-                onEdit={handleEditTileRequest}
-                onToggleFavorite={handleToggleFavorite}
-                onAddLink={handleAddLinkFromContextMenu}
-                onDeleteLink={handleDeleteLinkFromContextMenu}
-            />
-        }
     </div>
   );
 };

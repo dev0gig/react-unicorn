@@ -5,6 +5,11 @@ import rehypeRaw from 'rehype-raw';
 import { useNotes } from '../../App';
 import type { Note } from '../../types';
 
+interface NotizenProps {
+    highlightedNoteId: string | null;
+    setHighlightedNoteId: (id: string | null) => void;
+}
+
 const applyFormatting = (e: React.KeyboardEvent<HTMLTextAreaElement>, setContent: (value: string) => void) => {
     const shortcuts: { [key: string]: string } = {
         '*': '**', // Bold
@@ -149,7 +154,7 @@ const NoteItem: React.FC<{
 };
 
 
-export const Notizen: React.FC = () => {
+export const Notizen: React.FC<NotizenProps> = ({ highlightedNoteId, setHighlightedNoteId }) => {
     const { notes, addNote, updateNote, deleteNote } = useNotes();
     const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
     const [newNoteContent, setNewNoteContent] = useState('');
@@ -157,11 +162,76 @@ export const Notizen: React.FC = () => {
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
     const importFileRef = useRef<HTMLInputElement>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const notesPerPage = 5;
+    const noteRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+    const notesPerPage = 20;
 
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, selectedTag]);
+
+    const sortedNotes = useMemo(() => {
+        return [...notes].sort((a, b) => b.lastModified - a.lastModified);
+    }, [notes]);
+    
+    const searchedNotes = useMemo(() => {
+        if (!searchTerm.trim()) {
+            return sortedNotes;
+        }
+        const searchTermLower = searchTerm.toLowerCase();
+        return sortedNotes.filter(note => 
+            note.content.toLowerCase().includes(searchTermLower)
+        );
+    }, [sortedNotes, searchTerm]);
+
+    const filteredNotes = useMemo(() => {
+        if (!selectedTag) {
+            return searchedNotes;
+        }
+        
+        return searchedNotes.filter(note => {
+            const tagRegex = /(^|\s)#(?![\s#])([^\s.,;!?:)]+)/g;
+            const matches = note.content.matchAll(tagRegex);
+            for (const match of matches) {
+                if (`#${match[2]}` === selectedTag) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }, [searchedNotes, selectedTag]);
+
+    useEffect(() => {
+        if (highlightedNoteId) {
+            const noteIndex = filteredNotes.findIndex(n => n.id === highlightedNoteId);
+            if (noteIndex > -1) {
+                const targetPage = Math.floor(noteIndex / notesPerPage) + 1;
+
+                if (currentPage !== targetPage) {
+                    setCurrentPage(targetPage);
+                    return; 
+                }
+
+                const element = noteRefs.current.get(highlightedNoteId);
+                if (element) {
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.classList.add('highlight-note');
+                        
+                        setTimeout(() => {
+                            element.classList.remove('highlight-note');
+                            setHighlightedNoteId(null);
+                        }, 3000);
+                    }, 50);
+                } else {
+                    setHighlightedNoteId(null);
+                }
+
+            } else {
+                setHighlightedNoteId(null);
+            }
+        }
+    }, [highlightedNoteId, currentPage, filteredNotes, notesPerPage, setHighlightedNoteId]);
+
 
     const triggerImport = () => {
         importFileRef.current?.click();
@@ -209,20 +279,6 @@ export const Notizen: React.FC = () => {
         setNewNoteContent('');
         setIsCreatingNewNote(false);
     };
-
-    const sortedNotes = useMemo(() => {
-        return [...notes].sort((a, b) => b.lastModified - a.lastModified);
-    }, [notes]);
-    
-    const searchedNotes = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return sortedNotes;
-        }
-        const searchTermLower = searchTerm.toLowerCase();
-        return sortedNotes.filter(note => 
-            note.content.toLowerCase().includes(searchTermLower)
-        );
-    }, [sortedNotes, searchTerm]);
     
     const availableTags = useMemo(() => {
         const tagRegex = /(^|\s)#(?![\s#])([^\s.,;!?:)]+)/g;
@@ -244,23 +300,6 @@ export const Notizen: React.FC = () => {
             .sort(([, countA], [, countB]) => countB - countA)
             .map(([tag]) => tag);
     }, [searchedNotes]);
-
-    const filteredNotes = useMemo(() => {
-        if (!selectedTag) {
-            return searchedNotes;
-        }
-        
-        return searchedNotes.filter(note => {
-            const tagRegex = /(^|\s)#(?![\s#])([^\s.,;!?:)]+)/g;
-            const matches = note.content.matchAll(tagRegex);
-            for (const match of matches) {
-                if (`#${match[2]}` === selectedTag) {
-                    return true;
-                }
-            }
-            return false;
-        });
-    }, [searchedNotes, selectedTag]);
 
     const paginatedNotes = useMemo(() => {
         const startIndex = (currentPage - 1) * notesPerPage;
@@ -309,7 +348,18 @@ export const Notizen: React.FC = () => {
                     <div className="flex-grow overflow-y-auto custom-scrollbar pr-4 -mr-4 min-h-0">
                         <div className="space-y-4">
                             {paginatedNotes.length > 0 ? paginatedNotes.map(note => (
-                                <NoteItem key={note.id} note={note} onUpdate={updateNote} onDelete={deleteNote} />
+                                // FIX: The ref callback for a React component must not return a value.
+                                // The original code `ref={el => noteRefs.current.set(note.id, el)}` implicitly returned the result of `Map.set()`.
+                                // This is fixed by using a block statement and also handling the case where the element is unmounted (el is null).
+                                <div key={note.id} ref={el => {
+                                    if (el) {
+                                        noteRefs.current.set(note.id, el);
+                                    } else {
+                                        noteRefs.current.delete(note.id);
+                                    }
+                                }}>
+                                   <NoteItem note={note} onUpdate={updateNote} onDelete={deleteNote} />
+                                </div>
                             )) : (
                                  <div className="text-center py-10 px-4 text-neutral-500 h-full flex flex-col items-center justify-center">
                                     <i className="material-icons text-5xl mb-2">{notes.length === 0 ? 'note_add' : 'search_off'}</i>

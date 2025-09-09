@@ -11,6 +11,9 @@ import { TextGenerator } from './content/TextGenerator';
 
 interface ContentAreaProps {
   activeView: ViewName;
+  setActiveView: (view: ViewName) => void;
+  highlightedNoteId: string | null;
+  setHighlightedNoteId: (id: string | null) => void;
   onAddContact: () => void;
   onEditContact: (contact: Contact) => void;
   onAddTemplate: () => void;
@@ -27,11 +30,11 @@ interface ContentAreaProps {
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
-  const { activeView, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal } = props;
+  const { activeView, setActiveView, highlightedNoteId, setHighlightedNoteId, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal } = props;
   const renderContent = () => {
     switch (activeView) {
       case 'Profil':
-        return <Profile />;
+        return <Profile setActiveView={setActiveView} setHighlightedNoteId={setHighlightedNoteId} />;
       case 'Dashboard':
         return <Dashboard 
                   onAddLink={onAddLink} 
@@ -46,7 +49,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'Mail Vorlagen':
         return <MailTemplates onAdd={onAddTemplate} onEdit={onEditTemplate} onOpenSignatureModal={onOpenSignatureModal} />;
       case 'Notizen':
-        return <Notizen />;
+        return <Notizen highlightedNoteId={highlightedNoteId} setHighlightedNoteId={setHighlightedNoteId} />;
       case 'Evidenzfälle':
         return <Evidenzfaelle onEdit={onEditCase} onAddCaseClick={onAddCaseClick} />;
       case 'HK - Generator':
@@ -54,7 +57,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
       default:
-        return <Profile />;
+        return <Profile setActiveView={setActiveView} setHighlightedNoteId={setHighlightedNoteId} />;
     }
   };
 

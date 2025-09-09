@@ -102,6 +102,7 @@ function App(): React.ReactNode {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // States
+  const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<ToolLink[]>(() => JSON.parse(localStorage.getItem('unicorn-favorites') || '[]'));
   const [toolGroups, setToolGroups] = useState<ToolGroup[]>(() => {
     const saved = localStorage.getItem('unicorn-dashboard');
@@ -682,6 +683,9 @@ function App(): React.ReactNode {
                                 <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
                                     <ContentArea 
                                         activeView={activeView} 
+                                        setActiveView={setActiveView}
+                                        highlightedNoteId={highlightedNoteId}
+                                        setHighlightedNoteId={setHighlightedNoteId}
                                         onAddContact={() => openContactModal()}
                                         onEditContact={openContactModal}
                                         onAddTemplate={() => openTemplateModal()}

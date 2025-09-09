@@ -87,7 +87,7 @@ const DateTimeWidget: React.FC<{
             <div className="absolute top-0 right-0" ref={menuRef}>
                 <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
                     title="Werkzeuge"
                 >
                     <i className="material-icons">settings</i>
