@@ -29,11 +29,23 @@ const Toast: React.FC<{ message: string; onDismiss: () => void; }> = ({ message,
 export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onOpenSignatureModal }) => {
     const { templateGroups, deleteTemplate } = useTemplates();
     const { signatures, activeSignatureId, setActiveSignatureId } = useSignatures();
-    const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [openCategories, setOpenCategories] = useState<string[]>([]);
+
+    const { selectedTemplate, selectedCategory } = useMemo(() => {
+        if (!selectedTemplateId) {
+            return { selectedTemplate: null, selectedCategory: null };
+        }
+        for (const group of templateGroups) {
+            const template = group.templates.find(t => t.id === selectedTemplateId);
+            if (template) {
+                return { selectedTemplate: template, selectedCategory: group.category };
+            }
+        }
+        return { selectedTemplate: null, selectedCategory: null }; // Not found
+    }, [selectedTemplateId, templateGroups]);
 
     const filteredTemplateGroups = useMemo(() => {
         if (!searchTerm.trim()) {
@@ -49,32 +61,33 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                 );
                 return filteredTemplates.length > 0 ? { ...group, templates: filteredTemplates } : null;
             })
-            .filter(group => group !== null);
+            .filter((group): group is NonNullable<typeof group> => group !== null);
     }, [searchTerm, templateGroups]);
 
     useEffect(() => {
-        if (templateGroups.length > 0 && templateGroups[0].templates.length > 0) {
-            if (!selectedTemplate) {
-                setSelectedTemplate(templateGroups[0].templates[0]);
-                setSelectedCategory(templateGroups[0].category);
-                setOpenCategories([templateGroups[0].category]);
+        // 1. Check if the current selection is still valid and visible in the filtered list
+        const isSelectedVisible = selectedTemplateId && filteredTemplateGroups.some(g => g.templates.some(t => t.id === selectedTemplateId));
+
+        if (isSelectedVisible) {
+            return; // Selection is good, do nothing.
+        }
+
+        // 2. If not, try to select the first available template in the filtered list
+        if (filteredTemplateGroups.length > 0 && filteredTemplateGroups[0].templates.length > 0) {
+            const firstGroup = filteredTemplateGroups[0];
+            const firstTemplate = firstGroup.templates[0];
+            setSelectedTemplateId(firstTemplate.id);
+
+            // Auto-open the category for the new selection if it's not already open
+            if (!openCategories.includes(firstGroup.category)) {
+                setOpenCategories(prev => [...prev, firstGroup.category]);
             }
         } else {
-             setSelectedTemplate(null);
-             setSelectedCategory(null);
+            // 3. If there's nothing to select, clear the selection
+            setSelectedTemplateId(null);
         }
-    }, [templateGroups]);
+    }, [filteredTemplateGroups, selectedTemplateId, openCategories]);
 
-    useEffect(() => {
-        const isSelectedVisible = filteredTemplateGroups.some(g => g.templates.some(t => t.id === selectedTemplate?.id));
-        if (!isSelectedVisible && filteredTemplateGroups.length > 0 && filteredTemplateGroups[0].templates.length > 0) {
-            setSelectedTemplate(filteredTemplateGroups[0].templates[0]);
-            setSelectedCategory(filteredTemplateGroups[0].category);
-        } else if (filteredTemplateGroups.length === 0) {
-            setSelectedTemplate(null);
-            setSelectedCategory(null);
-        }
-    }, [filteredTemplateGroups, selectedTemplate?.id]);
 
      useEffect(() => {
         if(searchTerm) {
@@ -91,8 +104,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
     };
 
     const handleSelectTemplate = (template: Template, category: string) => {
-        setSelectedTemplate(template);
-        setSelectedCategory(category);
+        setSelectedTemplateId(template.id);
     };
 
     const handleCopy = () => {
@@ -199,7 +211,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                                                             key={template.id}
                                                             onClick={() => handleSelectTemplate(template, group.category)}
                                                             className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${
-                                                                selectedTemplate?.id === template.id
+                                                                selectedTemplateId === template.id
                                                                     ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
                                                                     : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
                                                             }`}
