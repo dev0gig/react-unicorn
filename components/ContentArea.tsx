@@ -7,6 +7,7 @@ import { Notizen } from './content/Notizen';
 import { Evidenzfaelle } from './content/Evidenzfaelle';
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
 import { Profile } from './content/Profile';
+import { TextGenerator } from './content/TextGenerator';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -15,6 +16,7 @@ interface ContentAreaProps {
   onAddTemplate: () => void;
   onEditTemplate: (template: Template, category: string) => void;
   onEditCase: (fall: Evidenzfall) => void;
+  onAddCaseClick: () => void;
   onOpenSignatureModal: () => void;
   onAddLink: (link: ToolLink | null, groupId?: string) => void;
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
@@ -25,7 +27,7 @@ interface ContentAreaProps {
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
-  const { activeView, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal } = props;
+  const { activeView, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal } = props;
   const renderContent = () => {
     switch (activeView) {
       case 'Profil':
@@ -46,7 +48,9 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'Notizen':
         return <Notizen />;
       case 'Evidenzfälle':
-        return <Evidenzfaelle onEdit={onEditCase} />;
+        return <Evidenzfaelle onEdit={onEditCase} onAddCaseClick={onAddCaseClick} />;
+      case 'HK - Generator':
+        return <TextGenerator />;
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
       default:

@@ -674,7 +674,6 @@ function App(): React.ReactNode {
                                 <Sidebar 
                                     activeView={activeView} 
                                     setActiveView={setActiveView} 
-                                    onAddCaseClick={() => openCaseModal()}
                                     onFavoritesClick={() => setIsFavoritesModalOpen(true)}
                                     onExportClick={() => setIsExportModalOpen(true)}
                                     onImportClick={triggerImport}
@@ -688,6 +687,7 @@ function App(): React.ReactNode {
                                         onAddTemplate={() => openTemplateModal()}
                                         onEditTemplate={openTemplateModal}
                                         onEditCase={openCaseModal}
+                                        onAddCaseClick={() => openCaseModal()}
                                         onOpenSignatureModal={() => setIsSignatureModalOpen(true)}
                                         onAddLink={openToolLinkModal}
                                         onEditTile={openTileEditModal}

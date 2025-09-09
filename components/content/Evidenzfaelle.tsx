@@ -127,9 +127,10 @@ const KanbanColumn: React.FC<{ id: KanbanColumnId; title: string; faelle: Eviden
 
 interface EvidenzfaelleProps {
   onEdit: (fall: Evidenzfall) => void;
+  onAddCaseClick: () => void;
 }
 
-export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit }) => {
+export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit, onAddCaseClick }) => {
   const { faelle, archivedFaelle, updateCases, archiveCase, restoreCase, deleteCasePermanently } = useEvidenz();
   const [activeFall, setActiveFall] = useState<Evidenzfall | null>(null);
   const [showArchive, setShowArchive] = useState(false);
@@ -199,13 +200,22 @@ export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit }) => {
           <h1 className="text-4xl font-bold text-neutral-100 mb-2">Evidenzfälle</h1>
           <p className="text-neutral-400">Verwalten Sie Ihre Fälle per Drag-and-Drop.</p>
         </div>
-        <button 
-          onClick={() => setShowArchive(!showArchive)}
-          className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-neutral-200 font-semibold py-2 px-4 rounded-lg transition-colors"
-        >
-          <i className="material-icons mr-2 text-base">{showArchive ? 'table_rows' : 'archive'}</i>
-          {showArchive ? 'Board anzeigen' : `Archiv anzeigen (${archivedFaelle.length})`}
-        </button>
+        <div className="flex items-center gap-3">
+            <button
+                onClick={onAddCaseClick}
+                className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+            >
+                <i className="material-icons mr-2 text-base">add</i>
+                Neue Evidenz
+            </button>
+            <button 
+                onClick={() => setShowArchive(!showArchive)}
+                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-neutral-200 font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+                <i className="material-icons mr-2 text-base">{showArchive ? 'table_rows' : 'archive'}</i>
+                {showArchive ? 'Board anzeigen' : `Archiv anzeigen (${archivedFaelle.length})`}
+            </button>
+        </div>
       </div>
 
       <div className="flex-grow min-h-0 pr-8 pb-8">

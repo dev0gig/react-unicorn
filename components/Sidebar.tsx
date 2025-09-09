@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { ViewName, MenuItem } from '../types';
 
 const menuItems: MenuItem[] = [
@@ -8,13 +8,13 @@ const menuItems: MenuItem[] = [
   { id: 'Mail Vorlagen', label: 'Mail Vorlagen', icon: 'drafts' },
   { id: 'Notizen', label: 'Notizen', icon: 'note_alt' },
   { id: 'Evidenzfälle', label: 'Evidenzfälle', icon: 'gavel' },
+  { id: 'HK - Generator', label: 'HK - Generator', icon: 'text_fields' },
   { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
 ];
 
 interface SidebarProps {
   activeView: ViewName;
   setActiveView: (view: ViewName) => void;
-  onAddCaseClick: () => void;
   onFavoritesClick: () => void;
   onExportClick: () => void;
   onImportClick: () => void;
@@ -44,18 +44,28 @@ const NavItem: React.FC<{
   </li>
 );
 
-const DateTimeWidget: React.FC = () => {
+const DateTimeWidget: React.FC<{
+    onExportClick: () => void;
+    onImportClick: () => void;
+    onDeleteClick: () => void;
+}> = ({ onExportClick, onImportClick, onDeleteClick }) => {
     const [now, setNow] = useState(new Date());
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Update every second for the clock
-        const timerId = setInterval(() => {
-            setNow(new Date());
-        }, 1000); 
+        const timerId = setInterval(() => setNow(new Date()), 1000); 
+        return () => clearInterval(timerId);
+    }, []);
 
-        return () => {
-            clearInterval(timerId); // Cleanup on unmount
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
         };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const formattedTime = now.toLocaleTimeString('de-DE', {
@@ -70,19 +80,60 @@ const DateTimeWidget: React.FC = () => {
     });
 
     return (
-        <div className="text-center py-2 w-full">
+        <div className="relative text-center py-2 w-full">
             <p className="text-4xl font-bold text-neutral-100 tracking-wider">{formattedTime}</p>
             <p className="mt-2 text-lg font-medium text-neutral-300">{formattedDate}</p>
+
+            <div className="absolute top-0 right-0" ref={menuRef}>
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+                    title="Werkzeuge"
+                >
+                    <i className="material-icons">settings</i>
+                </button>
+
+                {isMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-neutral-800 border border-neutral-700 rounded-lg shadow-2xl z-20 p-2 animate-fade-in-fast">
+                        <button
+                            onClick={() => { onExportClick(); setIsMenuOpen(false); }}
+                            className="w-full text-left text-neutral-200 px-3 py-2 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-3"
+                        >
+                            <i className="material-icons text-base">download</i>
+                            <span>Backup erstellen</span>
+                        </button>
+                        <button
+                            onClick={() => { onImportClick(); setIsMenuOpen(false); }}
+                            className="w-full text-left text-neutral-200 px-3 py-2 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-3"
+                        >
+                            <i className="material-icons text-base">upload</i>
+                            <span>Backup importieren</span>
+                        </button>
+                        <hr className="border-neutral-700 my-1" />
+                        <button
+                            onClick={() => { onDeleteClick(); setIsMenuOpen(false); }}
+                            className="w-full text-left text-red-400 px-3 py-2 rounded-md hover:bg-red-500 hover:text-white transition-colors flex items-center gap-3"
+                        >
+                            <i className="material-icons text-base">delete_sweep</i>
+                            <span>Daten löschen</span>
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onAddCaseClick, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
   return (
     <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0">
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
-        <div className="mb-8 bg-neutral-900 p-4 rounded-2xl">
-          <DateTimeWidget />
+        <div className="mb-8 bg-neutral-900 p-4 rounded-2xl relative">
+          <DateTimeWidget 
+            onExportClick={onExportClick}
+            onImportClick={onImportClick}
+            onDeleteClick={onDeleteClick}
+          />
         </div>
 
         <div className="mb-8">
@@ -111,45 +162,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onA
             ))}
             </ul>
         </nav>
-
-        <div className="mt-6 flex flex-col space-y-2">
-            <p className="text-xs text-neutral-400 uppercase font-bold mb-1">Werkzeuge</p>
-            <div className="grid grid-cols-3 gap-2">
-                <button
-                    onClick={onExportClick}
-                    className="flex flex-col items-center justify-center p-3 rounded-lg cursor-pointer transition-colors duration-200 text-neutral-300 hover:text-white hover:bg-neutral-700/50"
-                    title="Backup erstellen"
-                >
-                    <i className="material-icons">download</i>
-                    <span className="font-medium text-xs mt-1">Export</span>
-                </button>
-                <button
-                    onClick={onImportClick}
-                    className="flex flex-col items-center justify-center p-3 rounded-lg cursor-pointer transition-colors duration-200 text-neutral-300 hover:text-white hover:bg-neutral-700/50"
-                    title="Backup importieren"
-                >
-                    <i className="material-icons">upload</i>
-                    <span className="font-medium text-xs mt-1">Import</span>
-                </button>
-                <button
-                    onClick={onDeleteClick}
-                    className="flex flex-col items-center justify-center p-3 rounded-lg cursor-pointer transition-colors duration-200 text-red-400 hover:text-white hover:bg-red-500/30"
-                    title="Daten löschen"
-                >
-                    <i className="material-icons">delete_sweep</i>
-                     <span className="font-medium text-xs mt-1">Löschen</span>
-                </button>
-            </div>
-        </div>
-      </div>
-
-      <div className="px-6 pb-6 pt-4 flex-shrink-0">
-        <button 
-          onClick={onAddCaseClick}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl">
-           <i className="material-icons mr-2">gavel</i>
-           <span>Neue Evidenz</span>
-        </button>
       </div>
     </aside>
   );

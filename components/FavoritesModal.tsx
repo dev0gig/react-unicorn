@@ -103,7 +103,7 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
 
             <div className="p-6 overflow-y-auto custom-scrollbar">
               {favorites.length > 0 ? (
-                 <div className="space-y-3">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {favorites.map((fav) => {
                       const data = allLinksMap.get(fav.url);
                       
