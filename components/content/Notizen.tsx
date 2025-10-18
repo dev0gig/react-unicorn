@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import JSZip from 'jszip';
 import { useNotes } from '../../App';
 import type { Note } from '../../types';
 
@@ -241,14 +242,18 @@ export const Notizen: React.FC<NotizenProps> = ({ highlightedNoteId, setHighligh
         const files = event.target.files;
         if (!files) return;
 
-        for (const file of Array.from(files)) {
+        for (const file of files) {
             if (file.name.endsWith('.md')) {
                 const fileName = file.name.replace('.md', '');
-                const dateParts = fileName.split('-');
+                // Improved parsing: looks for YYYY-MM-DD at the start and ignores the rest.
+                const dateStringMatch = fileName.match(/^(\d{4}-\d{2}-\d{2})/);
                 let noteDate: Date;
 
-                if (dateParts.length === 3 && !isNaN(Date.parse(fileName))) {
-                    noteDate = new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2]));
+                if (dateStringMatch) {
+                    const dateString = dateStringMatch[0];
+                    const [year, month, day] = dateString.split('-').map(Number);
+                    // Create date in local timezone to avoid timezone shift issues.
+                    noteDate = new Date(year, month - 1, day);
                 } else {
                     console.warn(`Skipping file with invalid name format: ${file.name}`);
                     continue;
@@ -267,6 +272,52 @@ export const Notizen: React.FC<NotizenProps> = ({ highlightedNoteId, setHighligh
         }
         if (event.target) event.target.value = '';
     };
+
+    const handleExportNotes = async () => {
+        if (notes.length === 0) {
+            alert("Keine Notizen zum Exportieren vorhanden.");
+            return;
+        }
+    
+        const zip = new JSZip();
+        const dateCounts: Map<string, number> = new Map();
+    
+        // Sort notes by creation date to ensure consistent naming
+        const notesToExport = [...notes].sort((a, b) => a.createdAt - b.createdAt);
+
+        notesToExport.forEach(note => {
+            const date = new Date(note.createdAt);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`;
+    
+            const count = dateCounts.get(dateString) || 0;
+            
+            // First file of the day is 'YYYY-MM-DD.md', subsequent files are 'YYYY-MM-DD-1.md', '-2.md' etc.
+            const filename = count > 0 ? `${dateString}-${count}.md` : `${dateString}.md`;
+            
+            dateCounts.set(dateString, count + 1);
+            
+            zip.file(filename, note.content);
+        });
+    
+        try {
+            const blob = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.download = `unicorn-notes-export-${timestamp}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        } catch (error) {
+            console.error("Fehler beim Erstellen der ZIP-Datei:", error);
+            alert("Beim Exportieren der Notizen ist ein Fehler aufgetreten.");
+        }
+    };
+
 
     const handleSaveNewNote = () => {
         if (newNoteContent.trim() === '') return;
@@ -416,14 +467,23 @@ export const Notizen: React.FC<NotizenProps> = ({ highlightedNoteId, setHighligh
                         )}
                     </div>
 
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex gap-2">
                         <button
                             onClick={triggerImport}
                             className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg text-neutral-300 hover:text-white bg-neutral-700/50 hover:bg-neutral-700 transition-colors"
                             title="Markdown-Dateien importieren"
                         >
                             <i className="material-icons text-base">file_upload</i>
-                            <span>MD-Dateien importieren</span>
+                            <span>Import</span>
+                        </button>
+                        <button
+                            onClick={handleExportNotes}
+                            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg text-neutral-300 hover:text-white bg-neutral-700/50 hover:bg-neutral-700 transition-colors"
+                            title="Alle Notizen als .md-Dateien (ZIP) exportieren"
+                            aria-label="Alle Notizen als ZIP-Archiv exportieren"
+                        >
+                            <i className="material-icons text-base">file_download</i>
+                            <span>Export</span>
                         </button>
                         <input type="file" ref={importFileRef} onChange={handleFileImport} multiple accept=".md" className="hidden" />
                     </div>

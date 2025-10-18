@@ -200,7 +200,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
           }
         }
 
-        const visibleGroups = Array.from(activeIntersections.current.values());
+        // FIX: Explicitly type visibleGroups as IntersectionObserverEntry[] to resolve type errors
+        const visibleGroups: IntersectionObserverEntry[] = Array.from(activeIntersections.current.values());
         
         if (visibleGroups.length > 0) {
           // Sort by top position to find the one closest to the top of the viewport
@@ -381,7 +382,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     return null;
   }
 
-  const GroupSection = ({ group }: { group: ToolGroup }) => {
+  // FIX: Changed component definition to use React.FC to fix a type error where the 'key' prop was not being recognized correctly by TypeScript.
+  const GroupSection: React.FC<{ group: ToolGroup }> = ({ group }) => {
     const { setNodeRef } = useDroppable({
         id: group.id,
         data: {

@@ -10,6 +10,7 @@ const menuItems: MenuItem[] = [
   { id: 'Evidenzfälle', label: 'Evidenzfälle', icon: 'gavel' },
   { id: 'HK - Generator', label: 'HK - Generator', icon: 'text_fields' },
   { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
+  { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
 ];
 
 interface SidebarProps {

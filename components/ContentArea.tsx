@@ -8,6 +8,7 @@ import { Evidenzfaelle } from './content/Evidenzfaelle';
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
 import { Profile } from './content/Profile';
 import { TextGenerator } from './content/TextGenerator';
+import { TimeTracker } from './content/TimeTracker';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -56,6 +57,8 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <TextGenerator />;
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
+      case 'Zeiterfassung':
+        return <TimeTracker />;
       default:
         return <Profile setActiveView={setActiveView} setHighlightedNoteId={setHighlightedNoteId} />;
     }

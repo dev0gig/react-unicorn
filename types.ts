@@ -1,4 +1,4 @@
-export type ViewName = 'Profil' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Notizen' | 'Evidenzfälle' | 'HK - Generator' | 'WiWo-Terminpflege';
+export type ViewName = 'Profil' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Notizen' | 'Evidenzfälle' | 'HK - Generator' | 'WiWo-Terminpflege' | 'Zeiterfassung';
 
 export interface MenuItem {
   id: ViewName;
@@ -142,4 +142,21 @@ export interface ScheduleContextType {
   schedule: Record<string, ScheduleEvent[]>;
   importSchedule: (icsContent: string) => void;
   clearSchedule: () => void;
+}
+
+// Types for Time Tracker
+export interface Break {
+  id: string;
+  start: string; // "HH:mm"
+  end: string;   // "HH:mm"
+}
+
+export type PhaseType = 'work' | 'break';
+
+export interface WorkPhase {
+  type: PhaseType;
+  name: string;
+  start: string; // "HH:mm"
+  end: string;   // "HH:mm"
+  duration: number; // in minutes
 }

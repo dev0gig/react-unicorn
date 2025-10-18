@@ -598,7 +598,9 @@ const AgendaWidget: React.FC<{
     const { weekStart, weekEnd } = useMemo(() => getWeekSpanForDate(currentDate), [currentDate]);
 
     const eventsByDay = useMemo(() => {
-        const allEvents: ScheduleEvent[] = Object.values(schedule).flat();
+        // FIX: Explicitly provide the generic type to `reduce` to solve type inference issues
+        // with the accumulator, and removed the unnecessary type assertion on the initial value.
+        const allEvents: ScheduleEvent[] = Object.values(schedule).reduce<ScheduleEvent[]>((acc, val) => acc.concat(val), []);
         const eventsInWeek = allEvents.filter(event => event.dtstart >= weekStart && event.dtstart <= weekEnd);
         
         return eventsInWeek.reduce((acc, event) => {
