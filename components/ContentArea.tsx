@@ -28,10 +28,18 @@ interface ContentAreaProps {
   onEditGroup: (group: ToolGroup) => void;
   onOpenHelp: () => void;
   onOpenReorderModal: () => void;
+  onOpenResetTimeTrackerModal: () => void;
+  timeTrackerResetTrigger: number;
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
-  const { activeView, setActiveView, highlightedNoteId, setHighlightedNoteId, onAddContact, onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick, onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderModal } = props;
+  const { 
+    activeView, setActiveView, highlightedNoteId, setHighlightedNoteId, onAddContact, 
+    onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick, 
+    onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, 
+    onOpenHelp, onOpenReorderModal, onOpenResetTimeTrackerModal, timeTrackerResetTrigger 
+  } = props;
+
   const renderContent = () => {
     switch (activeView) {
       case 'Profil':
@@ -58,7 +66,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
       case 'Zeiterfassung':
-        return <TimeTracker />;
+        return <TimeTracker onOpenResetModal={onOpenResetTimeTrackerModal} resetTrigger={timeTrackerResetTrigger} />;
       default:
         return <Profile setActiveView={setActiveView} setHighlightedNoteId={setHighlightedNoteId} />;
     }

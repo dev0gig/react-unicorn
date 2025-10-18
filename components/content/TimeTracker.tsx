@@ -4,6 +4,11 @@ import { timeStringToMinutes, minutesToTimeString, formatDuration, getCurrentTim
 
 const STORAGE_KEY = 'unicorn-time-tracker-state';
 
+interface TimeTrackerProps {
+  onOpenResetModal: () => void;
+  resetTrigger: number;
+}
+
 const Card: React.FC<{ title: string; icon: string; children: React.ReactNode; className?: string }> = ({ title, icon, children, className }) => (
     <div className={`bg-neutral-800 rounded-2xl p-6 shadow-lg flex flex-col ${className}`}>
         <h2 className="text-xl font-bold text-orange-400 border-b border-neutral-700 pb-3 mb-4 flex items-center flex-shrink-0">
@@ -16,7 +21,7 @@ const Card: React.FC<{ title: string; icon: string; children: React.ReactNode; c
     </div>
 );
 
-export const TimeTracker: React.FC = () => {
+export const TimeTracker: React.FC<TimeTrackerProps> = ({ onOpenResetModal, resetTrigger }) => {
     const [totalWorkHours, setTotalWorkHours] = useState<number>(8);
     const [startTime, setStartTime] = useState<string>('');
     const [breaks, setBreaks] = useState<Break[]>([]);
@@ -151,10 +156,10 @@ export const TimeTracker: React.FC = () => {
             activePhase: active,
         };
     }, [totalWorkHours, startTime, breaks, currentTime]);
-
-    // Handlers
-    const handleReset = () => {
-        if (window.confirm("Möchten Sie wirklich alle Felder leeren und zurücksetzen?")) {
+    
+    // Effect to handle reset trigger from parent
+    useEffect(() => {
+        if (resetTrigger > 0) {
             setTotalWorkHours(8);
             setStartTime('');
             setBreaks([]);
@@ -162,6 +167,11 @@ export const TimeTracker: React.FC = () => {
             setNewBreakEnd('');
             setBreakError('');
         }
+    }, [resetTrigger]);
+
+    // Handlers
+    const handleReset = () => {
+        onOpenResetModal();
     };
 
     const handleAddBreak = () => {

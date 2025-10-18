@@ -176,6 +176,8 @@ function App(): React.ReactNode {
   const [groupToEdit, setGroupToEdit] = useState<ToolGroup | null>(null);
   const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; message: string; isError?: boolean } | null>(null);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [isResetTimeTrackerConfirmOpen, setIsResetTimeTrackerConfirmOpen] = useState(false);
+  const [timeTrackerResetTrigger, setTimeTrackerResetTrigger] = useState(0);
 
 
   // Effects for localStorage persistence
@@ -633,6 +635,11 @@ function App(): React.ReactNode {
     setCategoriesToDelete(null);
   };
 
+  const handleConfirmResetTimeTracker = () => {
+    setTimeTrackerResetTrigger(c => c + 1);
+    setIsResetTimeTrackerConfirmOpen(false);
+  };
+
 
   // --- Modal Openers ---
    const openCaseModal = (fall: Evidenzfall | null = null) => {
@@ -699,6 +706,8 @@ function App(): React.ReactNode {
                                         onEditGroup={openGroupModal}
                                         onOpenHelp={() => setIsDashboardHelpModalOpen(true)}
                                         onOpenReorderModal={() => setIsReorderModalOpen(true)}
+                                        onOpenResetTimeTrackerModal={() => setIsResetTimeTrackerConfirmOpen(true)}
+                                        timeTrackerResetTrigger={timeTrackerResetTrigger}
                                     />
                                 </main>
                                 <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
@@ -749,6 +758,14 @@ function App(): React.ReactNode {
                                     title="Daten endgültig löschen"
                                 >
                                     Möchten Sie die ausgewählten Daten wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                                </ConfirmationModal>
+                                <ConfirmationModal
+                                    isOpen={isResetTimeTrackerConfirmOpen}
+                                    onClose={() => setIsResetTimeTrackerConfirmOpen(false)}
+                                    onConfirm={handleConfirmResetTimeTracker}
+                                    title="Zeiterfassung zurücksetzen"
+                                >
+                                    Möchten Sie wirklich alle Felder der Zeiterfassung leeren und zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden.
                                 </ConfirmationModal>
                                 <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
                             </div>
