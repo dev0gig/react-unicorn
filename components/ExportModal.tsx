@@ -10,7 +10,6 @@ interface ExportOptions {
     dashboard: boolean;
     favorites: boolean;
     faelle: boolean;
-    notes: boolean;
     contacts: boolean;
     templates: boolean;
     signatures: boolean;
@@ -32,7 +31,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExp
     dashboard: true,
     favorites: true,
     faelle: true,
-    notes: true,
     contacts: true,
     templates: true,
     signatures: true,
@@ -43,7 +41,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExp
   };
   
   const handleSelectAll = (checked: boolean) => {
-      setOptions({ dashboard: checked, favorites: checked, faelle: checked, notes: checked, contacts: checked, templates: checked, signatures: checked });
+      setOptions({ dashboard: checked, favorites: checked, faelle: checked, contacts: checked, templates: checked, signatures: checked });
   }
 
   const allSelected = Object.values(options).every(Boolean);
@@ -101,7 +99,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExp
                     <Checkbox label="Dashboard" checked={options.dashboard} onChange={(c) => handleOptionChange('dashboard', c)} />
                     <Checkbox label="Favoriten" checked={options.favorites} onChange={(c) => handleOptionChange('favorites', c)} />
                     <Checkbox label="Evidenzfälle (inkl. Archiv)" checked={options.faelle} onChange={(c) => handleOptionChange('faelle', c)} />
-                    <Checkbox label="Notizen" checked={options.notes} onChange={(c) => handleOptionChange('notes', c)} />
                     <Checkbox label="Kontakte" checked={options.contacts} onChange={(c) => handleOptionChange('contacts', c)} />
                     <Checkbox label="Mail Vorlagen" checked={options.templates} onChange={(c) => handleOptionChange('templates', c)} />
                     <Checkbox label="Signaturen" checked={options.signatures} onChange={(c) => handleOptionChange('signatures', c)} />

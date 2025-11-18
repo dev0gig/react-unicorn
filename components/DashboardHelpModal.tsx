@@ -57,37 +57,33 @@ export const DashboardHelpModal: React.FC<DashboardHelpModalProps> = ({ isOpen, 
 
             <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
                 <HelpItem icon="apps" title="Grundlagen">
-                    <p>Das Dashboard zeigt Ihre Links als Kacheln an. Ein Klick öffnet den Link in einem neuen Tab.</p>
+                    <p>Das Dashboard zeigt Ihre Links in thematischen Gruppen an. Ein Klick auf einen Link öffnet diesen in einem neuen Tab.</p>
                 </HelpItem>
 
-                <HelpItem icon="mouse" title="Interaktion mit Kacheln">
-                    <p>Ein <strong>Rechtsklick</strong> auf eine Kachel öffnet ein Menü mit Aktionen für diesen Link:</p>
+                <HelpItem icon="mouse" title="Interaktion mit Links">
+                     <p>Fahren Sie mit der Maus über einen Link, um rechts ein Menü mit Aktionen anzuzeigen:</p>
                     <ul className="list-disc list-inside mt-2 space-y-1">
                         <li><strong>Favoriten:</strong> Link zu Ihren Favoriten hinzufügen oder entfernen.</li>
                         <li><strong>Bearbeiten:</strong> Name, URL und Gruppenzugehörigkeit des Links ändern.</li>
                         <li><strong>Löschen:</strong> Den Link dauerhaft entfernen.</li>
-                        <li><strong>Link hinzufügen:</strong> Einen weiteren Link zur selben Gruppe hinzufügen.</li>
                     </ul>
                 </HelpItem>
 
-                <HelpItem icon="add_circle" title="Inhalte hinzufügen">
-                    <p>In jeder Gruppenüberschrift finden Sie einen <i className="material-icons text-sm align-middle">add</i> Button, um einen neuen Link direkt zu dieser Gruppe hinzuzufügen.</p>
-                </HelpItem>
-
                 <HelpItem icon="category" title="Gruppen verwalten">
-                    <p>Die Gruppenliste in der linken Seitenleiste bietet mehrere Verwaltungsoptionen:</p>
+                    <p>Fahren Sie mit der Maus über eine Gruppenüberschrift, um Verwaltungsoptionen anzuzeigen:</p>
                     <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li><strong>Hinzufügen:</strong> Erstellen Sie eine neue, leere Gruppe mit dem <i className="material-icons text-sm align-middle">add</i> Button neben der "Gruppen"-Überschrift.</li>
-                        <li><strong>Bearbeiten:</strong> Fahren Sie mit der Maus über einen Gruppennamen und klicken Sie auf das erscheinende <i className="material-icons text-sm align-middle">edit</i> Icon, um Titel und Icon zu ändern oder die Gruppe zu löschen.</li>
+                        <li><strong>Hinzufügen:</strong> Klicken Sie auf das <i className="material-icons text-sm align-middle">add</i> Icon, um einen neuen Link zur Gruppe hinzuzufügen.</li>
+                        <li><strong>Bearbeiten:</strong> Klicken Sie auf das <i className="material-icons text-sm align-middle">edit</i> Icon, um Titel und Icon der Gruppe zu ändern oder die gesamte Gruppe zu löschen.</li>
+                         <li><strong>Neue Gruppe:</strong> Nutzen Sie den Button <span className="inline-flex items-center bg-neutral-700 px-2 py-0.5 rounded-md text-sm font-semibold"><i className="material-icons text-sm mr-1">create_new_folder</i>Neue Gruppe</span> oben rechts, um eine neue Gruppe zu erstellen.</li>
                     </ul>
                 </HelpItem>
 
                 <HelpItem icon="drag_handle" title="Anordnen per Drag & Drop">
-                     <p>Sie können einzelne Kacheln innerhalb und zwischen Gruppen verschieben. Um die Reihenfolge der Gruppen selbst zu ändern, klicken Sie auf den <span className="inline-flex items-center bg-neutral-700 px-2 py-0.5 rounded-md text-sm font-semibold"><i className="material-icons text-sm mr-1">view_quilt</i>Anordnen</span> Button in der Kopfzeile des Dashboards. In dem neuen Fenster können Sie die Gruppen per Drag & Drop sortieren.</p>
+                     <p>Sie können einzelne Links per Drag & Drop innerhalb ihrer Gruppe neu anordnen oder sie in eine andere Gruppe ziehen, um sie neu zuzuordnen.</p>
                 </HelpItem>
                 
                  <HelpItem icon="star" title="Favoriten verwalten">
-                    <p>Fügen Sie Ihre wichtigsten Links über das Rechtsklick-Menü zu den Favoriten hinzu. Sie können Ihre Favoriten jederzeit über den <span className="inline-flex items-center text-yellow-400 text-sm font-medium">Favoriten</span>-Button in der linken Seitenleiste aufrufen.</p>
+                    <p>Fügen Sie Ihre wichtigsten Links über das Hover-Menü zu den Favoriten hinzu. Sie können Ihre Favoriten jederzeit über den <span className="inline-flex items-center text-yellow-400 text-sm font-medium">Favoriten</span>-Button in der linken Seitenleiste aufrufen.</p>
                 </HelpItem>
 
             </div>

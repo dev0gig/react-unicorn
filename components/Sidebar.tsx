@@ -1,15 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
+import { useContacts, useEvidenz, useTemplates } from '../App';
+
+// --- WEATHER CONSTANTS for new widget ---
+const WEATHER_CODES: { [key: number]: { text: string; icon: string; } } = {
+    0: { text: 'Klarer Himmel', icon: 'wb_sunny' },
+    1: { text: 'Leicht bewölkt', icon: 'wb_cloudy' },
+    2: { text: 'Teilweise bewölkt', icon: 'wb_cloudy' },
+    3: { text: 'Bedeckt', icon: 'cloud' },
+    45: { text: 'Nebel', icon: 'dehaze' },
+    48: { text: 'Reifnebel', icon: 'ac_unit' },
+    51: { text: 'Nieselregen', icon: 'grain' },
+    53: { text: 'Nieselregen', icon: 'grain' },
+    55: { text: 'Nieselregen', icon: 'grain' },
+    61: { text: 'Regen', icon: 'water_drop' },
+    63: { text: 'Regen', icon: 'water_drop' },
+    65: { text: 'Regen', icon: 'water_drop' },
+    80: { text: 'Schauer', icon: 'water_drop' },
+    81: { text: 'Schauer', icon: 'water_drop' },
+    82: { text: 'Schauer', icon: 'water_drop' },
+    71: { text: 'Schneefall', icon: 'ac_unit' },
+    73: { text: 'Schneefall', icon: 'ac_unit' },
+    75: { text: 'Schneefall', icon: 'ac_unit' },
+    95: { text: 'Gewitter', icon: 'thunderstorm' },
+    96: { text: 'Gewitter', icon: 'thunderstorm' },
+    99: { text: 'Gewitter', icon: 'thunderstorm' },
+};
+const UNKNOWN_WEATHER = { text: 'Unbekannt', icon: 'help_outline' };
+
 
 const menuItems: MenuItem[] = [
-  { id: 'Profil', label: 'Profil', icon: 'account_circle' },
   { id: 'Dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'Kontakte', label: 'Kontakte', icon: 'people' },
   { id: 'Mail Vorlagen', label: 'Mail Vorlagen', icon: 'drafts' },
-  { id: 'Notizen', label: 'Notizen', icon: 'note_alt' },
   { id: 'Evidenzfälle', label: 'Evidenzfälle', icon: 'gavel' },
   { id: 'HK - Generator', label: 'HK - Generator', icon: 'text_fields' },
   { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
+  { id: 'Dienstplan', label: 'Dienstplan', icon: 'calendar_month' },
   { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
 ];
 
@@ -22,11 +49,13 @@ interface SidebarProps {
   onDeleteClick: () => void;
 }
 
-const NavItem: React.FC<{
+// Memoized NavItem to prevent re-renders when the Sidebar parent re-renders (e.g. due to clock)
+const NavItem = memo(({ item, isActive, onClick, count }: {
   item: MenuItem;
   isActive: boolean;
   onClick: () => void;
-}> = ({ item, isActive, onClick }) => (
+  count?: number;
+}) => (
   <li
     onClick={onClick}
     className={`relative flex items-center p-3 my-1 rounded-lg cursor-pointer transition-colors duration-200 
@@ -42,8 +71,13 @@ const NavItem: React.FC<{
     )}
     <i className="material-icons mr-4 z-10">{item.icon}</i>
     <span className="font-medium z-10">{item.label}</span>
+    {typeof count === 'number' && count > 0 && (
+        <span className="ml-auto text-sm font-semibold bg-neutral-700 text-neutral-300 px-2 py-0.5 rounded-full z-10">
+            {count}
+        </span>
+    )}
   </li>
-);
+));
 
 const DateTimeWidget: React.FC<{
     onExportClick: () => void;
@@ -81,7 +115,7 @@ const DateTimeWidget: React.FC<{
     });
 
     return (
-        <div className="relative text-center py-2 w-full">
+        <div className="relative text-center w-full">
             <p className="text-4xl font-bold text-neutral-100 tracking-wider">{formattedTime}</p>
             <p className="mt-2 text-lg font-medium text-neutral-300">{formattedDate}</p>
 
@@ -125,7 +159,63 @@ const DateTimeWidget: React.FC<{
     );
 };
 
+const SidebarWeatherWidget: React.FC = () => {
+    const [weather, setWeather] = useState<{ temp: number; code: number } | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchWeather = async () => {
+            setLoading(true);
+            try {
+                const lat = 48.21, lon = 16.37; // Vienna
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`;
+                const response = await fetch(url);
+                if (!response.ok) return;
+                const data = await response.json();
+                setWeather({
+                    temp: Math.round(data.current.temperature_2m),
+                    code: data.current.weather_code,
+                });
+            } catch (err) {
+                console.error("Failed to fetch sidebar weather", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchWeather();
+    }, []);
+    
+    if (loading) return <div className="text-center text-neutral-400">Wetter wird geladen...</div>;
+    if (!weather) return null;
+
+    const weatherInfo = WEATHER_CODES[weather.code] || UNKNOWN_WEATHER;
+
+    return (
+        <div className="flex items-center justify-between text-center">
+            <div className="text-left">
+                <p className="font-semibold text-neutral-100">Wien</p>
+                <p className="text-xs text-neutral-400">{weatherInfo.text}</p>
+            </div>
+            <div className="flex items-center gap-2">
+                <i className="material-icons text-3xl text-orange-400">{weatherInfo.icon}</i>
+                <span className="text-2xl font-bold text-neutral-100">{weather.temp}°</span>
+            </div>
+        </div>
+    );
+};
+
+
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
+  const { contacts } = useContacts();
+  const { faelle } = useEvidenz();
+  const { templateGroups } = useTemplates();
+  
+  const counts: Record<string, number> = {
+    'Kontakte': contacts.length,
+    'Evidenzfälle': faelle.filter(f => f.column !== 'fertig').length,
+    'Mail Vorlagen': templateGroups.reduce((sum, group) => sum + group.templates.length, 0),
+  };
+
   return (
     <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0">
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
@@ -135,6 +225,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             onImportClick={onImportClick}
             onDeleteClick={onDeleteClick}
           />
+          <hr className="border-neutral-700 my-4" />
+          <SidebarWeatherWidget />
         </div>
 
         <div className="mb-8">
@@ -155,10 +247,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             <ul>
             {menuItems.map((item) => (
                 <NavItem
-                key={item.id}
-                item={item}
-                isActive={activeView === item.id}
-                onClick={() => setActiveView(item.id)}
+                    key={item.id}
+                    item={item}
+                    isActive={activeView === item.id}
+                    onClick={() => setActiveView(item.id)}
+                    count={counts[item.id]}
                 />
             ))}
             </ul>

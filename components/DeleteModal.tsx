@@ -4,7 +4,6 @@ interface DeleteOptions {
     dashboard: boolean;
     favorites: boolean;
     faelle: boolean;
-    notes: boolean;
     contacts: boolean;
     templates: boolean;
     signatures: boolean;
@@ -33,7 +32,6 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
     dashboard: false,
     favorites: false,
     faelle: false,
-    notes: false,
     contacts: false,
     templates: false,
     signatures: false,
@@ -45,7 +43,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
   };
   
   const handleSelectAll = (checked: boolean) => {
-      setOptions({ dashboard: checked, favorites: checked, faelle: checked, notes: checked, contacts: checked, templates: checked, signatures: checked, schedule: checked });
+      setOptions({ dashboard: checked, favorites: checked, faelle: checked, contacts: checked, templates: checked, signatures: checked, schedule: checked });
   }
 
   const allSelected = Object.values(options).every(Boolean);
@@ -59,7 +57,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
   
   useEffect(() => {
     if (!isOpen) {
-        setOptions({ dashboard: false, favorites: false, faelle: false, notes: false, contacts: false, templates: false, signatures: false, schedule: false });
+        setOptions({ dashboard: false, favorites: false, faelle: false, contacts: false, templates: false, signatures: false, schedule: false });
     }
   }, [isOpen]);
 
@@ -107,7 +105,6 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onDel
                     <Checkbox label="Dashboard" checked={options.dashboard} onChange={(c) => handleOptionChange('dashboard', c)} />
                     <Checkbox label="Favoriten" checked={options.favorites} onChange={(c) => handleOptionChange('favorites', c)} />
                     <Checkbox label="Evidenzfälle (inkl. Archiv)" checked={options.faelle} onChange={(c) => handleOptionChange('faelle', c)} />
-                    <Checkbox label="Notizen" checked={options.notes} onChange={(c) => handleOptionChange('notes', c)} />
                     <Checkbox label="Kontakte" checked={options.contacts} onChange={(c) => handleOptionChange('contacts', c)} />
                     <Checkbox label="Mail Vorlagen" checked={options.templates} onChange={(c) => handleOptionChange('templates', c)} />
                     <Checkbox label="Signaturen" checked={options.signatures} onChange={(c) => handleOptionChange('signatures', c)} />

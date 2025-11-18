@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useFavorites, useDashboard } from '../../App';
 import { ToolLink, ToolGroup } from '../../types';
@@ -11,13 +11,13 @@ import {
   DragOverlay,
   DragEndEvent,
   DragStartEvent,
-  useDroppable,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -27,8 +27,6 @@ interface DashboardProps {
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
   onOpenHelp: () => void;
-  onOpenReorderGroupsModal: () => void;
-  onColumnCountChange: (count: number) => void;
 }
 
 const LinkItem: React.FC<{
@@ -126,44 +124,21 @@ const SortableLinkItem: React.FC<{
   );
 };
 
+const GroupOverlay: React.FC<{ group: ToolGroup }> = ({ group }) => (
+    <div className="bg-neutral-800 rounded-xl shadow-2xl p-3 flex items-center gap-2 opacity-90" style={{width: '350px'}}>
+        <i className="material-icons text-2xl" style={{color: group.color || '#f97316'}}>{group.icon}</i>
+        <h2 className="text-xl font-bold text-neutral-200 truncate">{group.title}</h2>
+    </div>
+);
 
-export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderGroupsModal, onColumnCountChange }) => {
-  // FIX: Destructure reorderGroups from useDashboard to persist link reordering.
+
+export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp }) => {
   const { toolGroups, deleteLink, updateLink, reorderGroups } = useDashboard();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   
   const [activeItem, setActiveItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-
-  useEffect(() => {
-    const getColumnCount = () => {
-        if (window.matchMedia('(min-width: 1280px)').matches) {
-            return 3;
-        }
-        if (window.matchMedia('(min-width: 1024px)').matches) {
-            return 2;
-        }
-        return 1;
-    };
-
-    const updateColumnCount = () => {
-        onColumnCountChange(getColumnCount());
-    };
-
-    updateColumnCount(); // Initial check
-
-    const mediaQueryXl = window.matchMedia('(min-width: 1280px)');
-    const mediaQueryLg = window.matchMedia('(min-width: 1024px)');
-
-    mediaQueryXl.addEventListener('change', updateColumnCount);
-    mediaQueryLg.addEventListener('change', updateColumnCount);
-
-    return () => {
-        mediaQueryXl.removeEventListener('change', updateColumnCount);
-        mediaQueryLg.removeEventListener('change', updateColumnCount);
-    };
-  }, [onColumnCountChange]);
 
   const allLinksMap = useMemo(() => {
     const map = new Map<string, { link: ToolLink; group: ToolGroup }>();
@@ -214,10 +189,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     document.body.style.cursor = 'grabbing';
     if (type === 'link' && link && group) {
       setActiveItem({ type: 'link', data: { link, group }, isFavorite });
+    } else if (type === 'group' && group) {
+      setActiveItem({ type: 'group', data: { group } });
     }
   };
 
-  // FIX: Refactor handleDragEnd to fix redeclared variable errors and correctly handle link reordering.
   const handleDragEnd = (event: DragEndEvent) => {
     document.body.style.cursor = '';
     setActiveItem(null);
@@ -225,6 +201,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     const { active, over } = event;
     if (!over || !active.data.current || active.id === over.id) return;
   
+    const activeType = active.data.current.type;
+
+    if (activeType === 'group') {
+        const oldIndex = toolGroups.findIndex(g => g.id === active.id);
+        const newIndex = toolGroups.findIndex(g => g.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+            const updatedGroups = arrayMove(toolGroups, oldIndex, newIndex);
+            reorderGroups(updatedGroups);
+        }
+        return;
+    }
+    
+    // Link dragging logic
     const activeId = active.id.toString();
     const overId = over.id.toString();
   
@@ -236,7 +226,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     const overData = over.data.current;
     let targetGroupId: string;
   
-    if (overData?.type === 'group-container') {
+    if (overData?.type === 'group-container' || overData?.type === 'group') {
       targetGroupId = over.id.toString();
     } else if (overData?.type === 'link') {
       targetGroupId = overData.group.id;
@@ -270,7 +260,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
             if (oldIndex > -1) {
                 const [movedLink] = sourceGroup.links.splice(oldIndex, 1);
                 
-                if (overData?.type === 'group-container') {
+                if (overData?.type === 'group-container' || overData?.type === 'group') {
                     // if dropped on the container, not a specific link, add to the end
                     targetGroup.links.push(movedLink);
                 } else {
@@ -297,18 +287,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
   }
   
   const renderDragOverlay = () => {
-    if (!activeItem || activeItem.type !== 'link') return null;
-    return <LinkItem data={activeItem.data} isFavorite={activeItem.isFavorite} />;
+    if (!activeItem) return null;
+    if (activeItem.type === 'link') {
+        return <LinkItem data={activeItem.data} isFavorite={activeItem.isFavorite} />;
+    }
+    if (activeItem.type === 'group') {
+        return <GroupOverlay group={activeItem.data.group} />;
+    }
+    return null;
   }
 
-  const GroupSection: React.FC<{ group: ToolGroup }> = ({ group }) => {
-    const { setNodeRef } = useDroppable({
-        id: group.id,
-        data: {
-            type: 'group-container',
-            group,
-        },
-    });
+  const SortableGroup: React.FC<{ group: ToolGroup }> = ({ group }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: group.id, data: { type: 'group', group } });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.4 : 1,
+    };
 
     if (isSearchActive && group.links.length === 0) {
         return null;
@@ -316,14 +319,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
     return (
         <section 
-            key={group.id} 
+            ref={setNodeRef}
+            style={style}
             id={group.id}
             aria-labelledby={`group-header-${group.id}`} 
         >
             <div className="group flex items-center gap-2 mb-4">
                 <i className="material-icons text-2xl" style={{color: group.color || '#f97316'}}>{group.icon}</i>
-                <h2 id={`group-header-${group.id}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
-                <span className="text-sm font-medium bg-neutral-700 text-neutral-300 px-2.5 py-1 rounded-full">{group.links.length}</span>
+                <button
+                    {...attributes}
+                    {...listeners}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+                    title={`Gruppe "${group.title}" verschieben`}
+                >
+                    <i className="material-icons text-lg">drag_handle</i>
+                </button>
+                <div className="flex-grow flex items-center gap-2">
+                    <h2 id={`group-header-${group.id}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
+                    <span className="text-sm font-medium bg-neutral-700 text-neutral-300 px-2.5 py-1 rounded-full">{group.links.length}</span>
+                </div>
                 <div className="ml-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                         onClick={() => onEditGroup(group)}
@@ -341,7 +355,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                     </button>
                 </div>
             </div>
-            <div ref={setNodeRef} className="min-h-[6rem]">
+            <div className="min-h-[6rem]">
               <SortableContext items={group.links.map(l => l.url)} strategy={verticalListSortingStrategy}>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 relative">
                       {group.links.map(link => {
@@ -399,9 +413,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-            {groupsToRender.map(group => <GroupSection key={group.id} group={group} />)}
-        </div>
+        <SortableContext items={toolGroups.map(g => g.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
+                {groupsToRender.map(group => <SortableGroup key={group.id} group={group} />)}
+            </div>
+        </SortableContext>
     );
   };
 
@@ -440,14 +456,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
               >
                 <i className="material-icons mr-2 text-base">create_new_folder</i>
                 Neue Gruppe
-              </button>
-              <button
-                onClick={onOpenReorderGroupsModal}
-                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-                title="Gruppen anordnen"
-              >
-                <i className="material-icons mr-2 text-base">view_quilt</i>
-                Anordnen
               </button>
               <button
                 onClick={onOpenHelp}

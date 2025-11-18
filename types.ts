@@ -1,4 +1,5 @@
-export type ViewName = 'Profil' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Notizen' | 'Evidenzfälle' | 'HK - Generator' | 'WiWo-Terminpflege' | 'Zeiterfassung';
+
+export type ViewName = 'Dienstplan' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Evidenzfälle' | 'HK - Generator' | 'WiWo-Terminpflege' | 'Zeiterfassung';
 
 export interface MenuItem {
   id: ViewName;
@@ -19,11 +20,6 @@ export interface ToolGroup {
   color?: string;
 }
 
-export interface TileConfig {
-  id: string; // Corresponds to ToolLink.url
-  size: '1x1';
-}
-
 export interface DashboardContextType {
   toolGroups: ToolGroup[];
   addGroup: (title: string, icon: string) => void;
@@ -33,9 +29,6 @@ export interface DashboardContextType {
   updateLink: (originalGroupId: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupId?: string) => void;
   deleteLink: (groupId: string, url: string) => void;
   reorderGroups: (groups: ToolGroup[]) => void;
-  reorderLinks: (groupId: string, reorderedLinks: ToolLink[]) => void;
-  tileConfigs: TileConfig[];
-  reorderTiles: (items: TileConfig[]) => void;
 }
 
 
@@ -65,20 +58,7 @@ export interface EvidenzContextType {
   archiveCase: (id: string) => void;
   restoreCase: (id: string) => void;
   deleteCasePermanently: (id: string) => void;
-}
-
-export interface Note {
-  id: string;
-  content: string;
-  createdAt: number;
-  lastModified: number;
-}
-
-export interface NotesContextType {
-    notes: Note[];
-    addNote: (content: string, customDate?: number) => void;
-    updateNote: (id: string, content: string) => void;
-    deleteNote: (id: string) => void;
+  clearArchivedCases: () => void;
 }
 
 export interface Contact {
@@ -159,4 +139,18 @@ export interface WorkPhase {
   start: string; // "HH:mm"
   end: string;   // "HH:mm"
   duration: number; // in minutes
+}
+
+export interface Note {
+  id: string;
+  content: string;
+  lastModified: number;
+  createdAt: number;
+}
+
+export interface NotesContextType {
+  notes: Note[];
+  addNote: (content: string, date?: number) => void;
+  updateNote: (id: string, content: string) => void;
+  deleteNote: (id: string) => void;
 }

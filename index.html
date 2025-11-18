@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="assets/icons/unicorn_icon.png" />
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3468/3468261.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unicorn</title>
 
@@ -50,6 +50,7 @@
         scrollbar-width: thin;
         scrollbar-color: #404040 transparent;
         scrollbar-gutter: stable;
+        overflow-x: hidden;
       }
 
       /* Markdown Content Styling */
@@ -238,10 +239,33 @@
           animation: highlight-note-animation 3s ease-out;
           border-radius: 8px; /* To match the note item's border-radius */
       }
+
+      /* Hide scrollbar but allow scrolling */
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
     </style>
 </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      // Register the service worker for offline capabilities and performance improvements.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('Service Worker registered successfully with scope:', registration.scope);
+            })
+            .catch(error => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

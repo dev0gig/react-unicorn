@@ -399,9 +399,6 @@ export const Notizen: React.FC<NotizenProps> = ({ highlightedNoteId, setHighligh
                     <div className="flex-grow overflow-y-auto custom-scrollbar pr-4 -mr-4 min-h-0">
                         <div className="space-y-4">
                             {paginatedNotes.length > 0 ? paginatedNotes.map(note => (
-                                // FIX: The ref callback for a React component must not return a value.
-                                // The original code `ref={el => noteRefs.current.set(note.id, el)}` implicitly returned the result of `Map.set()`.
-                                // This is fixed by using a block statement and also handling the case where the element is unmounted (el is null).
                                 <div key={note.id} ref={el => {
                                     if (el) {
                                         noteRefs.current.set(note.id, el);

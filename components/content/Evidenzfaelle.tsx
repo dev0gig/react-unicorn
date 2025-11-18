@@ -128,9 +128,10 @@ const KanbanColumn: React.FC<{ id: KanbanColumnId; title: string; faelle: Eviden
 interface EvidenzfaelleProps {
   onEdit: (fall: Evidenzfall) => void;
   onAddCaseClick: () => void;
+  onOpenClearArchiveModal: () => void;
 }
 
-export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit, onAddCaseClick }) => {
+export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit, onAddCaseClick, onOpenClearArchiveModal }) => {
   const { faelle, archivedFaelle, updateCases, archiveCase, restoreCase, deleteCasePermanently } = useEvidenz();
   const [activeFall, setActiveFall] = useState<Evidenzfall | null>(null);
   const [showArchive, setShowArchive] = useState(false);
@@ -208,6 +209,15 @@ export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit, onAddCaseC
                 <i className="material-icons mr-2 text-base">add</i>
                 Neue Evidenz
             </button>
+             {showArchive && archivedFaelle.length > 0 && (
+                <button
+                    onClick={onOpenClearArchiveModal}
+                    className="flex items-center bg-red-600/80 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                    <i className="material-icons mr-2 text-base">delete_sweep</i>
+                    Archiv leeren
+                </button>
+            )}
             <button 
                 onClick={() => setShowArchive(!showArchive)}
                 className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-neutral-200 font-semibold py-2 px-4 rounded-lg transition-colors"
