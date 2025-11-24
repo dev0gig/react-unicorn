@@ -11,13 +11,13 @@ import {
   DragOverlay,
   DragEndEvent,
   DragStartEvent,
-  useDroppable,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -34,18 +34,60 @@ interface DashboardProps {
 const LinkItem: React.FC<{
   data: { link: ToolLink; group: ToolGroup };
   isFavorite: boolean;
-}> = ({ data, isFavorite }) => {
+  isEditMode: boolean;
+  onToggleFavorite?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}> = ({ data, isFavorite, isEditMode, onToggleFavorite, onEdit, onDelete }) => {
     return (
       <div 
-        className="relative flex flex-col justify-end w-full h-20 p-3 rounded-lg bg-neutral-800 transition-all duration-200"
+        className={`relative flex flex-col w-full h-20 rounded-lg bg-neutral-800 transition-all duration-200 overflow-hidden ${isEditMode ? 'ring-2 ring-orange-500 shadow-lg bg-neutral-800' : 'hover:bg-neutral-700'}`}
         style={{ borderLeft: `4px solid ${data.group.color || '#f97316'}` }}
       >
-        {isFavorite && (
-          <i className="material-icons text-yellow-400 text-lg absolute top-2 left-2" title="Favorit">star</i>
+        {isEditMode ? (
+            /* EDIT MODE LAYOUT */
+            <div className="flex flex-col h-full w-full animate-fade-in-fast">
+                {/* Title Area - Always readable */}
+                <div className="px-2 pt-1 pb-1 text-[10px] uppercase tracking-wider text-neutral-400 font-semibold truncate border-b border-neutral-700/50 text-center select-none">
+                    {data.link.name}
+                </div>
+                
+                {/* Action Buttons Area - Center aligned with more space */}
+                <div className="flex-grow flex items-center justify-center gap-3 bg-neutral-900/30">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-neutral-600 text-white transition-all shadow-sm hover:scale-110"
+                        title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+                    >
+                        <i className="material-icons text-base" style={{ color: isFavorite ? '#fbbf24' : '#9ca3af' }}>{isFavorite ? 'star' : 'star_border'}</i>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-neutral-600 text-white transition-all shadow-sm hover:scale-110"
+                        title="Bearbeiten"
+                    >
+                        <i className="material-icons text-base">edit</i>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-red-600 text-red-400 hover:text-white transition-all shadow-sm hover:scale-110"
+                        title="Löschen"
+                    >
+                        <i className="material-icons text-base">delete</i>
+                    </button>
+                </div>
+            </div>
+        ) : (
+            /* NORMAL MODE LAYOUT */
+            <div className="flex flex-col justify-end h-full p-3">
+                {isFavorite && (
+                  <i className="material-icons text-yellow-400 text-lg absolute top-2 left-2" title="Favorit">star</i>
+                )}
+                <div className="min-w-0">
+                    <span className="font-medium text-neutral-200 break-words line-clamp-2">{data.link.name}</span>
+                </div>
+            </div>
         )}
-        <div className="min-w-0">
-            <span className="font-medium text-neutral-200 break-words line-clamp-2">{data.link.name}</span>
-        </div>
       </div>
     );
 };
@@ -54,10 +96,11 @@ const SortableLinkItem: React.FC<{
   link: ToolLink;
   group: ToolGroup;
   isFavorite: boolean;
+  isEditMode: boolean;
   onEdit: (data: { link: ToolLink; group: ToolGroup }) => void;
   onDelete: (groupId: string, url: string) => void;
   onToggleFavorite: (link: ToolLink) => void;
-}> = ({ link, group, isFavorite, onEdit, onDelete, onToggleFavorite }) => {
+}> = ({ link, group, isFavorite, isEditMode, onEdit, onDelete, onToggleFavorite }) => {
   const {
     attributes,
     listeners,
@@ -75,15 +118,16 @@ const SortableLinkItem: React.FC<{
   const data = { link, group };
 
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.link-actions')) return;
+    // In Edit Mode, clicking the tile background should not open the link.
+    if (isEditMode) {
+        e.preventDefault();
+        return;
+    }
+    
     if (e.defaultPrevented) return;
     e.preventDefault();
     window.open(data.link.url, '_blank', 'noopener,noreferrer');
   }
-
-  const handleActionInteraction = (e: React.PointerEvent) => {
-    e.stopPropagation();
-  };
 
   return (
     <div
@@ -91,49 +135,38 @@ const SortableLinkItem: React.FC<{
       style={style}
       className={`transition-opacity duration-300 ${isDragging ? 'opacity-30' : ''}`}
     >
-        <div className="group relative cursor-pointer" onClick={handleClick}>
-          <div 
-            className="link-actions absolute top-1/2 -translate-y-1/2 left-full ml-2 z-10 flex flex-col items-center gap-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 bg-neutral-700 rounded-lg p-1 shadow-lg"
-            onPointerDown={handleActionInteraction}
-          >
-              <button
-                  onClick={(e) => { e.stopPropagation(); onToggleFavorite(data.link); }}
-                  className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-                  title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-              >
-                  <i className="material-icons text-base" style={{ color: isFavorite ? '#fbbf24' : 'currentColor' }}>{isFavorite ? 'star' : 'star_border'}</i>
-              </button>
-              <button
-                  onClick={(e) => { e.stopPropagation(); onEdit(data); }}
-                  className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-                  title="Bearbeiten"
-              >
-                  <i className="material-icons text-base">edit</i>
-              </button>
-              <button
-                  onClick={(e) => { e.stopPropagation(); onDelete(data.group.id, data.link.url); }}
-                  className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-red-500/80 transition-colors"
-                  title="Löschen"
-              >
-                  <i className="material-icons text-base">delete</i>
-              </button>
-          </div>
+        <div className="relative cursor-pointer" onClick={handleClick}>
           <div {...attributes} {...listeners} className="touch-none">
-            <LinkItem data={data} isFavorite={isFavorite} />
+            <LinkItem 
+                data={data} 
+                isFavorite={isFavorite} 
+                isEditMode={isEditMode}
+                onToggleFavorite={() => onToggleFavorite(link)}
+                onEdit={() => onEdit(data)}
+                onDelete={() => onDelete(group.id, link.url)}
+            />
           </div>
         </div>
     </div>
   );
 };
 
+const GroupOverlay: React.FC<{ group: ToolGroup }> = ({ group }) => (
+    <div className="bg-neutral-800 rounded-xl shadow-2xl p-3 flex items-center gap-2 opacity-90" style={{width: '350px'}}>
+        <i className="material-icons text-2xl" style={{color: group.color || '#f97316'}}>{group.icon}</i>
+        <h2 className="text-xl font-bold text-neutral-200 truncate">{group.title}</h2>
+    </div>
+);
+
 
 export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderGroupsModal, onColumnCountChange }) => {
-  // FIX: Destructure reorderGroups from useDashboard to persist link reordering.
   const { toolGroups, deleteLink, updateLink, reorderGroups } = useDashboard();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   
   const [activeItem, setActiveItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   useEffect(() => {
@@ -214,10 +247,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     document.body.style.cursor = 'grabbing';
     if (type === 'link' && link && group) {
       setActiveItem({ type: 'link', data: { link, group }, isFavorite });
+    } else if (type === 'group' && group) {
+      setActiveItem({ type: 'group', data: { group } });
     }
   };
 
-  // FIX: Refactor handleDragEnd to fix redeclared variable errors and correctly handle link reordering.
   const handleDragEnd = (event: DragEndEvent) => {
     document.body.style.cursor = '';
     setActiveItem(null);
@@ -225,6 +259,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     const { active, over } = event;
     if (!over || !active.data.current || active.id === over.id) return;
   
+    const activeType = active.data.current.type;
+
+    if (activeType === 'group') {
+        const oldIndex = toolGroups.findIndex(g => g.id === active.id);
+        const newIndex = toolGroups.findIndex(g => g.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+            const updatedGroups = arrayMove(toolGroups, oldIndex, newIndex);
+            reorderGroups(updatedGroups);
+        }
+        return;
+    }
+    
+    // Link dragging logic
     const activeId = active.id.toString();
     const overId = over.id.toString();
   
@@ -236,7 +284,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     const overData = over.data.current;
     let targetGroupId: string;
   
-    if (overData?.type === 'group-container') {
+    if (overData?.type === 'group-container' || overData?.type === 'group') {
       targetGroupId = over.id.toString();
     } else if (overData?.type === 'link') {
       targetGroupId = overData.group.id;
@@ -270,7 +318,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
             if (oldIndex > -1) {
                 const [movedLink] = sourceGroup.links.splice(oldIndex, 1);
                 
-                if (overData?.type === 'group-container') {
+                if (overData?.type === 'group-container' || overData?.type === 'group') {
                     // if dropped on the container, not a specific link, add to the end
                     targetGroup.links.push(movedLink);
                 } else {
@@ -297,18 +345,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
   }
   
   const renderDragOverlay = () => {
-    if (!activeItem || activeItem.type !== 'link') return null;
-    return <LinkItem data={activeItem.data} isFavorite={activeItem.isFavorite} />;
+    if (!activeItem) return null;
+    if (activeItem.type === 'link') {
+        // Overlay is never in edit mode during drag for clarity
+        return <LinkItem data={activeItem.data} isFavorite={activeItem.isFavorite} isEditMode={false} />;
+    }
+    if (activeItem.type === 'group') {
+        return <GroupOverlay group={activeItem.data.group} />;
+    }
+    return null;
   }
 
-  const GroupSection: React.FC<{ group: ToolGroup }> = ({ group }) => {
-    const { setNodeRef } = useDroppable({
-        id: group.id,
-        data: {
-            type: 'group-container',
-            group,
-        },
-    });
+  const SortableGroup: React.FC<{ group: ToolGroup }> = ({ group }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: group.id, data: { type: 'group', group } });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.4 : 1,
+    };
 
     if (isSearchActive && group.links.length === 0) {
         return null;
@@ -316,32 +378,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
     return (
         <section 
-            key={group.id} 
+            ref={setNodeRef}
+            style={style}
             id={group.id}
             aria-labelledby={`group-header-${group.id}`} 
         >
             <div className="group flex items-center gap-2 mb-4">
                 <i className="material-icons text-2xl" style={{color: group.color || '#f97316'}}>{group.icon}</i>
-                <h2 id={`group-header-${group.id}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
-                <span className="text-sm font-medium bg-neutral-700 text-neutral-300 px-2.5 py-1 rounded-full">{group.links.length}</span>
-                <div className="ml-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {isEditMode && (
                     <button
-                        onClick={() => onEditGroup(group)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white"
-                        title={`Gruppe "${group.title}" bearbeiten oder löschen`}
+                        {...attributes}
+                        {...listeners}
+                        className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white cursor-grab active:cursor-grabbing"
+                        title={`Gruppe "${group.title}" verschieben`}
                     >
-                        <i className="material-icons text-lg">edit</i>
+                        <i className="material-icons text-lg">drag_handle</i>
                     </button>
-                    <button
-                        onClick={() => onAddLink(null, group.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white"
-                        title={`Link zu "${group.title}" hinzufügen`}
-                    >
-                        <i className="material-icons text-lg">add</i>
-                    </button>
+                )}
+                <div className="flex-grow flex items-center gap-2">
+                    <h2 id={`group-header-${group.id}`} className="text-2xl font-bold text-neutral-200">{group.title}</h2>
+                    <span className="text-sm font-medium bg-neutral-700 text-neutral-300 px-2.5 py-1 rounded-full">{group.links.length}</span>
                 </div>
+                
+                {isEditMode && (
+                    <div className="ml-2 flex items-center transition-opacity duration-200 animate-fade-in-fast">
+                        <button
+                            onClick={() => onEditGroup(group)}
+                            className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white"
+                            title={`Gruppe "${group.title}" bearbeiten oder löschen`}
+                        >
+                            <i className="material-icons text-lg">edit</i>
+                        </button>
+                        <button
+                            onClick={() => onAddLink(null, group.id)}
+                            className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white"
+                            title={`Link zu "${group.title}" hinzufügen`}
+                        >
+                            <i className="material-icons text-lg">add</i>
+                        </button>
+                    </div>
+                )}
             </div>
-            <div ref={setNodeRef} className="min-h-[6rem]">
+            <div className="min-h-[6rem]">
               <SortableContext items={group.links.map(l => l.url)} strategy={verticalListSortingStrategy}>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 relative">
                       {group.links.map(link => {
@@ -350,7 +428,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                                       key={link.url} 
                                       link={link} 
                                       group={group}
-                                      isFavorite={isFav} 
+                                      isFavorite={isFav}
+                                      isEditMode={isEditMode}
                                       onEdit={() => onEditTile({link, group})} 
                                       onDelete={deleteLink} 
                                       onToggleFavorite={handleToggleFavorite}
@@ -399,9 +478,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-            {groupsToRender.map(group => <GroupSection key={group.id} group={group} />)}
-        </div>
+        <SortableContext items={toolGroups.map(g => g.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
+                {groupsToRender.map(group => <SortableGroup key={group.id} group={group} />)}
+            </div>
+        </SortableContext>
     );
   };
 
@@ -433,30 +514,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                       </button>
                   )}
               </div>
+              
               <button
-                onClick={onAddGroup}
-                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-                title="Neue Gruppe erstellen"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`flex items-center font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg ${isEditMode ? 'bg-orange-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+                title={isEditMode ? "Bearbeiten beenden" : "Dashboard bearbeiten"}
               >
-                <i className="material-icons mr-2 text-base">create_new_folder</i>
-                Neue Gruppe
+                <i className="material-icons mr-2 text-base">{isEditMode ? 'check' : 'edit'}</i>
+                {isEditMode ? 'Fertig' : 'Bearbeiten'}
               </button>
-              <button
-                onClick={onOpenReorderGroupsModal}
-                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-                title="Gruppen anordnen"
-              >
-                <i className="material-icons mr-2 text-base">view_quilt</i>
-                Anordnen
-              </button>
-              <button
-                onClick={onOpenHelp}
-                className="flex items-center bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-                title="Anleitung anzeigen"
-              >
-                <i className="material-icons mr-2 text-base">help_outline</i>
-                Anleitung
-              </button>
+
+              {!isEditMode && (
+                <>
+                    <button
+                        onClick={onAddGroup}
+                        className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        title="Neue Gruppe erstellen"
+                    >
+                        <i className="material-icons mr-2 text-base">create_new_folder</i>
+                        Neue Gruppe
+                    </button>
+                    <button
+                        onClick={onOpenReorderGroupsModal}
+                        className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        title="Gruppen anordnen"
+                    >
+                        <i className="material-icons mr-2 text-base">view_quilt</i>
+                        Anordnen
+                    </button>
+                     <button
+                        onClick={onOpenHelp}
+                        className="flex items-center bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        title="Anleitung anzeigen"
+                    >
+                        <i className="material-icons mr-2 text-base">help_outline</i>
+                        Anleitung
+                    </button>
+                </>
+              )}
             </div>
         </div>
         
