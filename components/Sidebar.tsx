@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
 import { useContacts, useEvidenz, useTemplates } from '../App';
@@ -47,6 +46,8 @@ interface SidebarProps {
   onExportClick: () => void;
   onImportClick: () => void;
   onDeleteClick: () => void;
+  showSnow: boolean;
+  onToggleSnow: () => void;
 }
 
 // Memoized NavItem to prevent re-renders when the Sidebar parent re-renders (e.g. due to clock)
@@ -205,7 +206,7 @@ const SidebarWeatherWidget: React.FC = () => {
 };
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick, showSnow, onToggleSnow }) => {
   const { contacts } = useContacts();
   const { faelle } = useEvidenz();
   const { templateGroups } = useTemplates();
@@ -217,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
   };
 
   return (
-    <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0">
+    <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0 border-r border-neutral-700">
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
         <div className="mb-8 bg-neutral-900 p-4 rounded-2xl relative">
           <DateTimeWidget 
@@ -256,6 +257,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             ))}
             </ul>
         </nav>
+      </div>
+
+      {/* Persistent Bottom Bar with subtle Snow Toggle */}
+      <div className="px-6 py-4 bg-neutral-900/30 mt-auto border-t border-neutral-700/30 flex flex-col items-center gap-3">
+        <button
+            onClick={onToggleSnow}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 border ${
+                showSnow 
+                    ? 'bg-sky-500/10 text-sky-400 border-sky-500/30' 
+                    : 'bg-neutral-800 text-neutral-500 border-transparent hover:text-neutral-300 hover:bg-neutral-700'
+            }`}
+        >
+            <i className="material-icons text-base">
+                {showSnow ? 'ac_unit' : 'cloud_queue'}
+            </i>
+            <span className="text-[11px] font-bold uppercase tracking-wider">
+                {showSnow ? 'Schnee Ein' : 'Schnee Aus'}
+            </span>
+        </button>
+        
+        <div className="text-[9px] text-neutral-600 uppercase tracking-[0.2em] font-bold">
+            Unicorn v2.1
+        </div>
       </div>
     </aside>
   );

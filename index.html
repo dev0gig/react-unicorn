@@ -248,6 +248,26 @@
         -ms-overflow-style: none;  /* IE and Edge */
         scrollbar-width: none;  /* Firefox */
       }
+
+      /* Snowfall Animation */
+      @keyframes snowfall {
+        0% { transform: translateY(-10vh) translateX(0); }
+        25% { transform: translateY(25vh) translateX(15px); }
+        50% { transform: translateY(50vh) translateX(-15px); }
+        75% { transform: translateY(75vh) translateX(15px); }
+        100% { transform: translateY(110vh) translateX(0); }
+      }
+
+      .snowflake {
+        position: fixed;
+        top: -10px;
+        color: white;
+        user-select: none;
+        z-index: 9999;
+        pointer-events: none;
+        animation: snowfall linear infinite;
+        text-shadow: 0 0 5px rgba(255,255,255,0.8);
+      }
     </style>
 </head>
   <body>

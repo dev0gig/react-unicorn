@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, createContext, useContext, useCallback, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Sidebar } from './components/Sidebar';
 import { ContentArea } from './components/ContentArea';
+import { Snowfall } from './components/Snowfall';
 import { ViewName, ToolLink, ToolGroup, FavoritesContextType, Evidenzfall, EvidenzContextType, Contact, ContactsContextType, TemplateGroup, TemplatesContextType, Template, Signature, SignaturesContextType, DashboardContextType, ScheduleContextType, ScheduleEvent, Note, NotesContextType } from './types';
 import { AddCaseModal } from './components/AddCaseModal';
 import { FavoritesModal } from './components/FavoritesModal';
@@ -105,6 +105,7 @@ function App(): React.ReactNode {
   
   // States
   const [favorites, setFavorites] = useState<ToolLink[]>(() => JSON.parse(localStorage.getItem('unicorn-favorites') || '[]'));
+  const [showSnow, setShowSnow] = useState<boolean>(() => JSON.parse(localStorage.getItem('unicorn-show-snow') || 'false'));
   const [toolGroups, setToolGroups] = useState<ToolGroup[]>(() => {
     const saved = localStorage.getItem('unicorn-dashboard');
     let groups: any[] = saved ? JSON.parse(saved) : initialToolGroups;
@@ -180,6 +181,7 @@ function App(): React.ReactNode {
 
   // Effects for localStorage persistence
   useEffect(() => { localStorage.setItem('unicorn-favorites', JSON.stringify(favorites)); }, [favorites]);
+  useEffect(() => { localStorage.setItem('unicorn-show-snow', JSON.stringify(showSnow)); }, [showSnow]);
   useEffect(() => { localStorage.setItem('unicorn-dashboard', JSON.stringify(toolGroups)); }, [toolGroups]);
   useEffect(() => { localStorage.setItem('unicorn-faelle', JSON.stringify(faelle)); }, [faelle]);
   useEffect(() => { localStorage.setItem('unicorn-archived-faelle', JSON.stringify(archivedFaelle)); }, [archivedFaelle]);
@@ -638,6 +640,7 @@ function App(): React.ReactNode {
                         <ScheduleContext.Provider value={scheduleContextValue}>
                             <NotesContext.Provider value={notesContextValue}>
                                 <div className="flex h-screen bg-neutral-900 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
+                                    {showSnow && <Snowfall />}
                                     <Sidebar 
                                         activeView={activeView} 
                                         setActiveView={setActiveView} 
@@ -645,6 +648,8 @@ function App(): React.ReactNode {
                                         onExportClick={() => setIsExportModalOpen(true)}
                                         onImportClick={triggerImport}
                                         onDeleteClick={() => setIsDeleteModalOpen(true)}
+                                        showSnow={showSnow}
+                                        onToggleSnow={() => setShowSnow(prev => !prev)}
                                     />
                                     <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
                                         <ContentArea 
@@ -669,6 +674,14 @@ function App(): React.ReactNode {
                                             onOpenClearArchiveModal={() => setIsClearArchiveConfirmOpen(true)}
                                         />
                                     </main>
+                                    <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
+                                    <FavoritesModal isOpen={isFavoritesModalOpen} onClose={() => setIsFavoritesModalOpen(false)} />
+                                    <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExport={handleExport} />
+                                    <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteDataRequest} />
+                                    <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} contact={contactToEdit} />
+                                    <TemplateModal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)} templateToEdit={templateToEdit} />
+                                    <SignatureModal isOpen={isSignatureModalOpen} onClose={() => setIsSignatureModalOpen(false)} />
+                                    <ToolLinkModal isOpen={isToolLinkModalOpen} onClose={() => setToolLinkModalOpen(false)} linkToEdit={linkToEdit} />
                                     <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
                                     <FavoritesModal isOpen={isFavoritesModalOpen} onClose={() => setIsFavoritesModalOpen(false)} />
                                     <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExport={handleExport} />
