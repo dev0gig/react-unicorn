@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import type { ViewName, Contact, Template, Evidenzfall, ToolGroup, ToolLink } from '../types';
 import { Dashboard } from './content/Dashboard';
 import { Kontakte } from './content/Kontakte';
@@ -6,7 +7,6 @@ import { MailTemplates } from './content/MailTemplates';
 import { Evidenzfaelle } from './content/Evidenzfaelle';
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
 import { Profile } from './content/Profile';
-import { TextGenerator } from './content/TextGenerator';
 import { TimeTracker } from './content/TimeTracker';
 
 interface ContentAreaProps {
@@ -60,8 +60,6 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <MailTemplates onAdd={onAddTemplate} onEdit={onEditTemplate} onOpenSignatureModal={onOpenSignatureModal} />;
       case 'Evidenzfälle':
         return <Evidenzfaelle onEdit={onEditCase} onAddCaseClick={onAddCaseClick} onOpenClearArchiveModal={onOpenClearArchiveModal} />;
-      case 'HK - Generator':
-        return <TextGenerator />;
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
       case 'Zeiterfassung':

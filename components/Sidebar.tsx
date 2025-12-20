@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
 import { useContacts, useEvidenz, useTemplates } from '../App';
@@ -34,7 +35,6 @@ const menuItems: MenuItem[] = [
   { id: 'Kontakte', label: 'Kontakte', icon: 'people' },
   { id: 'Mail Vorlagen', label: 'Mail Vorlagen', icon: 'drafts' },
   { id: 'Evidenzfälle', label: 'Evidenzfälle', icon: 'gavel' },
-  { id: 'HK - Generator', label: 'HK - Generator', icon: 'text_fields' },
   { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
   { id: 'Dienstplan', label: 'Dienstplan', icon: 'calendar_month' },
   { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
