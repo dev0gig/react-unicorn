@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext, useContext, useCallback, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Sidebar } from './components/Sidebar';
+import { AppProviders } from './src/providers/AppProviders';
 import { ContentArea } from './components/ContentArea';
 import { Snowfall } from './components/Snowfall';
 import { ViewName, FavoritesContextType, EvidenzContextType, TemplatesContextType, Template, SignaturesContextType, DashboardContextType, ScheduleContextType, ScheduleEvent, NotesContextType } from './types';
@@ -22,21 +23,21 @@ import { InfoModal } from './components/InfoModal';
 import { ReorderGroupsModal } from './components/ReorderGroupsModal';
 
 // Contexts
-import { ContactsProvider, useContacts } from './contexts/ContactsContext';
+import { useContacts } from './contexts/ContactsContext';
 export { useContacts } from './contexts/ContactsContext';
-import { EvidenzProvider, useEvidenz } from './contexts/EvidenzContext';
+import { useEvidenz } from './contexts/EvidenzContext';
 export { useEvidenz } from './contexts/EvidenzContext';
-import { DashboardProvider, useDashboard } from './contexts/DashboardContext';
+import { useDashboard } from './contexts/DashboardContext';
 export { useDashboard } from './contexts/DashboardContext';
-import { TemplatesProvider, useTemplates } from './contexts/TemplatesContext';
+import { useTemplates } from './contexts/TemplatesContext';
 export { useTemplates } from './contexts/TemplatesContext';
-import { SignaturesProvider, useSignatures } from './contexts/SignaturesContext';
+import { useSignatures } from './contexts/SignaturesContext';
 export { useSignatures } from './contexts/SignaturesContext';
-import { ScheduleProvider, useSchedule } from './contexts/ScheduleContext';
+import { useSchedule } from './contexts/ScheduleContext';
 export { useSchedule } from './contexts/ScheduleContext';
-import { NotesProvider, useNotes } from './contexts/NotesContext';
+import { useNotes } from './contexts/NotesContext';
 export { useNotes } from './contexts/NotesContext';
-import { FavoritesProvider, useFavorites } from './contexts/FavoritesContext';
+import { useFavorites } from './contexts/FavoritesContext';
 export { useFavorites } from './contexts/FavoritesContext';
 
 // Initial Data
@@ -476,23 +477,9 @@ function AppContent() {
 
 function App() {
     return (
-        <ContactsProvider>
-            <EvidenzProvider>
-                <DashboardProvider>
-                    <TemplatesProvider>
-                        <SignaturesProvider>
-                            <FavoritesProvider>
-                                <ScheduleProvider>
-                                    <NotesProvider>
-                                        <AppContent />
-                                    </NotesProvider>
-                                </ScheduleProvider>
-                            </FavoritesProvider>
-                        </SignaturesProvider>
-                    </TemplatesProvider>
-                </DashboardProvider>
-            </EvidenzProvider>
-        </ContactsProvider>
+        <AppProviders>
+            <AppContent />
+        </AppProviders>
     );
 }
 
