@@ -32,7 +32,7 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
 
     const sortedContacts = useMemo(() =>
         [...contacts].sort((a, b) => a.name.localeCompare(b.name)),
-    [contacts]);
+        [contacts]);
 
     const filteredContacts = useMemo(() =>
         sortedContacts.filter(contact =>
@@ -52,9 +52,9 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
         }
     }, [filteredContacts, selectedContactId]);
 
-    const selectedContact = useMemo(() => 
-        contacts.find(contact => contact.id === selectedContactId), 
-    [contacts, selectedContactId]);
+    const selectedContact = useMemo(() =>
+        contacts.find(contact => contact.id === selectedContactId),
+        [contacts, selectedContactId]);
 
     return (
         <div className="flex flex-col h-full pt-8 pl-8">
@@ -63,16 +63,16 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
                     <h1 className="text-4xl font-bold text-neutral-100 mb-2">Kontakte</h1>
                     <p className="text-neutral-400">Verwalten Sie Ihre geschäftlichen und privaten Kontakte.</p>
                 </div>
-                 <button 
+                <button
                     onClick={onAdd}
                     className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg">
                     <i className="material-icons mr-2 text-base">add</i>
                     Neuer Kontakt
                 </button>
             </div>
-            
+
             <div className="flex-grow flex flex-col md:flex-row gap-6 min-h-0 pr-8 pb-8">
-                
+
                 <div className="md:w-1/3 flex flex-col bg-neutral-800 rounded-2xl p-4 shadow-lg min-h-0">
                     <div className="relative mb-4 flex-shrink-0">
                         <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 z-10">search</i>
@@ -126,7 +126,11 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
                                     <i className="material-icons">edit</i>
                                 </button>
                                 <button
-                                    onClick={() => deleteContact(selectedContact.id)}
+                                    onClick={() => {
+                                        if (window.confirm('Möchten Sie diesen Kontakt wirklich löschen?')) {
+                                            deleteContact(selectedContact.id);
+                                        }
+                                    }}
                                     className="p-2 rounded-full text-neutral-400 hover:bg-red-500/20 hover:text-red-400 transition-colors"
                                     title="Kontakt löschen"
                                 >
@@ -159,13 +163,13 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
                         </>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-neutral-600 p-8">
-                             <i className="material-icons text-7xl mb-4">contacts</i>
-                             <h3 className="text-xl font-semibold">Kein Kontakt ausgewählt</h3>
-                             <p className="text-neutral-500 text-center">Suchen und wählen Sie einen Kontakt aus der Liste, um die Details anzuzeigen.</p>
+                            <i className="material-icons text-7xl mb-4">contacts</i>
+                            <h3 className="text-xl font-semibold">Kein Kontakt ausgewählt</h3>
+                            <p className="text-neutral-500 text-center">Suchen und wählen Sie einen Kontakt aus der Liste, um die Details anzuzeigen.</p>
                         </div>
                     )}
                 </div>
-              
+
             </div>
         </div>
     );

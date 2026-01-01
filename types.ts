@@ -29,6 +29,7 @@ export interface DashboardContextType {
   updateLink: (originalGroupId: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupId?: string) => void;
   deleteLink: (groupId: string, url: string) => void;
   reorderGroups: (groups: ToolGroup[]) => void;
+  setToolGroups: (groups: ToolGroup[]) => void;
 }
 
 
@@ -37,6 +38,7 @@ export interface FavoritesContextType {
   addFavorite: (link: ToolLink) => void;
   removeFavorite: (url: string) => void;
   isFavorite: (url: string) => boolean;
+  setFavorites: (favorites: ToolLink[]) => void;
 }
 
 export type KanbanColumnId = 'neu' | 'inBearbeitung' | 'fertig';
@@ -59,6 +61,8 @@ export interface EvidenzContextType {
   restoreCase: (id: string) => void;
   deleteCasePermanently: (id: string) => void;
   clearArchivedCases: () => void;
+  setFaelle: (faelle: Evidenzfall[]) => void;
+  setArchivedFaelle: (archivedFaelle: Evidenzfall[]) => void;
 }
 
 export interface Contact {
@@ -72,10 +76,11 @@ export interface Contact {
 }
 
 export interface ContactsContextType {
-    contacts: Contact[];
-    addContact: (contactData: Omit<Contact, 'id'>) => void;
-    updateContact: (contactData: Contact) => void;
-    deleteContact: (id: string) => void;
+  contacts: Contact[];
+  addContact: (contactData: Omit<Contact, 'id'>) => void;
+  updateContact: (contactData: Contact) => void;
+  deleteContact: (id: string) => void;
+  setContacts: (contacts: Contact[]) => void;
 }
 
 export interface Template {
@@ -90,11 +95,12 @@ export interface TemplateGroup {
 }
 
 export interface TemplatesContextType {
-    templateGroups: TemplateGroup[];
-    addTemplate: (category: string, title: string, content: string) => void;
-    updateTemplate: (category: string, template: Omit<Template, 'id'>, templateId: string) => void;
-    deleteTemplate: (category: string, templateId: string) => void;
-    getCategories: () => string[];
+  templateGroups: TemplateGroup[];
+  addTemplate: (category: string, title: string, content: string) => void;
+  updateTemplate: (category: string, template: Omit<Template, 'id'>, templateId: string) => void;
+  deleteTemplate: (category: string, templateId: string) => void;
+  getCategories: () => string[];
+  setTemplateGroups: (groups: TemplateGroup[]) => void;
 }
 
 export interface Signature {
@@ -107,9 +113,10 @@ export interface SignaturesContextType {
   signatures: Signature[];
   activeSignatureId: string | null;
   addSignature: (title: string, content: string) => void;
-  updateSignature: (id:string, title: string, content: string) => void;
+  updateSignature: (id: string, title: string, content: string) => void;
   deleteSignature: (id: string) => void;
   setActiveSignatureId: (id: string | null) => void;
+  setSignatures: (signatures: Signature[]) => void;
 }
 
 export interface ScheduleEvent {
@@ -122,6 +129,7 @@ export interface ScheduleContextType {
   schedule: Record<string, ScheduleEvent[]>;
   importSchedule: (icsContent: string) => void;
   clearSchedule: () => void;
+  setSchedule: (schedule: Record<string, ScheduleEvent[]>) => void;
 }
 
 // Types for Time Tracker
@@ -153,4 +161,5 @@ export interface NotesContextType {
   addNote: (content: string, date?: number) => void;
   updateNote: (id: string, content: string) => void;
   deleteNote: (id: string) => void;
+  setNotes: (notes: Note[]) => void;
 }
