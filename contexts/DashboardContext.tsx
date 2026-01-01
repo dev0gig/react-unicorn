@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useCallback, useMemo, useEffect } from 'react';
 import { useLocalStorage } from '../src/hooks/useLocalStorage';
-import { loadFromStorage, saveToStorage } from '../utils/storage';
 import { initialToolGroups } from '../data/initialDashboard';
 import { ToolGroup, ToolLink, DashboardContextType } from '../types';
+import { GROUP_COLORS } from '../src/constants/theme';
 
 export const DashboardContext = createContext<DashboardContextType | null>(null);
 
@@ -11,19 +11,6 @@ export const useDashboard = () => {
     if (!context) throw new Error('useDashboard must be used within a DashboardProvider');
     return context;
 };
-
-const GROUP_COLORS = [
-    '#4c0519', // rose-950
-    '#431407', // orange-950
-    '#022c22', // emerald-950
-    '#082f49', // sky-950
-    '#1e1b4b', // indigo-950
-    '#3b0764', // purple-950
-    '#1e293b', // slate-800
-    '#042f2e', // teal-950
-    '#422006', // amber-950
-    '#500724', // pink-950
-];
 
 export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toolGroups, setToolGroups] = useLocalStorage<ToolGroup[]>('dashboard', initialToolGroups);
