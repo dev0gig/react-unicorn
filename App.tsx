@@ -102,7 +102,7 @@ export const useNotes = () => {
 
 
 function App(): React.ReactNode {
-    const [activeView, setActiveView] = useState<ViewName>('Dienstplan');
+    const [activeView, setActiveView] = useState<ViewName>('Dashboard');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // States
