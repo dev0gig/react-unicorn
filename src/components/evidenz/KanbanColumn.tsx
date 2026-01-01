@@ -19,7 +19,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ id, title, faelle, c
     const { setNodeRef } = useSortable({ id, data: { type: 'column' } });
 
     return (
-        <div ref={setNodeRef} className="bg-neutral-800/50 rounded-xl flex flex-col h-full overflow-hidden">
+        <div ref={setNodeRef} className="bg-neutral-800/50 rounded-xl border border-neutral-700 flex flex-col h-full overflow-hidden">
             <div className={`flex items-center justify-between p-3 flex-shrink-0 ${columnColors[id]}`}>
                 <h3 className="font-bold text-lg text-white">{title}</h3>
                 <span className="bg-black/20 text-white text-xs font-semibold px-2 py-1 rounded-full">{faelle.length}</span>

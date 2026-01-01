@@ -11,47 +11,46 @@ const FavoriteListItem: React.FC<{
   data: { link: ToolLink; group: ToolGroup };
   onRemove: (url: string) => void;
 }> = ({ data, onRemove }) => {
-    
-    const handleClick = (e: React.MouseEvent) => {
-        if ((e.target as HTMLElement).closest('button')) {
-            e.preventDefault();
-            return;
-        }
-        window.open(data.link.url, '_blank', 'noopener,noreferrer');
-    }
 
-    const handleRemoveClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onRemove(data.link.url);
+  const handleClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) {
+      e.preventDefault();
+      return;
     }
-    
-    return (
-      <div
-        className="group relative flex items-center w-full h-16 px-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-orange-500 transition-colors duration-200"
-        style={{ backgroundColor: data.group.color || '#f97316' }}
-        onClick={handleClick}
-      >
-        <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">{data.group.icon}</i>
-        <div className="flex-grow min-w-0">
-          <p className="text-xs text-white/80 truncate">{data.group.title}</p>
-          <p className="font-semibold text-white truncate">{data.link.name}</p>
-        </div>
-        <button
-          onClick={handleRemoveClick}
-          className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-red-500/90 hover:bg-red-500 transition-all scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"
-          aria-label="Favorit entfernen"
-        >
-          <i className="material-icons text-base">close</i>
-        </button>
+    window.open(data.link.url, '_blank', 'noopener,noreferrer');
+  }
+
+  const handleRemoveClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onRemove(data.link.url);
+  }
+
+  return (
+    <div
+      className="group relative flex items-center w-full h-16 px-4 rounded-lg cursor-pointer border border-neutral-600 hover:border-orange-500 transition-colors duration-200 bg-neutral-700"
+      onClick={handleClick}
+    >
+      <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">{data.group.icon}</i>
+      <div className="flex-grow min-w-0">
+        <p className="text-xs text-white/80 truncate">{data.group.title}</p>
+        <p className="font-semibold text-white truncate">{data.link.name}</p>
       </div>
-    );
+      <button
+        onClick={handleRemoveClick}
+        className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-neutral-700 hover:bg-neutral-600 transition-all scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"
+        aria-label="Favorit entfernen"
+      >
+        <i className="material-icons text-base">close</i>
+      </button>
+    </div>
+  );
 };
 
 
 export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose }) => {
   const { favorites, removeFavorite } = useFavorites();
   const { toolGroups } = useDashboard();
-  
+
   const allLinksMap = useMemo(() => {
     const map = new Map<string, { link: ToolLink; group: ToolGroup }>();
     for (const group of toolGroups) {
@@ -69,7 +68,7 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
       }
     };
     if (isOpen) {
-        window.addEventListener('keydown', handleEsc);
+      window.addEventListener('keydown', handleEsc);
     }
     return () => {
       window.removeEventListener('keydown', handleEsc);
@@ -89,8 +88,8 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
           >
             <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">
               <div className="flex items-center">
-                 <i className="material-icons text-2xl text-orange-400 mr-3">star</i>
-                 <h2 className="text-xl font-bold text-neutral-100">Ihre Favoriten</h2>
+                <i className="material-icons text-2xl text-orange-400 mr-3">star</i>
+                <h2 className="text-xl font-bold text-neutral-100">Ihre Favoriten</h2>
               </div>
               <button
                 onClick={onClose}
@@ -103,42 +102,41 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
 
             <div className="p-6 overflow-y-auto custom-scrollbar">
               {favorites.length > 0 ? (
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {favorites.map((fav) => {
-                      const data = allLinksMap.get(fav.url);
-                      
-                      if (!data) {
-                        // Render a fallback tile for orphaned favorites that might still exist
-                        return (
-                           <div
-                            key={fav.url}
-                            className="group relative flex items-center w-full h-16 px-4 rounded-lg"
-                            style={{ backgroundColor: '#3f3f46' /* neutral-700 */ }}
-                          >
-                            <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">link_off</i>
-                            <div className="flex-grow min-w-0">
-                              <p className="text-xs text-white/80 truncate">Verwaister Favorit</p>
-                              <p className="font-semibold text-white truncate">{fav.name}</p>
-                            </div>
-                            <button
-                              onClick={() => removeFavorite(fav.url)}
-                              className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-red-500/90 hover:bg-red-500 transition-all"
-                              aria-label="Verwaisten Favorit entfernen"
-                            >
-                              <i className="material-icons text-base">close</i>
-                            </button>
-                          </div>
-                        );
-                      }
-                      
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {favorites.map((fav) => {
+                    const data = allLinksMap.get(fav.url);
+
+                    if (!data) {
+                      // Render a fallback tile for orphaned favorites that might still exist
                       return (
-                          <FavoriteListItem
-                              key={fav.url}
-                              data={data}
-                              onRemove={removeFavorite}
-                          />
+                        <div
+                          key={fav.url}
+                          className="group relative flex items-center w-full h-16 px-4 rounded-lg border border-neutral-600 bg-neutral-700"
+                        >
+                          <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">link_off</i>
+                          <div className="flex-grow min-w-0">
+                            <p className="text-xs text-white/80 truncate">Verwaister Favorit</p>
+                            <p className="font-semibold text-white truncate">{fav.name}</p>
+                          </div>
+                          <button
+                            onClick={() => removeFavorite(fav.url)}
+                            className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-neutral-700 hover:bg-neutral-600 transition-all"
+                            aria-label="Verwaisten Favorit entfernen"
+                          >
+                            <i className="material-icons text-base">close</i>
+                          </button>
+                        </div>
                       );
-                    })}
+                    }
+
+                    return (
+                      <FavoriteListItem
+                        key={fav.url}
+                        data={data}
+                        onRemove={removeFavorite}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-10 px-4 text-neutral-500">

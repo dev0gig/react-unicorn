@@ -89,9 +89,9 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
     const handleCopy = () => {
         if (!selectedTemplate) return;
         const { content, title } = selectedTemplate;
-        
+
         const activeSignature = signatures.find(sig => sig.id === activeSignatureId);
-        
+
         let textToCopy = content;
         let toastMsg = `Vorlage "${title}" kopiert!`;
 
@@ -116,7 +116,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     <p className="text-neutral-400">Wählen Sie eine Vorlage. Klicken Sie in die Vorschau, um den Text zu kopieren.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                     <button
+                    <button
                         onClick={onOpenSignatureModal}
                         className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
                     >
@@ -144,17 +144,17 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     />
                 </div>
                 <div className="relative md:col-span-1">
-                     <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 z-10">draw</i>
+                    <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 z-10">draw</i>
                     <select
                         id="signature-select"
                         value={activeSignatureId || ''}
                         onChange={e => setActiveSignatureId(e.target.value || null)}
                         className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 pl-10 pr-4 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500 appearance-none"
-                         aria-label="Aktive Signatur auswählen"
+                        aria-label="Aktive Signatur auswählen"
                     >
                         <option value="">Keine Signatur</option>
                         {signatures.map(sig => (
-                        <option key={sig.id} value={sig.id}>{sig.title}</option>
+                            <option key={sig.id} value={sig.id}>{sig.title}</option>
                         ))}
                     </select>
                     <i className="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 z-10 pointer-events-none">expand_more</i>
@@ -179,11 +179,10 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                                                 <button
                                                     key={template.id}
                                                     onClick={() => handleSelectTemplate(template, group.category)}
-                                                    className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${
-                                                        selectedTemplateId === template.id
+                                                    className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${selectedTemplateId === template.id
                                                             ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
                                                             : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
-                                                    }`}
+                                                        }`}
                                                     title={template.title}
                                                 >
                                                     {template.title}
@@ -191,7 +190,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                                             ))}
                                         </div>
                                     </div>
-                                    )
+                                )
                                 )
                             ) : (
                                 <div className="text-center py-10 px-4 text-neutral-500">
@@ -203,9 +202,9 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     </div>
                 </div>
 
-                <div className="bg-neutral-800 rounded-2xl p-4 flex flex-col h-full relative">
+                <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 p-4 flex flex-col h-full relative">
                     {selectedTemplate && selectedCategory && (
-                         <div className="absolute top-3 right-3 flex gap-2 z-10">
+                        <div className="absolute top-3 right-3 flex gap-2 z-10">
                             <button
                                 onClick={() => onEdit(selectedTemplate, selectedCategory)}
                                 className="p-2 rounded-full text-neutral-400 hover:bg-neutral-700 hover:text-white transition-colors"
@@ -236,7 +235,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     </div>
                 </div>
             </div>
-            
+
             {toastMessage && <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />}
         </div>
     );

@@ -73,7 +73,7 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
 
             <div className="flex-grow flex flex-col md:flex-row gap-6 min-h-0 pr-8 pb-8">
 
-                <div className="md:w-1/3 flex flex-col bg-neutral-800 rounded-2xl p-4 shadow-lg min-h-0">
+                <div className="md:w-1/3 flex flex-col bg-neutral-800 rounded-xl border border-neutral-700 p-4 shadow-2xl shadow-orange-900/10 min-h-0">
                     <div className="relative mb-4 flex-shrink-0">
                         <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 z-10">search</i>
                         <input
@@ -114,7 +114,7 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
                     </div>
                 </div>
 
-                <div className="md:w-2/3 bg-neutral-800 rounded-2xl shadow-lg overflow-y-auto custom-scrollbar relative">
+                <div className="md:w-2/3 bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 overflow-y-auto custom-scrollbar relative">
                     {selectedContact ? (
                         <>
                             <div className="absolute top-4 right-4 flex gap-2">

@@ -27,7 +27,7 @@ interface DashboardProps {
 }
 
 const GroupOverlay: React.FC<{ group: ToolGroup }> = ({ group }) => (
-  <div className="bg-neutral-800 rounded-xl shadow-2xl p-3 flex items-center gap-2 opacity-90" style={{ width: '350px' }}>
+  <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 p-3 flex items-center gap-2 opacity-90" style={{ width: '350px' }}>
     <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
     <h2 className="text-xl font-bold text-neutral-200 truncate">{group.title}</h2>
   </div>

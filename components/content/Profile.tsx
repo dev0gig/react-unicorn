@@ -77,18 +77,18 @@ const CalendarWidget: React.FC = () => {
 
     const handleNavigate = useCallback((direction: 'next' | 'prev' | 'today') => {
         setCurrentDate(current => {
-          if (direction === 'today') {
-            return new Date();
-          }
-          const newDate = new Date(current);
-          const increment = direction === 'next' ? 1 : -1;
-          
-          if (view === 'month') {
-            newDate.setMonth(newDate.getMonth() + increment);
-          } else { // week view
-            newDate.setDate(newDate.getDate() + (7 * increment));
-          }
-          return newDate;
+            if (direction === 'today') {
+                return new Date();
+            }
+            const newDate = new Date(current);
+            const increment = direction === 'next' ? 1 : -1;
+
+            if (view === 'month') {
+                newDate.setMonth(newDate.getMonth() + increment);
+            } else { // week view
+                newDate.setDate(newDate.getDate() + (7 * increment));
+            }
+            return newDate;
         });
     }, [view]);
 
@@ -109,7 +109,7 @@ const CalendarWidget: React.FC = () => {
         setCurrentDate(ISOweekStart);
         setView('week');
     }, []);
-    
+
     const handleImportClick = () => {
         importIcsRef.current?.click();
     };
@@ -126,12 +126,12 @@ const CalendarWidget: React.FC = () => {
             }
         };
         reader.readAsText(file);
-        if(event.target) event.target.value = '';
+        if (event.target) event.target.value = '';
     };
 
     return (
-        <div className="bg-neutral-800 rounded-2xl flex flex-col h-[800px]">
-             <input type="file" accept=".ics" ref={importIcsRef} onChange={handleFileChange} className="hidden" />
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 flex flex-col h-[800px]">
+            <input type="file" accept=".ics" ref={importIcsRef} onChange={handleFileChange} className="hidden" />
             <CalendarHeader
                 currentDate={currentDate}
                 view={view}
@@ -142,16 +142,16 @@ const CalendarWidget: React.FC = () => {
             {view === 'month' ? <MonthDaysHeader /> : <WeekDaysHeader startDate={currentDate} />}
             <div className="flex-grow p-4 overflow-hidden">
                 {view === 'month' ? (
-                    <CalendarGrid 
-                        currentDate={currentDate} 
-                        events={events} 
+                    <CalendarGrid
+                        currentDate={currentDate}
+                        events={events}
                         onDayClick={handleDayClick}
                         onWeekClick={handleWeekClick}
                     />
                 ) : (
-                    <WeekView 
-                        startDate={currentDate} 
-                        events={events} 
+                    <WeekView
+                        startDate={currentDate}
+                        events={events}
                     />
                 )}
             </div>

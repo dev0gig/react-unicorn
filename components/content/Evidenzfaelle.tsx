@@ -73,7 +73,7 @@ export const Evidenzfaelle: React.FC<EvidenzfaelleProps> = ({ onEdit, onAddCaseC
 
       <div className="flex-grow min-h-0 pr-8 pb-8">
         {showArchive ? (
-          <div className="bg-neutral-800 p-6 rounded-2xl shadow-lg overflow-y-auto custom-scrollbar h-full">
+          <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 overflow-y-auto custom-scrollbar h-full">
             {archivedFaelle.length > 0 ? (
               <ul className="space-y-3">
                 {archivedFaelle.map(fall => (

@@ -40,7 +40,7 @@ export const CaseCard: React.FC<CaseCardProps> = ({ fall, onArchive, onEdit, isO
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-neutral-800 p-4 rounded-lg ${shadow} touch-none border border-transparent hover:border-orange-500/50 transition-all duration-200 flex flex-col gap-2 ${isDragging ? 'opacity-50' : ''}`}
+            className={`bg-neutral-800 p-4 rounded-lg ${shadow} touch-none border border-neutral-600 hover:border-orange-500 transition-all duration-200 flex flex-col gap-2 ${isDragging ? 'opacity-50' : ''}`}
         >
             <div className="flex justify-between items-start gap-2">
                 <div className="flex-grow min-w-0">
