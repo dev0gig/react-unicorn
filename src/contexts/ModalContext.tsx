@@ -10,7 +10,6 @@ export type ModalType =
     | 'TOOL_LINK'
     | 'TILE_EDIT'
     | 'TOOL_GROUP'
-    | 'DASHBOARD_HELP'
     | 'REORDER_GROUPS'
     | 'INFO'
     | 'CONFIRMATION'

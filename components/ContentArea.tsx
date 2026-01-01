@@ -23,7 +23,6 @@ interface ContentAreaProps {
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
-  onOpenHelp: () => void;
   onOpenReorderGroupsModal: () => void;
   onOpenResetTimeTrackerModal: () => void;
   onColumnCountChange: (count: number) => void;
@@ -32,11 +31,11 @@ interface ContentAreaProps {
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
-  const { 
-    activeView, setActiveView, onAddContact, 
-    onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick, 
-    onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup, 
-    onOpenHelp, onOpenReorderGroupsModal, onOpenResetTimeTrackerModal, onColumnCountChange, timeTrackerResetTrigger,
+  const {
+    activeView, setActiveView, onAddContact,
+    onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick,
+    onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup,
+    onOpenReorderGroupsModal, onOpenResetTimeTrackerModal, onColumnCountChange, timeTrackerResetTrigger,
     onOpenClearArchiveModal,
   } = props;
 
@@ -45,15 +44,14 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'Dienstplan':
         return <Profile />;
       case 'Dashboard':
-        return <Dashboard 
-                  onAddLink={onAddLink} 
-                  onEditTile={onEditTile}
-                  onAddGroup={onAddGroup}
-                  onEditGroup={onEditGroup}
-                  onOpenHelp={onOpenHelp}
-                  onOpenReorderGroupsModal={onOpenReorderGroupsModal}
-                  onColumnCountChange={onColumnCountChange}
-               />;
+        return <Dashboard
+          onAddLink={onAddLink}
+          onEditTile={onEditTile}
+          onAddGroup={onAddGroup}
+          onEditGroup={onEditGroup}
+          onOpenReorderGroupsModal={onOpenReorderGroupsModal}
+          onColumnCountChange={onColumnCountChange}
+        />;
       case 'Kontakte':
         return <Kontakte onAdd={onAddContact} onEdit={onEditContact} />;
       case 'Mail Vorlagen':

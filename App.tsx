@@ -125,7 +125,6 @@ function AppContent() {
                             children: <p>Möchten Sie diesen Eintrag wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
                         })
                     })}
-                    onOpenHelp={() => openModal('DASHBOARD_HELP')}
                     onOpenReorderGroupsModal={() => openModal('REORDER_GROUPS', { columnCount: dashboardColumnCount })}
                     onColumnCountChange={setDashboardColumnCount}
                     onOpenResetTimeTrackerModal={() => openModal('RESET_TIME_TRACKER', {

@@ -22,19 +22,18 @@ interface DashboardProps {
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
-  onOpenHelp: () => void;
   onOpenReorderGroupsModal: () => void;
   onColumnCountChange: (count: number) => void;
 }
 
 const GroupOverlay: React.FC<{ group: ToolGroup }> = ({ group }) => (
   <div className="bg-neutral-800 rounded-xl shadow-2xl p-3 flex items-center gap-2 opacity-90" style={{ width: '350px' }}>
-    <i className="material-icons text-2xl" style={{ color: group.color || '#f97316' }}>{group.icon}</i>
+    <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
     <h2 className="text-xl font-bold text-neutral-200 truncate">{group.title}</h2>
   </div>
 );
 
-export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenHelp, onOpenReorderGroupsModal, onColumnCountChange }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onAddGroup, onEditGroup, onOpenReorderGroupsModal, onColumnCountChange }) => {
   const {
     toolGroups,
     activeItem,
@@ -121,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
         aria-labelledby={`group-header-${group.id}`}
       >
         <div className="group flex items-center gap-2 mb-4">
-          <i className="material-icons text-2xl" style={{ color: group.color || '#f97316' }}>{group.icon}</i>
+          <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
           {isEditMode && (
             <button
               {...attributes}
@@ -279,14 +278,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
               >
                 <i className="material-icons mr-2 text-base">view_quilt</i>
                 Anordnen
-              </button>
-              <button
-                onClick={onOpenHelp}
-                className="flex items-center bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-                title="Anleitung anzeigen"
-              >
-                <i className="material-icons mr-2 text-base">help_outline</i>
-                Anleitung
               </button>
             </>
           )}

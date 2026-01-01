@@ -14,7 +14,6 @@ export const LinkItem: React.FC<LinkItemProps> = ({ data, isFavorite, isEditMode
     return (
         <div
             className={`relative flex flex-col w-full h-20 rounded-lg bg-neutral-800 transition-all duration-200 overflow-hidden ${isEditMode ? 'ring-2 ring-orange-500 shadow-lg bg-neutral-800' : 'hover:bg-neutral-700'}`}
-            style={{ borderLeft: `4px solid ${data.group.color || '#f97316'}` }}
         >
             {isEditMode ? (
                 /* EDIT MODE LAYOUT */

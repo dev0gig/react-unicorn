@@ -13,7 +13,6 @@ import { DeleteModal } from '../../../components/DeleteModal';
 import { ToolLinkModal } from '../../../components/ToolLinkModal';
 import { TileEditModal } from '../../../components/TileEditModal';
 import { ToolGroupModal } from '../../../components/ToolGroupModal';
-import { DashboardHelpModal } from '../../../components/DashboardHelpModal';
 import { InfoModal } from '../../../components/InfoModal';
 import { ReorderGroupsModal } from '../../../components/ReorderGroupsModal';
 
@@ -47,8 +46,6 @@ export const GlobalModalManager: React.FC = () => {
             return <TileEditModal {...commonProps} />;
         case 'TOOL_GROUP':
             return <ToolGroupModal {...commonProps} />;
-        case 'DASHBOARD_HELP':
-            return <DashboardHelpModal {...commonProps} />;
         case 'REORDER_GROUPS':
             return <ReorderGroupsModal {...commonProps} />;
         case 'INFO':

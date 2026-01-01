@@ -30,7 +30,7 @@ interface ReorderGroupsModalProps {
 const GroupItem: React.FC<{ group: ToolGroup }> = ({ group }) => {
   return (
     <div className="p-4 rounded-lg bg-neutral-700 flex items-center gap-3 shadow-2xl scale-105 opacity-95">
-      <i className="material-icons text-orange-400">{group.icon}</i>
+      <i className="material-icons text-orange-500">{group.icon}</i>
       <span className="font-semibold text-neutral-100 truncate">{group.title}</span>
     </div>
   );
@@ -61,7 +61,7 @@ const SortableGroup: React.FC<{ group: ToolGroup }> = ({ group }) => {
       {...listeners}
       className="p-4 rounded-lg bg-neutral-700/50 flex items-center gap-3 cursor-grab active:cursor-grabbing touch-none transition-shadow shadow-md"
     >
-      <i className="material-icons text-orange-400">{group.icon}</i>
+      <i className="material-icons text-orange-500">{group.icon}</i>
       <span className="font-semibold text-neutral-100 truncate">{group.title}</span>
     </div>
   );
@@ -73,18 +73,18 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
   const [activeGroup, setActiveGroup] = useState<ToolGroup | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
-        distance: 8,
+      distance: 8,
     },
   }));
 
   const gridColsClass = useMemo(() => {
     switch (columnCount) {
-        case 3:
-            return 'grid-cols-3';
-        case 2:
-            return 'grid-cols-2';
-        default:
-            return 'grid-cols-1';
+      case 3:
+        return 'grid-cols-3';
+      case 2:
+        return 'grid-cols-2';
+      default:
+        return 'grid-cols-1';
     }
   }, [columnCount]);
 
@@ -96,7 +96,7 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
 
   const handleDone = useCallback(() => {
     if (JSON.stringify(items) !== JSON.stringify(toolGroups)) {
-        reorderGroups(items);
+      reorderGroups(items);
     }
     onClose();
   }, [items, reorderGroups, onClose, toolGroups]);
@@ -108,18 +108,18 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
       }
     };
     if (isOpen) {
-        window.addEventListener('keydown', handleEsc);
+      window.addEventListener('keydown', handleEsc);
     }
     return () => {
       window.removeEventListener('keydown', handleEsc);
     };
   }, [isOpen, handleDone]);
-  
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const group = items.find(item => item.id === active.id);
     if (group) {
-        setActiveGroup(group);
+      setActiveGroup(group);
     }
   };
 
@@ -132,7 +132,7 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
         const oldIndex = currentItems.findIndex((item) => item.id === active.id);
         const newIndex = currentItems.findIndex((item) => item.id === over.id);
         if (oldIndex > -1 && newIndex > -1) {
-            return arrayMove(currentItems, oldIndex, newIndex);
+          return arrayMove(currentItems, oldIndex, newIndex);
         }
         return currentItems;
       });
@@ -152,8 +152,8 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
           >
             <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">
               <div className="flex items-center">
-                 <i className="material-icons text-2xl text-orange-400 mr-3">view_quilt</i>
-                 <h2 className="text-xl font-bold text-neutral-100">Dashboard-Gruppen anordnen</h2>
+                <i className="material-icons text-2xl text-orange-400 mr-3">view_quilt</i>
+                <h2 className="text-xl font-bold text-neutral-100">Dashboard-Gruppen anordnen</h2>
               </div>
               <button
                 onClick={handleDone}
@@ -165,34 +165,34 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
             </header>
 
             <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                >
-                    <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
-                        <div className={`grid ${gridColsClass} gap-4`}>
-                            {items.map(group => (
-                                <SortableGroup key={group.id} group={group} />
-                            ))}
-                        </div>
-                    </SortableContext>
-                     {ReactDOM.createPortal(
-                        <DragOverlay>
-                            {activeGroup ? <GroupItem group={activeGroup} /> : null}
-                        </DragOverlay>,
-                        document.body
-                    )}
-                </DndContext>
-                {items.length === 0 && (
-                    <div className="text-center py-10 px-4 text-neutral-500 h-full flex flex-col items-center justify-center">
-                        <i className="material-icons text-5xl mb-2">category</i>
-                        <p>Keine Gruppen zum Anordnen vorhanden.</p>
-                    </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
+                  <div className={`grid ${gridColsClass} gap-4`}>
+                    {items.map(group => (
+                      <SortableGroup key={group.id} group={group} />
+                    ))}
+                  </div>
+                </SortableContext>
+                {ReactDOM.createPortal(
+                  <DragOverlay>
+                    {activeGroup ? <GroupItem group={activeGroup} /> : null}
+                  </DragOverlay>,
+                  document.body
                 )}
+              </DndContext>
+              {items.length === 0 && (
+                <div className="text-center py-10 px-4 text-neutral-500 h-full flex flex-col items-center justify-center">
+                  <i className="material-icons text-5xl mb-2">category</i>
+                  <p>Keine Gruppen zum Anordnen vorhanden.</p>
+                </div>
+              )}
             </div>
-            
+
             <footer className="flex justify-end items-center p-4 bg-neutral-900/50 rounded-b-2xl">
               <button
                 onClick={handleDone}
