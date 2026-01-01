@@ -5,10 +5,10 @@ import { ContentArea } from './components/ContentArea';
 import { Snowfall } from './components/Snowfall';
 import { ViewName, FavoritesContextType, EvidenzContextType, ContactsContextType, TemplatesContextType, Template, SignaturesContextType, DashboardContextType, ScheduleContextType, ScheduleEvent, NotesContextType } from './types';
 import { ToolLink, ToolGroup, Evidenzfall, Contact, TemplateGroup, Signature, Note } from './types';
+import { useLocalStorage } from './src/hooks/useLocalStorage';
 import { loadFromStorage, saveToStorage } from './utils/storage';
 import { AddCaseModal } from './components/AddCaseModal';
 import { FavoritesModal } from './components/FavoritesModal';
-import { ExportModal } from './components/ExportModal';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { ContactModal } from './components/ContactModal';
 import { TemplateModal } from './components/TemplateModal';
@@ -106,8 +106,8 @@ function App(): React.ReactNode {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // States
-    const [favorites, setFavorites] = useState<ToolLink[]>(() => loadFromStorage('favorites', []));
-    const [showSnow, setShowSnow] = useState<boolean>(() => loadFromStorage('show-snow', false));
+    const [favorites, setFavorites] = useLocalStorage<ToolLink[]>('favorites', []);
+    const [showSnow, setShowSnow] = useLocalStorage<boolean>('show-snow', false);
     const [toolGroups, setToolGroups] = useState<ToolGroup[]>(() => {
         const saved = loadFromStorage<ToolGroup[] | null>('dashboard', null);
         let groups: ToolGroup[] = saved || initialToolGroups;
@@ -129,12 +129,12 @@ function App(): React.ReactNode {
         }
         return groups;
     });
-    const [faelle, setFaelle] = useState<Evidenzfall[]>(() => loadFromStorage('faelle', []));
-    const [archivedFaelle, setArchivedFaelle] = useState<Evidenzfall[]>(() => loadFromStorage('archived-faelle', []));
-    const [contacts, setContacts] = useState<Contact[]>(() => loadFromStorage('contacts', initialContacts));
-    const [templateGroups, setTemplateGroups] = useState<TemplateGroup[]>(() => loadFromStorage('templates', initialTemplateGroups));
-    const [signatures, setSignatures] = useState<Signature[]>(() => loadFromStorage('signatures', []));
-    const [activeSignatureId, setActiveSignatureId] = useState<string | null>(() => loadFromStorage('active-signature-id', null));
+    const [faelle, setFaelle] = useLocalStorage<Evidenzfall[]>('faelle', []);
+    const [archivedFaelle, setArchivedFaelle] = useLocalStorage<Evidenzfall[]>('archived-faelle', []);
+    const [contacts, setContacts] = useLocalStorage<Contact[]>('contacts', initialContacts);
+    const [templateGroups, setTemplateGroups] = useLocalStorage<TemplateGroup[]>('templates', initialTemplateGroups);
+    const [signatures, setSignatures] = useLocalStorage<Signature[]>('signatures', []);
+    const [activeSignatureId, setActiveSignatureId] = useLocalStorage<string | null>('active-signature-id', null);
     const [schedule, setSchedule] = useState<Record<string, ScheduleEvent[]>>(() => {
         const savedSchedule = loadFromStorage<Record<string, ScheduleEvent[]> | null>('schedule', null);
         if (!savedSchedule) return {};
@@ -149,14 +149,13 @@ function App(): React.ReactNode {
         });
         return parsed;
     });
-    const [notes, setNotes] = useState<Note[]>(() => loadFromStorage('notes', initialNotes));
+    const [notes, setNotes] = useLocalStorage<Note[]>('notes', initialNotes);
 
 
     // Modal States
     const [isAddCaseModalOpen, setIsAddCaseModalOpen] = useState(false);
     const [caseToEdit, setCaseToEdit] = useState<Evidenzfall | null>(null);
     const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isImportConfirmOpen, setIsImportConfirmOpen] = useState(false);
     const [dataToImport, setDataToImport] = useState<any>(null);
@@ -182,17 +181,9 @@ function App(): React.ReactNode {
 
 
     // Effects for localStorage persistence
-    useEffect(() => { saveToStorage('favorites', favorites); }, [favorites]);
-    useEffect(() => { saveToStorage('show-snow', showSnow); }, [showSnow]);
+    // Effects for localStorage persistence - handled by useLocalStorage for most items
     useEffect(() => { saveToStorage('dashboard', toolGroups); }, [toolGroups]);
-    useEffect(() => { saveToStorage('faelle', faelle); }, [faelle]);
-    useEffect(() => { saveToStorage('archived-faelle', archivedFaelle); }, [archivedFaelle]);
-    useEffect(() => { saveToStorage('contacts', contacts); }, [contacts]);
-    useEffect(() => { saveToStorage('templates', templateGroups); }, [templateGroups]);
-    useEffect(() => { saveToStorage('signatures', signatures); }, [signatures]);
-    useEffect(() => { saveToStorage('active-signature-id', activeSignatureId); }, [activeSignatureId]);
     useEffect(() => { saveToStorage('schedule', schedule); }, [schedule]);
-    useEffect(() => { saveToStorage('notes', notes); }, [notes]);
 
 
     // --- Context Values & Functions ---
@@ -431,29 +422,22 @@ function App(): React.ReactNode {
     const notesContextValue = useMemo(() => ({ notes, addNote, updateNote, deleteNote }), [notes, addNote, updateNote, deleteNote]);
 
     // --- Backup & Restore Logic ---
-    const handleExport = (options: any) => {
+    const handleExport = () => {
         const exportData: any = {
             metadata: { appName: 'Unicorn Backup', exportDate: new Date().toISOString() },
-            data: {}
+            data: {
+                toolGroups,
+                favorites,
+                faelle,
+                archivedFaelle,
+                contacts,
+                templateGroups,
+                signatures,
+                activeSignatureId,
+                notes, // Auto-export notes
+                schedule // Auto-export schedule
+            }
         };
-
-        if (options.dashboard) {
-            exportData.data.toolGroups = toolGroups;
-        }
-        if (options.favorites) exportData.data.favorites = favorites;
-        if (options.faelle) {
-            exportData.data.faelle = faelle;
-            exportData.data.archivedFaelle = archivedFaelle;
-        }
-        if (options.contacts) exportData.data.contacts = contacts;
-        if (options.templates) exportData.data.templateGroups = templateGroups;
-        if (options.signatures) {
-            exportData.data.signatures = signatures;
-            exportData.data.activeSignatureId = activeSignatureId;
-        }
-        // Auto-export notes if requested (assuming 'notes' might be added to ExportModal in future, or add it manually here if not passed)
-        // Since ExportModal isn't updated, we won't force it, but data is available.
-
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -464,7 +448,6 @@ function App(): React.ReactNode {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        setIsExportModalOpen(false);
     };
 
     const triggerImport = () => {
@@ -518,6 +501,18 @@ function App(): React.ReactNode {
         if (dataToImport.signatures) setSignatures(dataToImport.signatures);
         if (dataToImport.activeSignatureId) setActiveSignatureId(dataToImport.activeSignatureId);
         if (dataToImport.notes) setNotes(dataToImport.notes);
+        if (dataToImport.schedule) {
+            // Restore Dates for schedule
+            const restoredSchedule: Record<string, ScheduleEvent[]> = {};
+            Object.keys(dataToImport.schedule).forEach(dateKey => {
+                restoredSchedule[dateKey] = dataToImport.schedule[dateKey].map((event: any) => ({
+                    ...event,
+                    dtstart: new Date(event.dtstart),
+                    dtend: new Date(event.dtend),
+                }));
+            });
+            setSchedule(restoredSchedule);
+        }
 
         setDataToImport(null);
         setIsImportConfirmOpen(false);
@@ -641,13 +636,13 @@ function App(): React.ReactNode {
                             <SignaturesContext.Provider value={signaturesContextValue}>
                                 <ScheduleContext.Provider value={scheduleContextValue}>
                                     <NotesContext.Provider value={notesContextValue}>
-                                        <div className="flex h-screen bg-neutral-900 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
+                                        <div className="flex h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-neutral-800 via-neutral-900 to-neutral-950 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
                                             {showSnow && <Snowfall />}
                                             <Sidebar
                                                 activeView={activeView}
                                                 setActiveView={setActiveView}
                                                 onFavoritesClick={() => setIsFavoritesModalOpen(true)}
-                                                onExportClick={() => setIsExportModalOpen(true)}
+                                                onExportClick={handleExport}
                                                 onImportClick={triggerImport}
                                                 onDeleteClick={() => setIsDeleteModalOpen(true)}
                                                 showSnow={showSnow}
@@ -676,17 +671,12 @@ function App(): React.ReactNode {
                                                     onOpenClearArchiveModal={() => setIsClearArchiveConfirmOpen(true)}
                                                 />
                                             </main>
-                                            <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
-                                            <FavoritesModal isOpen={isFavoritesModalOpen} onClose={() => setIsFavoritesModalOpen(false)} />
-                                            <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExport={handleExport} />
                                             <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteDataRequest} />
                                             <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} contact={contactToEdit} />
                                             <TemplateModal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)} templateToEdit={templateToEdit} />
                                             <SignatureModal isOpen={isSignatureModalOpen} onClose={() => setIsSignatureModalOpen(false)} />
                                             <ToolLinkModal isOpen={isToolLinkModalOpen} onClose={() => setToolLinkModalOpen(false)} linkToEdit={linkToEdit} />
-                                            <AddCaseModal isOpen={isAddCaseModalOpen} onClose={() => setIsAddCaseModalOpen(false)} caseToEdit={caseToEdit} />
                                             <FavoritesModal isOpen={isFavoritesModalOpen} onClose={() => setIsFavoritesModalOpen(false)} />
-                                            <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExport={handleExport} />
                                             <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteDataRequest} />
                                             <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} contact={contactToEdit} />
                                             <TemplateModal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)} templateToEdit={templateToEdit} />
