@@ -9,6 +9,7 @@ import { SignaturesProvider } from '../../contexts/SignaturesContext';
 import { FavoritesProvider } from '../../contexts/FavoritesContext';
 import { ScheduleProvider } from '../../contexts/ScheduleContext';
 import { NotesProvider } from '../../contexts/NotesContext';
+import { ModalProvider } from '../contexts/ModalContext';
 
 interface AppProvidersProps {
     children: ReactNode;
@@ -24,7 +25,9 @@ export function AppProviders({ children }: AppProvidersProps) {
                             <FavoritesProvider>
                                 <ScheduleProvider>
                                     <NotesProvider>
-                                        {children}
+                                        <ModalProvider>
+                                            {children}
+                                        </ModalProvider>
                                     </NotesProvider>
                                 </ScheduleProvider>
                             </FavoritesProvider>
