@@ -114,10 +114,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     return (
       <section
         ref={setNodeRef}
-        style={style}
+        style={{ ...style, backgroundColor: '#1e1e1e' }}
         id={group.id}
         aria-labelledby={`group-header-${group.id}`}
-        className="bg-neutral-900 border border-neutral-700 rounded-xl p-4 mb-4"
+        className="border border-neutral-700 rounded-xl p-4 mb-4"
       >
         <div className="group flex items-center gap-2 mb-4">
           <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
