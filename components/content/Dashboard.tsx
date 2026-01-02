@@ -10,7 +10,6 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { LinkItem } from '../../src/components/dashboard/LinkItem';
@@ -118,6 +117,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
         style={style}
         id={group.id}
         aria-labelledby={`group-header-${group.id}`}
+        className="bg-neutral-900 border border-neutral-700 rounded-xl p-4 mb-4"
       >
         <div className="group flex items-center gap-2 mb-4">
           <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
@@ -157,7 +157,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
         </div>
         <div className="min-h-[6rem]">
           <SortableContext items={group.links.map(l => l.url)} strategy={verticalListSortingStrategy}>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 relative">
+            <div className="grid grid-cols-2 gap-2 relative">
               {group.links.map(link => {
                 const isFav = isFavorite(link.url);
                 return <SortableLinkItem
@@ -215,8 +215,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     }
 
     return (
-      <SortableContext items={toolGroups.map(g => g.id)} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
+      <SortableContext items={toolGroups.map(g => g.id)} strategy={verticalListSortingStrategy}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {groupsToRender.map(group => <SortableGroup key={group.id} group={group} />)}
         </div>
       </SortableContext>
@@ -254,30 +254,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
           <button
             onClick={() => setIsEditMode(!isEditMode)}
-            className={`flex items-center font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg ${isEditMode ? 'bg-orange-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+            className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors shadow-md hover:shadow-lg ${isEditMode ? 'bg-orange-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
             title={isEditMode ? "Bearbeiten beenden" : "Dashboard bearbeiten"}
           >
-            <i className="material-icons mr-2 text-base">{isEditMode ? 'check' : 'edit'}</i>
-            {isEditMode ? 'Fertig' : 'Bearbeiten'}
+            <i className="material-icons text-xl">{isEditMode ? 'check' : 'edit'}</i>
           </button>
 
           {!isEditMode && (
             <>
               <button
                 onClick={onAddGroup}
-                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                className="w-10 h-10 flex items-center justify-center bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
                 title="Neue Gruppe erstellen"
               >
-                <i className="material-icons mr-2 text-base">create_new_folder</i>
-                Neue Gruppe
+                <i className="material-icons text-xl">create_new_folder</i>
               </button>
               <button
                 onClick={onOpenReorderGroupsModal}
-                className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                className="w-10 h-10 flex items-center justify-center bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
                 title="Gruppen anordnen"
               >
-                <i className="material-icons mr-2 text-base">view_quilt</i>
-                Anordnen
+                <i className="material-icons text-xl">view_quilt</i>
               </button>
             </>
           )}

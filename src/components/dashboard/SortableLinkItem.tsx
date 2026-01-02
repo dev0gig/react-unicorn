@@ -22,7 +22,7 @@ export const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, group,
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: link.url, data: { type: 'link', link, group, isFavorite } });
+    } = useSortable({ id: link.url, data: { type: 'link', link, group, isFavorite }, disabled: !isEditMode });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -50,7 +50,7 @@ export const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, group,
             className={`transition-opacity duration-300 ${isDragging ? 'opacity-30' : ''}`}
         >
             <div className="relative cursor-pointer" onClick={handleClick}>
-                <div {...attributes} {...listeners} className="touch-none">
+                <div {...(isEditMode ? { ...attributes, ...listeners } : {})} className={isEditMode ? 'touch-none cursor-grab active:cursor-grabbing' : ''}>
                     <LinkItem
                         data={data}
                         isFavorite={isFavorite}

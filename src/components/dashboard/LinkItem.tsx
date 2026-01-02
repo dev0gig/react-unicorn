@@ -1,6 +1,36 @@
 import React from 'react';
 import { ToolLink, ToolGroup } from '../../../types';
 
+// Feste Farbpalette: 7 dezente, dunkle Farben
+const INITIAL_COLORS = [
+    '#4a5568', // Grau-Blau
+    '#5a67d8', // Indigo
+    '#319795', // Teal
+    '#38a169', // Grün
+    '#d69e2e', // Gelb/Gold
+    '#dd6b20', // Orange
+    '#e53e3e', // Rot
+];
+
+// Deterministische Farbzuweisung basierend auf dem Link-Namen
+const getColorForName = (name: string): string => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        const char = name.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    const index = Math.abs(hash) % INITIAL_COLORS.length;
+    return INITIAL_COLORS[index];
+};
+
+// Initiale des Link-Namens (erster Buchstabe)
+const getInitial = (name: string): string => {
+    const trimmed = name.trim();
+    if (!trimmed) return '?';
+    return trimmed.charAt(0).toUpperCase();
+};
+
 interface LinkItemProps {
     data: { link: ToolLink; group: ToolGroup };
     isFavorite: boolean;
@@ -13,50 +43,40 @@ interface LinkItemProps {
 export const LinkItem: React.FC<LinkItemProps> = ({ data, isFavorite, isEditMode, onToggleFavorite, onEdit, onDelete }) => {
     return (
         <div
-            className={`relative flex flex-col w-full h-20 rounded-lg bg-neutral-800 border border-neutral-600 transition-all duration-200 overflow-hidden ${isEditMode ? 'ring-2 ring-orange-500 shadow-lg bg-neutral-800' : 'hover:bg-neutral-700'}`}
+            className={`group relative flex items-center justify-center w-full min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 transition-all duration-200 overflow-hidden ${isEditMode ? 'ring-2 ring-orange-500 bg-neutral-800' : 'hover:bg-neutral-700 hover:border-orange-500/50'}`}
         >
-            {isEditMode ? (
-                /* EDIT MODE LAYOUT */
-                <div className="flex flex-col h-full w-full animate-fade-in-fast">
-                    {/* Title Area - Always readable */}
-                    <div className="px-2 pt-1 pb-1 text-[10px] uppercase tracking-wider text-neutral-400 font-semibold truncate border-b border-neutral-700/50 text-center select-none">
-                        {data.link.name}
-                    </div>
+            {/* Link Name */}
+            <span className="font-medium text-neutral-200 text-center text-sm leading-tight">{data.link.name}</span>
 
-                    {/* Action Buttons Area - Center aligned with more space */}
-                    <div className="flex-grow flex items-center justify-center gap-3 bg-neutral-900/30">
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-neutral-600 text-white transition-all shadow-sm hover:scale-110"
-                            title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-                        >
-                            <i className="material-icons text-base" style={{ color: isFavorite ? '#fbbf24' : '#9ca3af' }}>{isFavorite ? 'star' : 'star_border'}</i>
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-neutral-600 text-white transition-all shadow-sm hover:scale-110"
-                            title="Bearbeiten"
-                        >
-                            <i className="material-icons text-base">edit</i>
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-700 hover:bg-red-600 text-red-400 hover:text-white transition-all shadow-sm hover:scale-110"
-                            title="Löschen"
-                        >
-                            <i className="material-icons text-base">delete</i>
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                /* NORMAL MODE LAYOUT */
-                <div className="flex flex-col justify-end h-full p-3">
-                    {isFavorite && (
-                        <i className="material-icons text-yellow-400 text-lg absolute top-2 left-2" title="Favorit">star</i>
-                    )}
-                    <div className="min-w-0">
-                        <span className="font-medium text-neutral-200 break-words line-clamp-2">{data.link.name}</span>
-                    </div>
+            {/* Favorit-Stern (immer sichtbar wenn Favorit) */}
+            {isFavorite && !isEditMode && (
+                <i className="material-icons text-yellow-400 text-sm ml-2 absolute right-2" title="Favorit">star</i>
+            )}
+
+            {/* Edit Mode: Aktions-Buttons rechtsbündig */}
+            {isEditMode && (
+                <div className="absolute right-1 flex items-center gap-0.5 animate-fade-in-fast">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all"
+                        title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+                    >
+                        <i className="material-icons text-sm" style={{ color: isFavorite ? '#fbbf24' : '#9ca3af' }}>{isFavorite ? 'star' : 'star_border'}</i>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
+                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all"
+                        title="Bearbeiten"
+                    >
+                        <i className="material-icons text-sm">edit</i>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-600 text-red-400 hover:text-white transition-all"
+                        title="Löschen"
+                    >
+                        <i className="material-icons text-sm">delete</i>
+                    </button>
                 </div>
             )}
         </div>
