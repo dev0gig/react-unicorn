@@ -1,10 +1,10 @@
 
 import React from 'react';
-import type { ViewName, Contact, Template, Evidenzfall, ToolGroup, ToolLink } from '../types';
+import type { ViewName, Contact, Template, ToolGroup, ToolLink } from '../types';
 import { Dashboard } from './content/Dashboard';
 import { Kontakte } from './content/Kontakte';
 import { MailTemplates } from './content/MailTemplates';
-import { Evidenzfaelle } from './content/Evidenzfaelle';
+
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
 import { Profile } from './content/Profile';
 import { TimeTracker } from './content/TimeTracker';
@@ -16,8 +16,6 @@ interface ContentAreaProps {
   onEditContact: (contact: Contact) => void;
   onAddTemplate: () => void;
   onEditTemplate: (template: Template, category: string) => void;
-  onEditCase: (fall: Evidenzfall) => void;
-  onAddCaseClick: () => void;
   onOpenSignatureModal: () => void;
   onAddLink: (link: ToolLink | null, groupId?: string) => void;
   onEditTile: (data: { link: ToolLink; group: ToolGroup }) => void;
@@ -27,16 +25,14 @@ interface ContentAreaProps {
   onOpenResetTimeTrackerModal: () => void;
   onColumnCountChange: (count: number) => void;
   timeTrackerResetTrigger: number;
-  onOpenClearArchiveModal: () => void;
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
   const {
     activeView, setActiveView, onAddContact,
-    onEditContact, onAddTemplate, onEditTemplate, onEditCase, onAddCaseClick,
+    onEditContact, onAddTemplate, onEditTemplate,
     onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup,
     onOpenReorderGroupsModal, onOpenResetTimeTrackerModal, onColumnCountChange, timeTrackerResetTrigger,
-    onOpenClearArchiveModal,
   } = props;
 
   const renderContent = () => {
@@ -56,8 +52,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <Kontakte onAdd={onAddContact} onEdit={onEditContact} />;
       case 'Mail Vorlagen':
         return <MailTemplates onAdd={onAddTemplate} onEdit={onEditTemplate} onOpenSignatureModal={onOpenSignatureModal} />;
-      case 'Evidenzfälle':
-        return <Evidenzfaelle onEdit={onEditCase} onAddCaseClick={onAddCaseClick} onOpenClearArchiveModal={onOpenClearArchiveModal} />;
+
       case 'WiWo-Terminpflege':
         return <Wohnungswirtschaft />;
       case 'Zeiterfassung':

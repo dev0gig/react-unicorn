@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 export type ModalType =
-    | 'ADD_CASE'
     | 'FAVORITES'
     | 'CONTACT'
     | 'TEMPLATE'
@@ -14,8 +13,7 @@ export type ModalType =
     | 'INFO'
     | 'CONFIRMATION'
     | 'IMPORT_CONFIRMATION'
-    | 'RESET_TIME_TRACKER'
-    | 'CLEAR_ARCHIVE';
+    | 'RESET_TIME_TRACKER';
 
 export interface ModalContextType {
     activeModal: ModalType | null;

@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 
 // Context Providers
 import { ContactsProvider } from '../../contexts/ContactsContext';
-import { EvidenzProvider } from '../../contexts/EvidenzContext';
+
 import { DashboardProvider } from '../../contexts/DashboardContext';
 import { TemplatesProvider } from '../../contexts/TemplatesContext';
 import { SignaturesProvider } from '../../contexts/SignaturesContext';
@@ -18,23 +18,21 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
     return (
         <ContactsProvider>
-            <EvidenzProvider>
-                <DashboardProvider>
-                    <TemplatesProvider>
-                        <SignaturesProvider>
-                            <FavoritesProvider>
-                                <ScheduleProvider>
-                                    <NotesProvider>
-                                        <ModalProvider>
-                                            {children}
-                                        </ModalProvider>
-                                    </NotesProvider>
-                                </ScheduleProvider>
-                            </FavoritesProvider>
-                        </SignaturesProvider>
-                    </TemplatesProvider>
-                </DashboardProvider>
-            </EvidenzProvider>
+            <DashboardProvider>
+                <TemplatesProvider>
+                    <SignaturesProvider>
+                        <FavoritesProvider>
+                            <ScheduleProvider>
+                                <NotesProvider>
+                                    <ModalProvider>
+                                        {children}
+                                    </ModalProvider>
+                                </NotesProvider>
+                            </ScheduleProvider>
+                        </FavoritesProvider>
+                    </SignaturesProvider>
+                </TemplatesProvider>
+            </DashboardProvider>
         </ContactsProvider>
     );
 }

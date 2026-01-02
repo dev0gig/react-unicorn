@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useContacts } from '../../contexts/ContactsContext';
-import { useEvidenz } from '../../contexts/EvidenzContext';
+
 import { useDashboard } from '../../contexts/DashboardContext';
 import { useTemplates } from '../../contexts/TemplatesContext';
 import { useSignatures } from '../../contexts/SignaturesContext';
@@ -15,7 +15,7 @@ export const useDataPersistence = () => {
 
     // Context Hooks
     const { contacts, setContacts } = useContacts();
-    const { faelle, archivedFaelle, setFaelle, setArchivedFaelle } = useEvidenz();
+
     const { toolGroups, setToolGroups } = useDashboard();
     const { templateGroups, setTemplateGroups } = useTemplates();
     const { signatures, activeSignatureId, setSignatures, setActiveSignatureId } = useSignatures();
@@ -30,8 +30,6 @@ export const useDataPersistence = () => {
             data: {
                 toolGroups,
                 favorites,
-                faelle,
-                archivedFaelle,
                 contacts,
                 templateGroups,
                 signatures,
@@ -70,8 +68,7 @@ export const useDataPersistence = () => {
             setToolGroups(newToolGroups);
         }
         if (dataToImport.favorites) setFavorites(dataToImport.favorites);
-        if (dataToImport.faelle) setFaelle(dataToImport.faelle);
-        if (dataToImport.archivedFaelle) setArchivedFaelle(dataToImport.archivedFaelle);
+
         if (dataToImport.contacts) setContacts(dataToImport.contacts);
         if (dataToImport.templateGroups) setTemplateGroups(dataToImport.templateGroups);
         if (dataToImport.signatures) setSignatures(dataToImport.signatures);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
-import { useContacts, useEvidenz, useTemplates } from '../App';
+import { useContacts, useTemplates } from '../App';
 import { DateTimeWidget } from './widgets/DateTimeWidget';
 import { WeatherWidget } from './widgets/WeatherWidget';
 
@@ -11,7 +11,6 @@ const menuItems: MenuItem[] = [
     { id: 'Dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'Kontakte', label: 'Kontakte', icon: 'people' },
     { id: 'Mail Vorlagen', label: 'Mail Vorlagen', icon: 'drafts' },
-    { id: 'Evidenzfälle', label: 'Evidenzfälle', icon: 'gavel' },
     { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
     { id: 'Dienstplan', label: 'Dienstplan', icon: 'calendar_month' },
     { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
@@ -63,12 +62,10 @@ const NavItem = memo(({ item, isActive, onClick, count }: {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick, showSnow, onToggleSnow }) => {
     const { contacts } = useContacts();
-    const { faelle } = useEvidenz();
     const { templateGroups } = useTemplates();
 
     const counts: Record<string, number> = {
         'Kontakte': contacts.length,
-        'Evidenzfälle': faelle.filter(f => f.column !== 'fertig').length,
         'Mail Vorlagen': templateGroups.reduce((sum, group) => sum + group.templates.length, 0),
     };
 

@@ -3,15 +3,14 @@ import { Sidebar } from './components/Sidebar';
 import { AppProviders } from './src/providers/AppProviders';
 import { ContentArea } from './components/ContentArea';
 import { Snowfall } from './components/Snowfall';
-import { ViewName, ToolLink, ToolGroup, Evidenzfall, Contact, Template, ScheduleEvent } from './types';
+import { ViewName, ToolLink, ToolGroup, Contact, Template, ScheduleEvent } from './types';
 import { useLocalStorage } from './src/hooks/useLocalStorage';
 import { initialToolGroups } from './data/initialDashboard';
 
 // Contexts
 import { useContacts } from './contexts/ContactsContext';
 export { useContacts } from './contexts/ContactsContext';
-import { useEvidenz } from './contexts/EvidenzContext';
-export { useEvidenz } from './contexts/EvidenzContext';
+
 import { useDashboard } from './contexts/DashboardContext';
 export { useDashboard } from './contexts/DashboardContext';
 import { useTemplates } from './contexts/TemplatesContext';
@@ -34,7 +33,7 @@ function AppContent() {
 
     // Context Hooks
     const { contacts, deleteContact: deleteContactAction, setContacts } = useContacts();
-    const { faelle, archivedFaelle, setFaelle, setArchivedFaelle, deleteCasePermanently, clearArchivedCases } = useEvidenz();
+
     const { toolGroups, deleteGroup: deleteGroupAction, deleteLink, setToolGroups } = useDashboard();
     const { templateGroups, setTemplateGroups, deleteTemplate: deleteTemplateAction } = useTemplates();
     const { signatures, activeSignatureId, setSignatures, setActiveSignatureId, deleteSignature: deleteSignatureAction } = useSignatures();
@@ -56,10 +55,7 @@ function AppContent() {
             setToolGroups(initialToolGroups);
         }
         if (categoriesToDelete.favorites) setFavorites([]);
-        if (categoriesToDelete.faelle) {
-            setFaelle([]);
-            setArchivedFaelle([]);
-        }
+
         if (categoriesToDelete.contacts) setContacts([]);
         if (categoriesToDelete.templates) setTemplateGroups([]);
         if (categoriesToDelete.signatures) {
@@ -106,8 +102,7 @@ function AppContent() {
                     onEditContact={(contact) => openModal('CONTACT', { contact })}
                     onAddTemplate={() => openModal('TEMPLATE')}
                     onEditTemplate={(template, category) => openModal('TEMPLATE', { templateToEdit: { template, category } })}
-                    onEditCase={(fall) => openModal('ADD_CASE', { caseToEdit: fall })}
-                    onAddCaseClick={() => openModal('ADD_CASE')}
+
                     onOpenSignatureModal={() => openModal('SIGNATURE')}
                     onAddLink={(link, groupId) => openModal('TOOL_LINK', {
                         linkToEdit: {
@@ -133,11 +128,7 @@ function AppContent() {
                         children: <p>Möchten Sie wirklich alle Felder der Zeiterfassung leeren und zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
                     })}
                     timeTrackerResetTrigger={timeTrackerResetTrigger}
-                    onOpenClearArchiveModal={() => openModal('CLEAR_ARCHIVE', {
-                        title: "Archiv leeren",
-                        onConfirm: () => { clearArchivedCases(); closeModal(); },
-                        children: <p>Möchten Sie wirklich alle archivierten Fälle endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                    })}
+
                 />
             </main>
             <GlobalModalManager />

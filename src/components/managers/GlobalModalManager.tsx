@@ -3,7 +3,7 @@ import { useModal } from '../../contexts/ModalContext';
 
 // Import all Modal components
 // Assuming components are in the root components directory, relative to src/components/managers is ../../../components
-import { AddCaseModal } from '../../../components/AddCaseModal';
+
 import { FavoritesModal } from '../../../components/FavoritesModal';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { ContactModal } from '../../../components/ContactModal';
@@ -28,8 +28,7 @@ export const GlobalModalManager: React.FC = () => {
     };
 
     switch (activeModal) {
-        case 'ADD_CASE':
-            return <AddCaseModal {...commonProps} />;
+
         case 'FAVORITES':
             return <FavoritesModal {...commonProps} />;
         case 'CONTACT':
@@ -55,7 +54,6 @@ export const GlobalModalManager: React.FC = () => {
         // These share the ConfirmationModal but might have distinct behaviors in logic, handled via props
         case 'IMPORT_CONFIRMATION':
         case 'RESET_TIME_TRACKER':
-        case 'CLEAR_ARCHIVE':
             return <ConfirmationModal {...commonProps} />;
         default:
             return null;

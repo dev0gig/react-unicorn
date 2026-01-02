@@ -1,5 +1,5 @@
 
-export type ViewName = 'Dienstplan' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'Evidenzfälle' | 'WiWo-Terminpflege' | 'Zeiterfassung';
+export type ViewName = 'Dienstplan' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'WiWo-Terminpflege' | 'Zeiterfassung';
 
 export interface MenuItem {
   id: ViewName;
@@ -41,29 +41,7 @@ export interface FavoritesContextType {
   setFavorites: (favorites: ToolLink[]) => void;
 }
 
-export type KanbanColumnId = 'neu' | 'inBearbeitung' | 'fertig';
 
-export interface Evidenzfall {
-  id: string;
-  gpvk: string;
-  telefonnummer: string;
-  description: string;
-  column: KanbanColumnId;
-}
-
-export interface EvidenzContextType {
-  faelle: Evidenzfall[];
-  archivedFaelle: Evidenzfall[];
-  addCase: (gpvk: string, telefonnummer: string, description: string) => void;
-  updateCases: (updatedCases: Evidenzfall[]) => void;
-  updateCase: (id: string, data: { gpvk: string, telefonnummer: string, description: string }) => void;
-  archiveCase: (id: string) => void;
-  restoreCase: (id: string) => void;
-  deleteCasePermanently: (id: string) => void;
-  clearArchivedCases: () => void;
-  setFaelle: (faelle: Evidenzfall[]) => void;
-  setArchivedFaelle: (archivedFaelle: Evidenzfall[]) => void;
-}
 
 export interface Contact {
   id: string;
