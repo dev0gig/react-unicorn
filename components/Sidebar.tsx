@@ -23,8 +23,7 @@ interface SidebarProps {
     onExportClick: () => void;
     onImportClick: () => void;
     onDeleteClick: () => void;
-    showSnow: boolean;
-    onToggleSnow: () => void;
+
 }
 
 // Memoized NavItem to prevent re-renders when the Sidebar parent re-renders (e.g. due to clock)
@@ -60,7 +59,7 @@ const NavItem = memo(({ item, isActive, onClick, count }: {
 
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick, showSnow, onToggleSnow }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
     const { contacts } = useContacts();
     const { templateGroups } = useTemplates();
 
@@ -111,27 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
                 </nav>
             </div>
 
-            {/* Persistent Bottom Bar with subtle Snow Toggle */}
-            <div className="px-6 py-4 bg-transparent mt-auto border-t border-white/5 flex flex-col items-center gap-3">
-                <button
-                    onClick={onToggleSnow}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 border ${showSnow
-                        ? 'bg-sky-500/10 text-sky-400 border-sky-500/30'
-                        : 'bg-neutral-800 text-neutral-500 border-transparent hover:text-neutral-300 hover:bg-neutral-700'
-                        }`}
-                >
-                    <i className="material-icons text-base">
-                        {showSnow ? 'ac_unit' : 'cloud_queue'}
-                    </i>
-                    <span className="text-[11px] font-bold uppercase tracking-wider">
-                        {showSnow ? 'Schnee Ein' : 'Schnee Aus'}
-                    </span>
-                </button>
 
-                <div className="text-[9px] text-neutral-600 uppercase tracking-[0.2em] font-bold">
-                    Unicorn v2.1
-                </div>
-            </div>
         </aside>
     );
 };

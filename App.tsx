@@ -2,9 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { AppProviders } from './src/providers/AppProviders';
 import { ContentArea } from './components/ContentArea';
-import { Snowfall } from './components/Snowfall';
 import { ViewName, ToolLink, ToolGroup, Contact, Template, ScheduleEvent } from './types';
-import { useLocalStorage } from './src/hooks/useLocalStorage';
 import { initialToolGroups } from './data/initialDashboard';
 
 // Contexts
@@ -43,7 +41,6 @@ function AppContent() {
     const { openModal, closeModal } = useModal();
 
     // States
-    const [showSnow, setShowSnow] = useLocalStorage<boolean>('show-snow', false);
     const [dashboardColumnCount, setDashboardColumnCount] = useState(1);
     const [timeTrackerResetTrigger, setTimeTrackerResetTrigger] = useState(0);
 
@@ -83,7 +80,6 @@ function AppContent() {
 
     return (
         <div className="flex h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-neutral-800 via-neutral-900 to-neutral-950 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
-            {showSnow && <Snowfall />}
             <Sidebar
                 activeView={activeView}
                 setActiveView={setActiveView}
@@ -91,8 +87,6 @@ function AppContent() {
                 onExportClick={handleExport}
                 onImportClick={triggerImport}
                 onDeleteClick={() => openModal('DELETE', { onDelete: handleDeleteDataRequest })}
-                showSnow={showSnow}
-                onToggleSnow={() => setShowSnow(prev => !prev)}
             />
             <main className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
                 <ContentArea
