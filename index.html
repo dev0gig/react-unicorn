@@ -375,6 +375,42 @@
       animation: snowfall linear infinite;
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
     }
+
+    /* Global View Padding */
+    :root {
+      --view-padding: 1.5rem;
+      /* 24px - equivalent to p-6 */
+    }
+
+    .view-p {
+      padding: var(--view-padding);
+    }
+
+    .view-px {
+      padding-left: var(--view-padding);
+      padding-right: var(--view-padding);
+    }
+
+    .view-py {
+      padding-top: var(--view-padding);
+      padding-bottom: var(--view-padding);
+    }
+
+    .view-pt {
+      padding-top: var(--view-padding);
+    }
+
+    .view-pb {
+      padding-bottom: var(--view-padding);
+    }
+
+    .view-pl {
+      padding-left: var(--view-padding);
+    }
+
+    .view-pr {
+      padding-right: var(--view-padding);
+    }
   </style>
 </head>
 

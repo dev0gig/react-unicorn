@@ -17,8 +17,7 @@ import { useSignatures } from './contexts/SignaturesContext';
 export { useSignatures } from './contexts/SignaturesContext';
 import { useSchedule } from './contexts/ScheduleContext';
 export { useSchedule } from './contexts/ScheduleContext';
-import { useNotes } from './contexts/NotesContext';
-export { useNotes } from './contexts/NotesContext';
+
 import { useFavorites } from './contexts/FavoritesContext';
 export { useFavorites } from './contexts/FavoritesContext';
 import { useModal } from './src/contexts/ModalContext';
@@ -36,7 +35,7 @@ function AppContent() {
     const { templateGroups, setTemplateGroups, deleteTemplate: deleteTemplateAction } = useTemplates();
     const { signatures, activeSignatureId, setSignatures, setActiveSignatureId, deleteSignature: deleteSignatureAction } = useSignatures();
     const { schedule, setSchedule, clearSchedule } = useSchedule();
-    const { notes, deleteNote: deleteNoteAction, setNotes } = useNotes();
+
     const { favorites, setFavorites } = useFavorites();
     const { openModal, closeModal } = useModal();
 

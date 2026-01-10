@@ -5,7 +5,7 @@ import { useDashboard } from '../../contexts/DashboardContext';
 import { useTemplates } from '../../contexts/TemplatesContext';
 import { useSignatures } from '../../contexts/SignaturesContext';
 import { useSchedule } from '../../contexts/ScheduleContext';
-import { useNotes } from '../../contexts/NotesContext';
+
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useModal } from '../contexts/ModalContext';
 import { ScheduleEvent } from '../../types';
@@ -20,7 +20,7 @@ export const useDataPersistence = () => {
     const { templateGroups, setTemplateGroups } = useTemplates();
     const { signatures, activeSignatureId, setSignatures, setActiveSignatureId } = useSignatures();
     const { schedule, setSchedule } = useSchedule();
-    const { notes, setNotes } = useNotes();
+
     const { favorites, setFavorites } = useFavorites();
     const { openModal, closeModal } = useModal();
 
@@ -34,7 +34,7 @@ export const useDataPersistence = () => {
                 templateGroups,
                 signatures,
                 activeSignatureId,
-                notes,
+
                 schedule
             }
         };
@@ -73,7 +73,7 @@ export const useDataPersistence = () => {
         if (dataToImport.templateGroups) setTemplateGroups(dataToImport.templateGroups);
         if (dataToImport.signatures) setSignatures(dataToImport.signatures);
         if (dataToImport.activeSignatureId) setActiveSignatureId(dataToImport.activeSignatureId);
-        if (dataToImport.notes) setNotes(dataToImport.notes);
+
         if (dataToImport.schedule) {
             // Restore Dates for schedule
             const restoredSchedule: Record<string, ScheduleEvent[]> = {};

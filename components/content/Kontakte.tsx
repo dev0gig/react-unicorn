@@ -57,8 +57,8 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
         [contacts, selectedContactId]);
 
     return (
-        <div className="flex flex-col h-full pt-8 pl-8">
-            <div className="flex-shrink-0 flex justify-between items-start mb-8 pr-8">
+        <div className="flex flex-col h-full view-pt view-pl">
+            <div className="flex-shrink-0 flex justify-between items-start mb-8 view-pr">
                 <div>
                     <h1 className="text-4xl font-bold text-neutral-100 mb-2">Kontakte</h1>
                     <p className="text-neutral-400">Verwalten Sie Ihre geschäftlichen und privaten Kontakte.</p>
@@ -71,7 +71,7 @@ export const Kontakte: React.FC<KontakteProps> = ({ onAdd, onEdit }) => {
                 </button>
             </div>
 
-            <div className="flex-grow flex flex-col md:flex-row gap-6 min-h-0 pr-8 pb-8">
+            <div className="flex-grow flex flex-col md:flex-row gap-6 min-h-0 view-pr view-pb">
 
                 <div className="md:w-1/3 flex flex-col bg-neutral-800 rounded-xl border border-neutral-700 p-4 shadow-2xl shadow-orange-900/10 min-h-0">
                     <div className="relative mb-4 flex-shrink-0">

@@ -262,7 +262,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-shrink-0 flex justify-between items-start pt-8 px-8 mb-8">
+      <div className="flex-shrink-0 flex justify-between items-start view-pt view-px mb-8">
         <div>
           <h1 className="text-4xl font-bold text-neutral-100 mb-2">Dashboard</h1>
           <p className="text-neutral-400">Ihre personalisierte Übersicht aller wichtigen Tools und Links.</p>
@@ -319,7 +319,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="overflow-y-auto custom-scrollbar px-8 min-h-0 pt-4 pb-4">
+        <div className="overflow-y-auto custom-scrollbar view-px min-h-0 pt-4 pb-4">
           {content}
         </div>
 

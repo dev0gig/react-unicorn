@@ -161,7 +161,7 @@ const CalendarWidget: React.FC = () => {
 
 // --- MAIN PROFILE COMPONENT ---
 
-export const Profile: React.FC<ProfileProps> = () => {
+export const Dienstplan: React.FC<ProfileProps> = () => {
     const [date, setDate] = useState(new Date());
 
     useEffect(() => {
@@ -170,19 +170,21 @@ export const Profile: React.FC<ProfileProps> = () => {
     }, []);
 
     return (
-        <div className="h-full overflow-y-auto custom-scrollbar p-6">
-            <header className="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-6">
-                <h1 className="text-4xl font-bold text-neutral-100">Dienstplan</h1>
-                <p className="text-neutral-400 font-medium">
-                    {date.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-            </header>
+        <div className="h-full overflow-y-auto custom-scrollbar">
+            <div className="view-p min-h-full">
+                <header className="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-6">
+                    <h1 className="text-4xl font-bold text-neutral-100">Dienstplan</h1>
+                    <p className="text-neutral-400 font-medium">
+                        {date.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                </header>
 
-            <main className="flex flex-col gap-6">
-                <div>
-                    <CalendarWidget />
-                </div>
-            </main>
+                <main className="flex flex-col gap-6">
+                    <div>
+                        <CalendarWidget />
+                    </div>
+                </main>
+            </div>
         </div>
     );
 };

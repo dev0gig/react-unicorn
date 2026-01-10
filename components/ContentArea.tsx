@@ -6,7 +6,7 @@ import { Kontakte } from './content/Kontakte';
 import { MailTemplates } from './content/MailTemplates';
 
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
-import { Profile } from './content/Profile';
+import { Dienstplan } from './content/Dienstplan';
 import { TimeTracker } from './content/TimeTracker';
 
 interface ContentAreaProps {
@@ -38,7 +38,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
   const renderContent = () => {
     switch (activeView) {
       case 'Dienstplan':
-        return <Profile />;
+        return <Dienstplan />;
       case 'Dashboard':
         return <Dashboard
           onAddLink={onAddLink}
@@ -58,7 +58,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
       case 'Zeiterfassung':
         return <TimeTracker onOpenResetModal={onOpenResetTimeTrackerModal} resetTrigger={timeTrackerResetTrigger} />;
       default:
-        return <Profile />;
+        return <Dienstplan />;
     }
   };
 

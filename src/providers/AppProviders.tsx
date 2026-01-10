@@ -8,7 +8,7 @@ import { TemplatesProvider } from '../../contexts/TemplatesContext';
 import { SignaturesProvider } from '../../contexts/SignaturesContext';
 import { FavoritesProvider } from '../../contexts/FavoritesContext';
 import { ScheduleProvider } from '../../contexts/ScheduleContext';
-import { NotesProvider } from '../../contexts/NotesContext';
+
 import { ModalProvider } from '../contexts/ModalContext';
 
 interface AppProvidersProps {
@@ -23,11 +23,11 @@ export function AppProviders({ children }: AppProvidersProps) {
                     <SignaturesProvider>
                         <FavoritesProvider>
                             <ScheduleProvider>
-                                <NotesProvider>
-                                    <ModalProvider>
-                                        {children}
-                                    </ModalProvider>
-                                </NotesProvider>
+
+                                <ModalProvider>
+                                    {children}
+                                </ModalProvider>
+
                             </ScheduleProvider>
                         </FavoritesProvider>
                     </SignaturesProvider>

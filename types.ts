@@ -127,17 +127,6 @@ export interface WorkPhase {
   duration: number; // in minutes
 }
 
-export interface Note {
-  id: string;
-  content: string;
-  lastModified: number;
-  createdAt: number;
-}
 
-export interface NotesContextType {
-  notes: Note[];
-  addNote: (content: string, date?: number) => void;
-  updateNote: (id: string, content: string) => void;
-  deleteNote: (id: string) => void;
-  setNotes: (notes: Note[]) => void;
-}
+
+

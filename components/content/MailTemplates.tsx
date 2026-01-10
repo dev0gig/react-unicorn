@@ -109,8 +109,8 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
     };
 
     return (
-        <div className="flex flex-col h-full pt-8 pl-8">
-            <div className="flex-shrink-0 flex justify-between items-start mb-6 pr-8">
+        <div className="flex flex-col h-full view-pt view-pl">
+            <div className="flex-shrink-0 flex justify-between items-start mb-6 view-pr">
                 <div>
                     <h1 className="text-4xl font-bold text-neutral-100 mb-2">Mail Vorlagen</h1>
                     <p className="text-neutral-400">Wählen Sie eine Vorlage. Klicken Sie in die Vorschau, um den Text zu kopieren.</p>
@@ -132,7 +132,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     </button>
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 flex-shrink-0 pr-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 flex-shrink-0 view-pr">
                 <div className="relative md:col-span-2">
                     <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 z-10">search</i>
                     <input
@@ -162,7 +162,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
             </div>
 
 
-            <div className="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-0 pr-8 pb-8">
+            <div className="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-0 view-pr view-pb">
                 <div className="flex flex-col min-h-0">
                     <div className="overflow-y-auto pr-4 custom-scrollbar">
                         <div className="space-y-4">
@@ -180,8 +180,8 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                                                     key={template.id}
                                                     onClick={() => handleSelectTemplate(template, group.category)}
                                                     className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${selectedTemplateId === template.id
-                                                            ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
-                                                            : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
+                                                        ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
+                                                        : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
                                                         }`}
                                                     title={template.title}
                                                 >
