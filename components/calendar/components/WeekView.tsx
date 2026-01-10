@@ -137,7 +137,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ startDate, events }) => {
     );
 
     return (
-        <div ref={scrollContainerRef} className="h-full overflow-y-auto hide-scrollbar bg-neutral-800 rounded-lg relative">
+        <div ref={scrollContainerRef} className="bg-neutral-800 rounded-lg relative">
             <div className="relative grid grid-cols-[4rem_1fr]">
                 {/* Time column (sticky) */}
                 <div className="sticky top-0 z-20 bg-neutral-800">

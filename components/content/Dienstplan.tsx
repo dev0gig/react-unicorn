@@ -130,7 +130,7 @@ const CalendarWidget: React.FC = () => {
     };
 
     return (
-        <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 flex flex-col h-[800px]">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 flex flex-col">
             <input type="file" accept=".ics" ref={importIcsRef} onChange={handleFileChange} className="hidden" />
             <CalendarHeader
                 currentDate={currentDate}
@@ -140,7 +140,7 @@ const CalendarWidget: React.FC = () => {
                 onImportClick={handleImportClick}
             />
             {view === 'month' ? <MonthDaysHeader /> : <WeekDaysHeader startDate={currentDate} />}
-            <div className="flex-grow p-4 overflow-hidden">
+            <div className="p-4">
                 {view === 'month' ? (
                     <CalendarGrid
                         currentDate={currentDate}
