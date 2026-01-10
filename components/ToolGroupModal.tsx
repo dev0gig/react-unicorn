@@ -14,7 +14,7 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState('');
   const [error, setError] = useState('');
-  
+
   const isEditMode = groupToEdit !== null;
 
   useEffect(() => {
@@ -29,38 +29,37 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
       }
     }
   }, [isOpen, groupToEdit, isEditMode]);
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!title.trim() || !icon.trim()) {
-        setError("Titel und Icon dürfen nicht leer sein.");
-        return;
+      setError("Titel und Icon dürfen nicht leer sein.");
+      return;
     }
-    
-    const titleExists = toolGroups.some(g => 
-        g.title.toLowerCase() === title.trim().toLowerCase() && 
-        (!isEditMode || g.id !== groupToEdit.id)
+
+    const titleExists = toolGroups.some(g =>
+      g.title.toLowerCase() === title.trim().toLowerCase() &&
+      (!isEditMode || g.id !== groupToEdit.id)
     );
 
     if (titleExists) {
-        setError('Eine Gruppe mit diesem Titel existiert bereits.');
-        return;
+      setError('Eine Gruppe mit diesem Titel existiert bereits.');
+      return;
     }
-    
+
     if (isEditMode) {
-        updateGroup(groupToEdit.id, title.trim(), icon.trim());
+      updateGroup(groupToEdit.id, title.trim(), icon.trim());
     } else {
-        addGroup(title.trim(), icon.trim());
+      addGroup(title.trim(), icon.trim());
     }
     onClose();
   };
-  
+
   const handleDelete = () => {
     if (isEditMode) {
-        onDelete(groupToEdit.id);
-        onClose();
+      onDelete(groupToEdit.id);
     }
   };
 
@@ -89,8 +88,8 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
           >
             <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">
               <div className="flex items-center">
-                 <i className="material-icons text-2xl text-orange-400 mr-3">category</i>
-                 <h2 className="text-xl font-bold text-neutral-100">{isEditMode ? 'Gruppe bearbeiten' : 'Neue Gruppe erstellen'}</h2>
+                <i className="material-icons text-2xl text-orange-400 mr-3">category</i>
+                <h2 className="text-xl font-bold text-neutral-100">{isEditMode ? 'Gruppe bearbeiten' : 'Neue Gruppe erstellen'}</h2>
               </div>
               <button
                 onClick={onClose}
@@ -144,19 +143,19 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="py-2 px-4 rounded-lg text-neutral-300 hover:bg-neutral-700 transition-colors"
-                    >
-                        Abbrechen
-                    </button>
-                    <button
-                        type="submit"
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200"
-                    >
-                        {isEditMode ? 'Speichern' : 'Erstellen'}
-                    </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="py-2 px-4 rounded-lg text-neutral-300 hover:bg-neutral-700 transition-colors"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200"
+                  >
+                    {isEditMode ? 'Speichern' : 'Erstellen'}
+                  </button>
                 </div>
               </div>
             </form>

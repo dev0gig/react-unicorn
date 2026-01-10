@@ -79,6 +79,8 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
 
   const gridColsClass = useMemo(() => {
     switch (columnCount) {
+      case 4:
+        return 'grid-cols-4';
       case 3:
         return 'grid-cols-3';
       case 2:

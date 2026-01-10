@@ -82,7 +82,7 @@ const SortableGroup: React.FC<SortableGroupProps> = memo(({
       style={{ ...style, backgroundColor: '#1e1e1e' }}
       id={group.id}
       aria-labelledby={`group-header-${group.id}`}
-      className="border border-neutral-700 rounded-xl p-4 mb-4"
+      className="border border-neutral-700 rounded-xl p-4"
     >
       <div className="group flex items-center gap-2 mb-4">
         <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
@@ -172,7 +172,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
   useEffect(() => {
     const getColumnCount = () => {
       if (window.matchMedia('(min-width: 1280px)').matches) {
-        return 3;
+        return 4;
       }
       if (window.matchMedia('(min-width: 1024px)').matches) {
         return 2;
@@ -239,7 +239,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     } else {
       content = (
         <SortableContext items={toolGroups.map(g => g.id)} strategy={verticalListSortingStrategy}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3">
             {groupsToRender.map(group => (
               <SortableGroup
                 key={group.id}

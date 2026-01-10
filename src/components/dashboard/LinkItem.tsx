@@ -43,41 +43,41 @@ interface LinkItemProps {
 export const LinkItem: React.FC<LinkItemProps> = ({ data, isFavorite, isEditMode, onToggleFavorite, onEdit, onDelete }) => {
     return (
         <div
-            className={`group relative flex items-center justify-center w-full min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 transition-all duration-200 overflow-hidden ${isEditMode ? 'ring-2 ring-orange-500 bg-neutral-800' : 'hover:bg-neutral-700 hover:border-orange-500/50'}`}
+            className={`group relative flex items-center justify-center w-full min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 shadow-md transition-all duration-200 overflow-hidden ${isEditMode ? 'flex-col min-h-[5rem] gap-2 ring-2 ring-orange-500 bg-neutral-800' : 'hover:bg-neutral-700 hover:border-orange-500/50'}`}
         >
-            {/* Link Name */}
-            <span className="font-medium text-neutral-200 text-center text-sm leading-tight">{data.link.name}</span>
-
-            {/* Favorit-Stern (immer sichtbar wenn Favorit) */}
-            {isFavorite && !isEditMode && (
-                <i className="material-icons text-yellow-400 text-sm ml-2 absolute right-2" title="Favorit">star</i>
-            )}
-
-            {/* Edit Mode: Aktions-Buttons rechtsbündig */}
+            {/* Edit Mode: Aktions-Buttons (oben) */}
             {isEditMode && (
-                <div className="absolute right-1 flex items-center gap-0.5 animate-fade-in-fast">
+                <div className="flex items-center gap-1 animate-fade-in-fast z-10">
                     <button
                         onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all"
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all bg-neutral-700/50"
                         title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
                     >
-                        <i className="material-icons text-sm" style={{ color: isFavorite ? '#fbbf24' : '#9ca3af' }}>{isFavorite ? 'star' : 'star_border'}</i>
+                        <i className="material-icons text-base" style={{ color: isFavorite ? '#fbbf24' : '#9ca3af' }}>{isFavorite ? 'star' : 'star_border'}</i>
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
-                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all"
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all bg-neutral-700/50"
                         title="Bearbeiten"
                     >
-                        <i className="material-icons text-sm">edit</i>
+                        <i className="material-icons text-base">edit</i>
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-600 text-red-400 hover:text-white transition-all"
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-600 text-red-400 hover:text-white transition-all bg-neutral-700/50"
                         title="Löschen"
                     >
-                        <i className="material-icons text-sm">delete</i>
+                        <i className="material-icons text-base">delete</i>
                     </button>
                 </div>
+            )}
+
+            {/* Link Name */}
+            <span className="font-medium text-neutral-200 text-center text-sm leading-tight">{data.link.name}</span>
+
+            {/* Favorit-Stern (immer sichtbar wenn Favorit und NICHT Edit Mode) */}
+            {isFavorite && !isEditMode && (
+                <i className="material-icons text-yellow-400 text-sm ml-2 absolute right-2" title="Favorit">star</i>
             )}
         </div>
     );
