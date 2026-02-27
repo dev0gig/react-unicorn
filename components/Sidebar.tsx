@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
 import { useContacts, useTemplates } from '../App';
+import { useTheme } from '../contexts/ThemeContext';
 import { DateTimeWidget } from './widgets/DateTimeWidget';
 import { WeatherWidget } from './widgets/WeatherWidget';
 
@@ -62,6 +63,7 @@ const NavItem = memo(({ item, isActive, onClick, count }: {
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
     const { contacts } = useContacts();
     const { templateGroups } = useTemplates();
+    const { isDark, toggleTheme } = useTheme();
 
     const counts: Record<string, number> = {
         'Kontakte': contacts.length,
@@ -110,6 +112,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
                 </nav>
             </div>
 
+            <div className="px-6 py-4 border-t border-neutral-700/50 flex-shrink-0">
+                <button
+                    onClick={toggleTheme}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl text-neutral-400 hover:text-neutral-100 transition-all duration-200 hover:bg-neutral-700/50"
+                >
+                    <i className="material-icons text-xl">{isDark ? 'light_mode' : 'dark_mode'}</i>
+                    <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+            </div>
 
         </aside>
     );

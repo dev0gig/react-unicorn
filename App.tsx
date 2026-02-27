@@ -23,10 +23,13 @@ export { useFavorites } from './contexts/FavoritesContext';
 import { useModal } from './src/contexts/ModalContext';
 import { GlobalModalManager } from './src/components/managers/GlobalModalManager';
 import { useDataPersistence } from './src/hooks/useDataPersistence';
+import { useTheme } from './contexts/ThemeContext';
+export { useTheme } from './contexts/ThemeContext';
 
 function AppContent() {
     const [activeView, setActiveView] = useState<ViewName>('Dashboard');
     const { handleExport, triggerImport, handleFileChange, fileInputRef } = useDataPersistence();
+    const { isDark } = useTheme();
 
     // Context Hooks
     const { contacts, deleteContact: deleteContactAction, setContacts } = useContacts();
@@ -78,7 +81,7 @@ function AppContent() {
     };
 
     return (
-        <div className="flex h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-neutral-800 via-neutral-900 to-neutral-950 font-['Ubuntu'] text-neutral-200 antialiased overflow-x-hidden">
+        <div className={`flex h-screen font-['Ubuntu'] antialiased overflow-x-hidden ${isDark ? "bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-neutral-800 via-neutral-900 to-neutral-950 text-neutral-200" : "bg-[#F5F5F5] text-[#333333]"}`}>
             <Sidebar
                 activeView={activeView}
                 setActiveView={setActiveView}

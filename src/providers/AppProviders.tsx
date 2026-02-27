@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 
 // Context Providers
+import { ThemeProvider } from '../../contexts/ThemeContext';
 import { ContactsProvider } from '../../contexts/ContactsContext';
 
 import { DashboardProvider } from '../../contexts/DashboardContext';
@@ -17,22 +18,24 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
     return (
-        <ContactsProvider>
-            <DashboardProvider>
-                <TemplatesProvider>
-                    <SignaturesProvider>
-                        <FavoritesProvider>
-                            <ScheduleProvider>
+        <ThemeProvider>
+            <ContactsProvider>
+                <DashboardProvider>
+                    <TemplatesProvider>
+                        <SignaturesProvider>
+                            <FavoritesProvider>
+                                <ScheduleProvider>
 
-                                <ModalProvider>
-                                    {children}
-                                </ModalProvider>
+                                    <ModalProvider>
+                                        {children}
+                                    </ModalProvider>
 
-                            </ScheduleProvider>
-                        </FavoritesProvider>
-                    </SignaturesProvider>
-                </TemplatesProvider>
-            </DashboardProvider>
-        </ContactsProvider>
+                                </ScheduleProvider>
+                            </FavoritesProvider>
+                        </SignaturesProvider>
+                    </TemplatesProvider>
+                </DashboardProvider>
+            </ContactsProvider>
+        </ThemeProvider>
     );
 }

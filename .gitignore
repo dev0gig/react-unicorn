@@ -1,3 +1,10 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
 # Logs
 logs
 *.log
@@ -7,10 +14,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment
 *.local
+.env
+.env.*
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +29,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code
+.claude/
+
+# TypeScript
+*.tsbuildinfo
