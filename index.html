@@ -366,6 +366,183 @@
       /* 24px - equivalent to p-6 */
     }
 
+    /* ==============================================
+       WIEN ENERGIE LIGHT MODE
+       Brand Colors: #E86828 (primary), #EB6E21 (accent), #733013 (dark), #FAB08B (light)
+       ============================================== */
+
+    /* --- BACKGROUNDS --- */
+    [data-theme="light"] .bg-neutral-950 { background-color: #EDEDED !important; }
+    [data-theme="light"] .bg-neutral-900 { background-color: #F5F5F5 !important; }
+    [data-theme="light"] .bg-neutral-800 { background-color: #FFFFFF !important; }
+    [data-theme="light"] .bg-neutral-700 { background-color: #EDEDED !important; }
+    [data-theme="light"] .bg-neutral-600 { background-color: #DEDEDE !important; }
+
+    /* Backgrounds with opacity */
+    [data-theme="light"] .bg-neutral-800\/90 { background-color: rgba(255,255,255,0.97) !important; }
+    [data-theme="light"] .bg-neutral-800\/60 { background-color: rgba(255,255,255,0.88) !important; }
+    [data-theme="light"] .bg-neutral-800\/50 { background-color: rgba(255,255,255,0.82) !important; }
+    [data-theme="light"] .bg-neutral-900\/20 { background-color: rgba(245,245,245,0.2) !important; }
+    [data-theme="light"] .bg-neutral-700\/50 { background-color: rgba(237,237,237,0.5) !important; }
+
+    /* Glass effects → subtle Wien Energie orange tint */
+    [data-theme="light"] .bg-white\/5 { background-color: rgba(232,104,40,0.04) !important; }
+
+    /* --- TEXT COLORS --- */
+    [data-theme="light"] .text-neutral-100 { color: #1A1A1A !important; }
+    [data-theme="light"] .text-neutral-200 { color: #333333 !important; }
+    [data-theme="light"] .text-neutral-300 { color: #4A4A4A !important; }
+    [data-theme="light"] .text-neutral-400 { color: #888888 !important; }
+    [data-theme="light"] .text-neutral-500 { color: #AAAAAA !important; }
+    [data-theme="light"] .text-neutral-600 { color: #BBBBBB !important; }
+    [data-theme="light"] .text-neutral-700 { color: #CCCCCC !important; }
+
+    /* White text on neutral backgrounds → dark */
+    [data-theme="light"] .bg-neutral-700.text-white { color: #333333 !important; }
+    [data-theme="light"] .bg-neutral-800.text-white { color: #333333 !important; }
+    [data-theme="light"] .bg-neutral-900.text-white { color: #333333 !important; }
+    [data-theme="light"] .text-white\/80 { color: rgba(51,51,51,0.8) !important; }
+    [data-theme="light"] .text-white\/90 { color: rgba(51,51,51,0.9) !important; }
+
+    /* Red text for light bg readability */
+    [data-theme="light"] .text-red-300 { color: #DC2626 !important; }
+    [data-theme="light"] .text-red-400 { color: #DC2626 !important; }
+
+    /* --- BORDER COLORS --- */
+    [data-theme="light"] .border-neutral-700 { border-color: #E0E0E0 !important; }
+    [data-theme="light"] .border-neutral-700\/50 { border-color: rgba(224,224,224,0.7) !important; }
+    [data-theme="light"] .border-neutral-600 { border-color: #D0D0D0 !important; }
+    [data-theme="light"] .border-white\/10 { border-color: rgba(232,104,40,0.1) !important; }
+
+    /* --- WIEN ENERGIE ORANGE ACCENT --- */
+    [data-theme="light"] .bg-orange-500 { background-color: #E86828 !important; }
+    [data-theme="light"] .bg-orange-600 { background-color: #D55E22 !important; }
+    [data-theme="light"] .bg-orange-700 { background-color: #C05520 !important; }
+    [data-theme="light"] .text-orange-400 { color: #E86828 !important; }
+    [data-theme="light"] .text-orange-500 { color: #E86828 !important; }
+    [data-theme="light"] .border-orange-500 { border-color: #E86828 !important; }
+    [data-theme="light"] .ring-orange-500 { --tw-ring-color: #E86828 !important; }
+
+    /* --- GRADIENT OVERRIDES --- */
+    [data-theme="light"] .from-neutral-800 {
+      --tw-gradient-from: #F5F5F5 !important;
+      --tw-gradient-to: rgb(245 245 245 / 0) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+    }
+    [data-theme="light"] .via-neutral-900 { --tw-gradient-via: #F0F0F0 !important; }
+    [data-theme="light"] .to-neutral-950 { --tw-gradient-to: #EDEDED !important; }
+
+    [data-theme="light"] .from-neutral-800\/90 {
+      --tw-gradient-from: rgba(255,255,255,0.97) !important;
+      --tw-gradient-to: rgba(255,255,255,0) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+    }
+    [data-theme="light"] .to-neutral-900\/90 { --tw-gradient-to: rgba(250,250,250,0.97) !important; }
+
+    [data-theme="light"] .from-orange-600 {
+      --tw-gradient-from: #E86828 !important;
+      --tw-gradient-to: rgb(232 104 40 / 0) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+    }
+    [data-theme="light"] .to-orange-500 { --tw-gradient-to: #EB6E21 !important; }
+
+    /* --- HOVER STATES --- */
+    [data-theme="light"] .hover\:bg-neutral-700:hover { background-color: #EDEDED !important; }
+    [data-theme="light"] .hover\:bg-neutral-600:hover { background-color: #DEDEDE !important; }
+    [data-theme="light"] .hover\:bg-neutral-700\/50:hover { background-color: rgba(237,237,237,0.5) !important; }
+    [data-theme="light"] .hover\:text-neutral-100:hover { color: #1A1A1A !important; }
+    [data-theme="light"] .hover\:bg-orange-500:hover { background-color: #E86828 !important; }
+    [data-theme="light"] .hover\:bg-orange-600:hover { background-color: #D55E22 !important; }
+    [data-theme="light"] .hover\:bg-orange-700:hover { background-color: #C05520 !important; }
+
+    /* hover:text-white → dark on neutral backgrounds */
+    [data-theme="light"] .hover\:text-white:hover { color: #1A1A1A !important; }
+    /* Keep white text on colored hover backgrounds */
+    [data-theme="light"] .hover\:bg-orange-500.hover\:text-white:hover { color: #FFFFFF !important; }
+    [data-theme="light"] .hover\:bg-red-500.hover\:text-white:hover { color: #FFFFFF !important; }
+    [data-theme="light"] .hover\:bg-red-600.hover\:text-white:hover { color: #FFFFFF !important; }
+
+    /* --- FOCUS STATES --- */
+    [data-theme="light"] .focus\:ring-orange-500:focus { --tw-ring-color: #E86828 !important; }
+
+    /* --- SHADOWS --- */
+    [data-theme="light"] .shadow-2xl { box-shadow: 0 4px 24px rgba(0,0,0,0.06) !important; }
+    [data-theme="light"] .shadow-lg { box-shadow: 0 2px 12px rgba(0,0,0,0.05) !important; }
+    [data-theme="light"] .shadow-inner { box-shadow: inset 0 1px 3px rgba(0,0,0,0.04) !important; }
+    [data-theme="light"] .shadow-orange-900\/10 { --tw-shadow-color: rgba(232,104,40,0.05) !important; }
+
+    /* --- SCROLLBAR (Light) --- */
+    [data-theme="light"] .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #C0C0C0 !important;
+    }
+    [data-theme="light"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background-color: #A0A0A0 !important;
+    }
+    [data-theme="light"] .custom-scrollbar {
+      scrollbar-color: #C0C0C0 transparent !important;
+    }
+
+    /* --- TILES --- */
+    [data-theme="light"] .tile {
+      background: #FFFFFF !important;
+      border: 1px solid #E0E0E0 !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+      color: #333333 !important;
+    }
+    [data-theme="light"] .tile:hover {
+      border-color: #E86828 !important;
+      background: #FAFAFA !important;
+      box-shadow: 0 6px 20px rgba(232,104,40,0.1) !important;
+      transform: translateY(-2px);
+    }
+    [data-theme="light"] .tile-icon { opacity: 0.7; }
+    [data-theme="light"] .tile .favorite-star { color: #E86828 !important; text-shadow: none !important; }
+
+    /* --- MARKDOWN CONTENT (Light) --- */
+    [data-theme="light"] .markdown-content h1,
+    [data-theme="light"] .markdown-content h2,
+    [data-theme="light"] .markdown-content h3,
+    [data-theme="light"] .markdown-content h4,
+    [data-theme="light"] .markdown-content h5,
+    [data-theme="light"] .markdown-content h6 { color: #1A1A1A !important; }
+    [data-theme="light"] .markdown-content p { color: #333333 !important; }
+    [data-theme="light"] .markdown-content a { color: #E86828 !important; }
+    [data-theme="light"] .markdown-content a:hover { color: #D55E22 !important; }
+    [data-theme="light"] .markdown-content ul,
+    [data-theme="light"] .markdown-content ol { color: #333333 !important; }
+    [data-theme="light"] .markdown-content code {
+      background-color: #F0F0F0 !important;
+      color: #D55E22 !important;
+    }
+    [data-theme="light"] .markdown-content pre {
+      background-color: #F5F5F5 !important;
+      border: 1px solid #E0E0E0 !important;
+    }
+    [data-theme="light"] .markdown-content blockquote {
+      border-left-color: #E86828 !important;
+      color: #666666 !important;
+    }
+    [data-theme="light"] .markdown-content th {
+      background-color: #F5F5F5 !important;
+      color: #1A1A1A !important;
+    }
+    [data-theme="light"] .markdown-content th,
+    [data-theme="light"] .markdown-content td {
+      border-color: #E0E0E0 !important;
+    }
+    [data-theme="light"] .markdown-content hr { border-top-color: #E0E0E0 !important; }
+    [data-theme="light"] .markdown-content mark {
+      background-color: #FCD34D !important;
+      color: #1A1A1A !important;
+    }
+    [data-theme="light"] .markdown-content .note-tag {
+      background-color: #FFF7ED !important;
+      color: #E86828 !important;
+    }
+
+    /* --- BACKDROP (Light) - keep dark overlay --- */
+    [data-theme="light"] .bg-black\/60 { background-color: rgba(0,0,0,0.4) !important; }
+
     .view-p {
       padding: var(--view-padding);
     }
@@ -413,7 +590,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/react-unicorn/assets/index-BpWbIm3S.js"></script>
+  <script type="module" crossorigin src="/react-unicorn/assets/index-Cng6KAwv.js"></script>
 </head>
 
 <body>
