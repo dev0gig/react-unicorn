@@ -15,6 +15,7 @@ const menuItems: MenuItem[] = [
     { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
     { id: 'Dienstplan', label: 'Dienstplan', icon: 'calendar_month' },
     { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
+    { id: 'E-Mobility', label: 'E-Mobility', icon: 'ev_station' },
 ];
 
 interface SidebarProps {

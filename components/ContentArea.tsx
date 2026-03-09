@@ -8,6 +8,7 @@ import { MailTemplates } from './content/MailTemplates';
 import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
 import { Dienstplan } from './content/Dienstplan';
 import { TimeTracker } from './content/TimeTracker';
+import { EMobilityKalkulator } from '../src/components/EMobilityKalkulator';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -57,6 +58,8 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <Wohnungswirtschaft />;
       case 'Zeiterfassung':
         return <TimeTracker onOpenResetModal={onOpenResetTimeTrackerModal} resetTrigger={timeTrackerResetTrigger} />;
+      case 'E-Mobility':
+        return <EMobilityKalkulator />;
       default:
         return <Dienstplan />;
     }
