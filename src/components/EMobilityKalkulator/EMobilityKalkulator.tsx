@@ -369,7 +369,7 @@ export const EMobilityKalkulator: React.FC = () => {
         </div>
 
         {/* Inputs */}
-        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6 shadow-2xl shadow-orange-900/10">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Ladevorgänge pro Monat */}
             <div>
@@ -487,7 +487,7 @@ export const EMobilityKalkulator: React.FC = () => {
         </div>
 
         {/* Context Selectors */}
-        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-4 shadow-2xl shadow-orange-900/10">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-4">
           <div className="flex flex-wrap items-center gap-4">
             {/* Charge Type Toggle */}
             <div className="flex items-center gap-2">
@@ -579,7 +579,7 @@ export const EMobilityKalkulator: React.FC = () => {
               return (
                 <div
                   key={cardKey}
-                  className={`bg-neutral-800 rounded-xl p-5 shadow-2xl shadow-orange-900/10 flex flex-col transition-all ${
+                  className={`bg-neutral-800 rounded-xl p-5 flex flex-col transition-all ${
                     isCheapest ? 'border-2 border-orange-500 ring-1 ring-orange-500/30' : 'border border-neutral-700'
                   }`}
                 >
@@ -637,7 +637,7 @@ export const EMobilityKalkulator: React.FC = () => {
               return (
                 <div
                   key={cardKey}
-                  className={`bg-neutral-800 rounded-xl p-5 shadow-2xl shadow-orange-900/10 flex flex-col transition-all ${
+                  className={`bg-neutral-800 rounded-xl p-5 flex flex-col transition-all ${
                     isCheapest ? 'border-2 border-orange-500 ring-1 ring-orange-500/30' : 'border border-neutral-700'
                   }`}
                 >
@@ -687,8 +687,8 @@ export const EMobilityKalkulator: React.FC = () => {
 
         {/* Settings Modal */}
         {showSettings && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowSettings(false)}>
-            <div className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col border border-neutral-700 max-h-[85vh]" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowSettings(false)}>
+            <div className="bg-neutral-800 rounded-2xl w-full max-w-4xl flex flex-col border border-neutral-700 max-h-[85vh]" onClick={e => e.stopPropagation()}>
               <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">
                 <div className="flex items-center">
                   <i className="material-icons text-2xl text-orange-400 mr-3">settings</i>

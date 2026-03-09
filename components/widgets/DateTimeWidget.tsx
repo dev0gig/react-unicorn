@@ -52,7 +52,7 @@ export const DateTimeWidget: React.FC<DateTimeWidgetProps> = ({ onExportClick, o
                 </button>
 
                 {isMenuOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-48 bg-neutral-800 border border-neutral-700 rounded-lg shadow-2xl z-20 p-2 animate-fade-in-fast">
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-neutral-800 border border-neutral-700 rounded-lg z-20 p-2 animate-fade-in-fast">
                         <button
                             onClick={() => { onExportClick(); setIsMenuOpen(false); }}
                             className="w-full text-left text-neutral-200 px-3 py-2 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-3"

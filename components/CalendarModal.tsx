@@ -155,11 +155,11 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({ isOpen, onClose })
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-neutral-800 rounded-2xl shadow-2xl w-[95vw] h-[95vh] max-w-screen-2xl flex flex-col border border-neutral-700 relative"
+        className="bg-neutral-800 rounded-2xl w-[95vw] h-[95vh] max-w-screen-2xl flex flex-col border border-neutral-700 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <input type="file" accept=".ics" ref={importIcsRef} onChange={handleFileChange} className="hidden" />

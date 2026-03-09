@@ -9,6 +9,7 @@ import { useSchedule } from '../../contexts/ScheduleContext';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useModal } from '../contexts/ModalContext';
 import { ScheduleEvent } from '../../types';
+import { GROUP_COLORS } from '../constants/theme';
 
 export const useDataPersistence = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,15 +56,11 @@ export const useDataPersistence = () => {
 
         if (dataToImport.toolGroups) {
             let importedGroups: any[] = dataToImport.toolGroups;
-            const GROUP_COLORS_LOCAL = [
-                '#4c0519', '#431407', '#022c22', '#082f49', '#1e1b4b',
-                '#3b0764', '#1e293b', '#042f2e', '#422006', '#500724',
-            ];
 
             const newToolGroups = importedGroups.map((group, index) => ({
                 ...group,
                 id: group.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                color: GROUP_COLORS_LOCAL[index % GROUP_COLORS_LOCAL.length]
+                color: GROUP_COLORS[index % GROUP_COLORS.length]
             }));
             setToolGroups(newToolGroups);
         }

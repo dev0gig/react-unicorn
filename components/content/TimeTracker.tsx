@@ -10,7 +10,7 @@ interface TimeTrackerProps {
 }
 
 const Card: React.FC<{ title: string; icon: string; children: React.ReactNode; className?: string }> = ({ title, icon, children, className }) => (
-    <div className={`bg-neutral-800 rounded-xl border border-neutral-700 p-6 shadow-2xl shadow-orange-900/10 flex flex-col ${className}`}>
+    <div className={`bg-neutral-800 rounded-xl border border-neutral-700 p-6 flex flex-col ${className}`}>
         <h2 className="text-xl font-bold text-orange-400 border-b border-neutral-700 pb-3 mb-4 flex items-center flex-shrink-0">
             <i className="material-icons mr-3">{icon}</i>
             {title}

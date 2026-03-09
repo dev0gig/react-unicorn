@@ -45,7 +45,7 @@ const NavItem = memo(({ item, isActive, onClick, count }: {
     >
         {isActive && (
             <div
-                className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-500 rounded-lg shadow-lg"
+                className="absolute inset-0 bg-orange-500 rounded-lg"
             />
         )}
         <i className="material-icons mr-4 z-10">{item.icon}</i>
@@ -64,7 +64,7 @@ const NavItem = memo(({ item, isActive, onClick, count }: {
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
     const { contacts } = useContacts();
     const { templateGroups } = useTemplates();
-    const { isDark, toggleTheme } = useTheme();
+    const { theme, setTheme } = useTheme();
 
     const counts: Record<string, number> = {
         'Kontakte': contacts.length,
@@ -72,9 +72,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
     };
 
     return (
-        <aside className="w-80 bg-gradient-to-b from-neutral-800/90 to-neutral-900/90 backdrop-blur-md flex flex-col h-screen flex-shrink-0 border-r border-neutral-700/50 shadow-2xl">
+        <aside className="w-80 bg-neutral-800 flex flex-col h-screen flex-shrink-0 border-r border-neutral-700">
             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-6">
-                <div className="mb-8 bg-white/5 p-4 rounded-2xl relative border border-white/10 shadow-inner backdrop-blur-sm">
+                <div className="mb-8 bg-neutral-900 p-4 rounded-2xl relative border border-neutral-700">
                     <DateTimeWidget
                         onExportClick={onExportClick}
                         onImportClick={onImportClick}
@@ -114,13 +114,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             </div>
 
             <div className="px-6 py-4 border-t border-neutral-700/50 flex-shrink-0">
-                <button
-                    onClick={toggleTheme}
-                    className="w-full flex items-center gap-3 p-2.5 rounded-xl text-neutral-400 hover:text-neutral-100 transition-all duration-200 hover:bg-neutral-700/50"
-                >
-                    <i className="material-icons text-xl">{isDark ? 'light_mode' : 'dark_mode'}</i>
-                    <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-                </button>
+                <div className="flex items-center justify-center bg-neutral-800/60 rounded-full p-0.5">
+                    {([
+                        { id: 'dark', icon: 'dark_mode', title: 'Dark' },
+                        { id: 'sepia', icon: 'auto_stories', title: 'Sepia' },
+                        { id: 'light', icon: 'light_mode', title: 'Light' },
+                    ] as const).map((t) => (
+                        <button
+                            key={t.id}
+                            onClick={() => setTheme(t.id)}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-full text-xs font-medium transition-all duration-200 ${
+                                theme === t.id
+                                    ? 'bg-neutral-700 text-white shadow-sm'
+                                    : 'text-neutral-500 hover:text-neutral-300'
+                            }`}
+                            title={t.title}
+                        >
+                            <i className="material-icons" style={{ fontSize: '14px' }}>{t.icon}</i>
+                            <span>{t.title}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
         </aside>

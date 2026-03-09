@@ -16,7 +16,7 @@ const Toast: React.FC<{ message: string; onDismiss: () => void; }> = ({ message,
 
     return (
         <div
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center px-6 py-3 bg-green-500 text-white rounded-full shadow-lg z-50 cursor-pointer"
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center px-6 py-3 bg-green-500 text-white rounded-full z-50 cursor-pointer"
             onClick={onDismiss}
         >
             <i className="material-icons mr-2">check_circle</i>
@@ -118,14 +118,14 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onOpenSignatureModal}
-                        className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        className="flex items-center bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                     >
                         <i className="material-icons mr-2 text-base">edit_note</i>
                         Signaturen
                     </button>
                     <button
                         onClick={onAdd}
-                        className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                     >
                         <i className="material-icons mr-2 text-base">add</i>
                         Neue Vorlage
@@ -180,7 +180,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                                                     key={template.id}
                                                     onClick={() => handleSelectTemplate(template, group.category)}
                                                     className={`flex items-center justify-center text-center p-3 h-20 rounded-lg transition-all duration-200 text-sm line-clamp-4 border ${selectedTemplateId === template.id
-                                                        ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold shadow-lg'
+                                                        ? 'bg-neutral-700/50 border-orange-500 text-white font-semibold'
                                                         : 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300'
                                                         }`}
                                                     title={template.title}
@@ -202,7 +202,7 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                     </div>
                 </div>
 
-                <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 p-4 flex flex-col h-full relative">
+                <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-4 flex flex-col h-full relative">
                     {selectedTemplate && selectedCategory && (
                         <div className="absolute top-3 right-3 flex gap-2 z-10">
                             <button

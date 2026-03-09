@@ -31,11 +31,11 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, title, me
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col border border-neutral-700"
+        className="bg-neutral-800 rounded-2xl w-full max-w-md flex flex-col border border-neutral-700"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center p-4 border-b border-neutral-700 flex-shrink-0">

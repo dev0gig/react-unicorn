@@ -59,7 +59,7 @@ const DayTooltip: React.FC<{ dayInfo: { day: CalendarDay, element: HTMLElement }
     <div
       ref={tooltipRef}
       style={style}
-      className="bg-neutral-900 p-3 rounded-lg shadow-2xl w-64 border border-neutral-700 transition-opacity duration-150"
+      className="bg-neutral-900 p-3 rounded-lg w-64 border border-neutral-700 transition-opacity duration-150"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >

@@ -29,7 +29,7 @@ interface ReorderGroupsModalProps {
 // A simple, non-sortable component for the drag overlay
 const GroupItem: React.FC<{ group: ToolGroup }> = ({ group }) => {
   return (
-    <div className="p-4 rounded-lg bg-neutral-700 flex items-center gap-3 shadow-2xl scale-105 opacity-95">
+    <div className="p-4 rounded-lg bg-neutral-700 flex items-center gap-3 scale-105 opacity-95">
       <i className="material-icons text-orange-500">{group.icon}</i>
       <span className="font-semibold text-neutral-100 truncate">{group.title}</span>
     </div>
@@ -59,7 +59,7 @@ const SortableGroup: React.FC<{ group: ToolGroup }> = ({ group }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className="p-4 rounded-lg bg-neutral-700/50 flex items-center gap-3 cursor-grab active:cursor-grabbing touch-none transition-shadow shadow-md"
+      className="p-4 rounded-lg bg-neutral-700/50 flex items-center gap-3 cursor-grab active:cursor-grabbing touch-none transition-shadow"
     >
       <i className="material-icons text-orange-500">{group.icon}</i>
       <span className="font-semibold text-neutral-100 truncate">{group.title}</span>
@@ -145,11 +145,11 @@ export const ReorderGroupsModal: React.FC<ReorderGroupsModalProps> = ({ isOpen, 
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
           onClick={handleDone}
         >
           <div
-            className="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col border border-neutral-700"
+            className="bg-neutral-800 rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col border border-neutral-700"
             onClick={(e) => e.stopPropagation()}
           >
             <header className="flex items-center justify-between p-4 border-b border-neutral-700 flex-shrink-0">

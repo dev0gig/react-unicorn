@@ -1,15 +1,15 @@
 import React from 'react';
 import { ToolLink, ToolGroup } from '../../../types';
 
-// Feste Farbpalette: 7 dezente, dunkle Farben
+// Feste Farbpalette via CSS-Variablen aus theme.css
 const INITIAL_COLORS = [
-    '#4a5568', // Grau-Blau
-    '#5a67d8', // Indigo
-    '#319795', // Teal
-    '#38a169', // Grün
-    '#d69e2e', // Gelb/Gold
-    '#dd6b20', // Orange
-    '#e53e3e', // Rot
+    'var(--link-color-1)',
+    'var(--link-color-2)',
+    'var(--link-color-3)',
+    'var(--link-color-4)',
+    'var(--link-color-5)',
+    'var(--link-color-6)',
+    'var(--link-color-7)',
 ];
 
 // Deterministische Farbzuweisung basierend auf dem Link-Namen
@@ -43,7 +43,7 @@ interface LinkItemProps {
 export const LinkItem: React.FC<LinkItemProps> = ({ data, isFavorite, isEditMode, onToggleFavorite, onEdit, onDelete }) => {
     return (
         <div
-            className={`group relative flex items-center justify-center w-full min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 shadow-md transition-all duration-200 overflow-hidden ${isEditMode ? 'flex-col min-h-[5rem] gap-2 ring-2 ring-orange-500 bg-neutral-800' : 'hover:bg-neutral-700 hover:border-orange-500/50'}`}
+            className={`group relative flex items-center justify-center w-full min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 transition-all duration-200 overflow-hidden ${isEditMode ? 'flex-col min-h-[5rem] gap-2 ring-2 ring-orange-500 bg-neutral-800' : 'hover:bg-neutral-700 hover:border-orange-500/50'}`}
         >
             {/* Edit Mode: Aktions-Buttons (oben) */}
             {isEditMode && (
@@ -53,7 +53,7 @@ export const LinkItem: React.FC<LinkItemProps> = ({ data, isFavorite, isEditMode
                         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-600 text-white transition-all bg-neutral-700/50"
                         title={isFavorite ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
                     >
-                        <i className="material-icons text-base" style={{ color: isFavorite ? '#fbbf24' : '#9ca3af' }}>{isFavorite ? 'star' : 'star_border'}</i>
+                        <i className="material-icons text-base" style={{ color: isFavorite ? 'var(--star-active)' : 'var(--star-inactive)' }}>{isFavorite ? 'star' : 'star_border'}</i>
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit?.(); }}

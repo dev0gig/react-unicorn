@@ -28,7 +28,7 @@ interface DashboardProps {
 const MemoizedSortableLinkItem = memo(SortableLinkItem);
 
 const GroupOverlay: React.FC<{ group: ToolGroup }> = ({ group }) => (
-  <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 p-3 flex items-center gap-2 opacity-90" style={{ width: '350px' }}>
+  <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-3 flex items-center gap-2 opacity-90" style={{ width: '350px' }}>
     <i className="material-icons text-2xl text-orange-500">{group.icon}</i>
     <h2 className="text-xl font-bold text-neutral-200 truncate">{group.title}</h2>
   </div>
@@ -79,7 +79,7 @@ const SortableGroup: React.FC<SortableGroupProps> = memo(({
   return (
     <section
       ref={setNodeRef}
-      style={{ ...style, backgroundColor: '#1e1e1e' }}
+      style={{ ...style, backgroundColor: 'var(--group-section-bg)' }}
       id={group.id}
       aria-labelledby={`group-header-${group.id}`}
       className="border border-neutral-700 rounded-xl p-4"
@@ -218,7 +218,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
         <p className="text-neutral-500 mb-6 max-w-sm">Beginnen Sie, indem Sie Ihre erste Gruppe für Tools und Links erstellen, um alles nach Ihren Wünschen zu organisieren.</p>
         <button
           onClick={onAddGroup}
-          className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg text-base"
+          className="flex items-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-base"
         >
           <i className="material-icons mr-2">add</i>
           Erste Gruppe erstellen
@@ -291,7 +291,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
           <button
             onClick={() => setIsEditMode(!isEditMode)}
-            className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors shadow-md hover:shadow-lg ${isEditMode ? 'bg-orange-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
+            className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${isEditMode ? 'bg-orange-500 text-white' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
             title={isEditMode ? "Bearbeiten beenden" : "Dashboard bearbeiten"}
           >
             <i className="material-icons text-xl">{isEditMode ? 'check' : 'edit'}</i>
@@ -301,14 +301,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
             <>
               <button
                 onClick={onAddGroup}
-                className="w-10 h-10 flex items-center justify-center bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
+                className="w-10 h-10 flex items-center justify-center bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
                 title="Neue Gruppe erstellen"
               >
                 <i className="material-icons text-xl">create_new_folder</i>
               </button>
               <button
                 onClick={onOpenReorderGroupsModal}
-                className="w-10 h-10 flex items-center justify-center bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
+                className="w-10 h-10 flex items-center justify-center bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
                 title="Gruppen anordnen"
               >
                 <i className="material-icons text-xl">view_quilt</i>

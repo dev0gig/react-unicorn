@@ -1,0 +1,188 @@
+/* ============================================
+   THEME.CSS - Single Source of Truth for Colors
+   Flat Design - No Gradients, No Shadows
+   ============================================ */
+
+/* === DARK THEME (Default) === */
+:root {
+  /* --- Backgrounds (4 levels) --- */
+  --bg-page: #171717;
+  --bg-surface: #262626;
+  --bg-muted: #404040;
+  --bg-subtle: #525252;
+
+  /* --- Text (5 levels) --- */
+  --text-primary: #f5f5f5;
+  --text-secondary: #e5e5e5;
+  --text-body: #d4d4d4;
+  --text-muted: #a3a3a3;
+  --text-faint: #666666;
+
+  /* --- Borders --- */
+  --border: #404040;
+  --border-muted: #525252;
+
+  /* --- Accent --- */
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  --accent-text: #fb923c;
+  --accent-light: #fdba74;
+  --on-accent: white;
+
+  /* --- Danger --- */
+  --danger: #f87171;
+
+  /* --- Tiles --- */
+  --tile-bg: #262626;
+  --tile-bg-hover: #333333;
+  --tile-border: #333333;
+  --tile-border-hover: #f97316;
+  --tile-text: white;
+
+  /* --- Favorites --- */
+  --star-active: #fbbf24;
+  --star-inactive: #555555;
+
+  /* --- Specials --- */
+  --mark-bg: #f59e0b;
+  --mark-text: #141414;
+  --code-text: #fcd34d;
+  --note-tag-bg: #3f3f46;
+  --highlight: rgba(249, 115, 22, 0.3);
+  --highlight-strong: rgba(249, 115, 22, 0.4);
+  --backdrop: rgba(0, 0, 0, 0.6);
+  --scrollbar: #404040;
+  --scrollbar-hover: #525252;
+
+  /* --- Group Section --- */
+  --group-section-bg: #1e1e1e;
+
+  /* --- Context: text on muted bg --- */
+  --text-on-muted: white;
+
+  /* --- Link Item Colors (deterministic palette) --- */
+  --link-color-1: #4a5568;
+  --link-color-2: #5a67d8;
+  --link-color-3: #319795;
+  --link-color-4: #38a169;
+  --link-color-5: #d69e2e;
+  --link-color-6: #dd6b20;
+  --link-color-7: #e53e3e;
+
+  /* --- Group Colors (dashboard group backgrounds) --- */
+  --group-color-1: #4c0519;
+  --group-color-2: #431407;
+  --group-color-3: #022c22;
+  --group-color-4: #082f49;
+  --group-color-5: #1e1b4b;
+  --group-color-6: #3b0764;
+  --group-color-7: #1e293b;
+  --group-color-8: #042f2e;
+  --group-color-9: #422006;
+  --group-color-10: #500724;
+}
+
+/* === LIGHT THEME (Wien Energie) === */
+[data-theme="light"] {
+  --bg-page: #F0F0F0;
+  --bg-surface: #FFFFFF;
+  --bg-muted: #E8E8E8;
+  --bg-subtle: #DEDEDE;
+
+  --text-primary: #1A1A1A;
+  --text-secondary: #333333;
+  --text-body: #4A4A4A;
+  --text-muted: #888888;
+  --text-faint: #BBBBBB;
+
+  --border: #E0E0E0;
+  --border-muted: #D0D0D0;
+
+  --accent: #E86828;
+  --accent-hover: #D55E22;
+  --accent-text: #E86828;
+  --accent-light: #D55E22;
+  --on-accent: #FFFFFF;
+
+  --danger: #DC2626;
+
+  --tile-bg: #FFFFFF;
+  --tile-bg-hover: #FAFAFA;
+  --tile-border: #E0E0E0;
+  --tile-border-hover: #E86828;
+  --tile-text: #333333;
+
+  --star-active: #E86828;
+
+  --mark-bg: #FCD34D;
+  --mark-text: #1A1A1A;
+  --code-text: #D55E22;
+  --note-tag-bg: #FFF7ED;
+  --highlight: rgba(232, 104, 40, 0.2);
+  --highlight-strong: rgba(232, 104, 40, 0.3);
+  --backdrop: rgba(0, 0, 0, 0.4);
+  --scrollbar: #C0C0C0;
+  --scrollbar-hover: #A0A0A0;
+
+  --group-section-bg: #FFFFFF;
+
+  --text-on-muted: #333333;
+}
+
+/* === SEPIA THEME === */
+[data-theme="sepia"] {
+  --bg-page: #e5d9c5;
+  --bg-surface: #f0e8d8;
+  --bg-muted: #ddd0ba;
+  --bg-subtle: #d0c0a6;
+
+  --text-primary: #2c2416;
+  --text-secondary: #3d2e1c;
+  --text-body: #5a4a36;
+  --text-muted: #8a7a64;
+  --text-faint: #b8a890;
+
+  --border: #d4c4a8;
+  --border-muted: #c4b494;
+
+  --accent: #8b5e34;
+  --accent-hover: #7a5130;
+  --accent-text: #8b5e34;
+  --accent-light: #6d4a28;
+  --on-accent: #f0e8d8;
+
+  --danger: #c0392b;
+
+  --tile-bg: #f0e8d8;
+  --tile-bg-hover: #ebe1cf;
+  --tile-border: #d4c4a8;
+  --tile-border-hover: #8b5e34;
+  --tile-text: #3d2e1c;
+
+  --star-active: #c4882d;
+
+  --mark-bg: #d4a843;
+  --mark-text: #2c2416;
+  --code-text: #8b5e34;
+  --note-tag-bg: #e8dcc8;
+  --highlight: rgba(139, 94, 52, 0.25);
+  --highlight-strong: rgba(139, 94, 52, 0.35);
+  --backdrop: rgba(44, 36, 22, 0.5);
+  --scrollbar: #b8a58c;
+  --scrollbar-hover: #a08d74;
+
+  --group-section-bg: #f0e8d8;
+
+  --text-on-muted: #3d2e1c;
+
+  --group-color-1: #3d1f1f;
+  --group-color-2: #3d2a10;
+  --group-color-3: #1a3028;
+  --group-color-4: #1a2e3d;
+  --group-color-5: #2a2540;
+  --group-color-6: #301a40;
+  --group-color-7: #2a3040;
+  --group-color-8: #1a3030;
+  --group-color-9: #3d2a10;
+  --group-color-10: #3d1a28;
+}

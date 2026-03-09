@@ -1,21 +1,23 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useLocalStorage } from '../src/hooks/useLocalStorage';
 
-type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'sepia' | 'light';
+
+const THEMES: Theme[] = ['dark', 'sepia', 'light'];
 
 interface ThemeContextType {
     theme: Theme;
-    toggleTheme: () => void;
+    setTheme: (theme: Theme) => void;
     isDark: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useLocalStorage<Theme>('unicorn-theme', 'dark');
+    const [theme, setThemeRaw] = useLocalStorage<Theme>('unicorn-theme', 'dark');
 
-    const toggleTheme = () => {
-        setTheme((prev: Theme) => prev === 'dark' ? 'light' : 'dark');
+    const setTheme = (t: Theme) => {
+        if (THEMES.includes(t)) setThemeRaw(t);
     };
 
     useEffect(() => {
@@ -23,7 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }, [theme]);
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
+        <ThemeContext.Provider value={{ theme, setTheme, isDark: theme === 'dark' }}>
             {children}
         </ThemeContext.Provider>
     );

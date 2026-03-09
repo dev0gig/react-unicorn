@@ -166,7 +166,7 @@ export const Wohnungswirtschaft: React.FC = () => {
   return (
     <div className="w-full h-full flex items-center justify-center p-4 sm:p-8 bg-neutral-900 overflow-y-auto custom-scrollbar">
         <div className="w-full max-w-2xl">
-            <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10">
+            <div className="bg-neutral-800 rounded-xl border border-neutral-700">
                 <div className="p-6">
                     <h1 className="text-2xl font-bold text-orange-400">ICS Kalenderdatei-Generator</h1>
                 </div>

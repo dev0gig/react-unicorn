@@ -29,7 +29,7 @@ export const HolidayInfoModal: React.FC<HolidayInfoModalProps> = ({ name, descri
     <div
       ref={modalRef}
       style={{ top: position.top, left: position.left }}
-      className="fixed z-[60] w-64 bg-neutral-900 border border-orange-500/50 rounded-lg shadow-2xl p-4 text-white animate-fade-in-fast"
+      className="fixed z-[60] w-64 bg-neutral-900 border border-orange-500/50 rounded-lg p-4 text-white animate-fade-in-fast"
     >
       <h3 className="font-bold text-orange-400 mb-2">{name}</h3>
       <p className="text-sm text-neutral-300">{description}</p>

@@ -130,7 +130,7 @@ const CalendarWidget: React.FC = () => {
     };
 
     return (
-        <div className="bg-neutral-800 rounded-xl border border-neutral-700 shadow-2xl shadow-orange-900/10 flex flex-col">
+        <div className="bg-neutral-800 rounded-xl border border-neutral-700 flex flex-col">
             <input type="file" accept=".ics" ref={importIcsRef} onChange={handleFileChange} className="hidden" />
             <CalendarHeader
                 currentDate={currentDate}
