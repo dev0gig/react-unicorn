@@ -12,9 +12,10 @@ interface SortableLinkItemProps {
     onEdit: (data: { link: ToolLink; group: ToolGroup }) => void;
     onDelete: (groupId: string, url: string) => void;
     onToggleFavorite: (link: ToolLink) => void;
+    onLinkClick?: (link: ToolLink) => void;
 }
 
-export const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, group, isFavorite, isEditMode, onEdit, onDelete, onToggleFavorite }) => {
+export const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, group, isFavorite, isEditMode, onEdit, onDelete, onToggleFavorite, onLinkClick }) => {
     const {
         attributes,
         listeners,
@@ -40,6 +41,7 @@ export const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, group,
 
         if (e.defaultPrevented) return;
         e.preventDefault();
+        onLinkClick?.(data.link);
         window.open(data.link.url, '_blank', 'noopener,noreferrer');
     }
 

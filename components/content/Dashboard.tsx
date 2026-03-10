@@ -15,6 +15,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { LinkItem } from '../../src/components/dashboard/LinkItem';
 import { SortableLinkItem } from '../../src/components/dashboard/SortableLinkItem';
 import { useDashboardLogic } from '../../src/hooks/useDashboardLogic';
+import { useRecentlyUsed } from '../../src/hooks/useRecentlyUsed';
+import { useFavorites } from '../../contexts/FavoritesContext';
 
 interface DashboardProps {
   onAddLink: (link: null, groupId?: string) => void;
@@ -44,6 +46,7 @@ interface SortableGroupProps {
   deleteLink: (groupId: string, url: string) => void;
   onToggleFavorite: (link: ToolLink) => void;
   isFavorite: (url: string) => boolean;
+  onLinkClick: (link: ToolLink) => void;
 }
 
 const SortableGroup: React.FC<SortableGroupProps> = memo(({
@@ -55,7 +58,8 @@ const SortableGroup: React.FC<SortableGroupProps> = memo(({
   onEditTile,
   deleteLink,
   onToggleFavorite,
-  isFavorite
+  isFavorite,
+  onLinkClick
 }) => {
   const {
     attributes,
@@ -135,6 +139,7 @@ const SortableGroup: React.FC<SortableGroupProps> = memo(({
                   onEdit={onEditTile}
                   onDelete={deleteLink}
                   onToggleFavorite={onToggleFavorite}
+                  onLinkClick={onLinkClick}
                 />
               );
             })}
@@ -167,6 +172,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
     deleteLink,
     isFavorite,
   } = useDashboardLogic(onColumnCountChange);
+
+  const { recentLinks, recordUsage } = useRecentlyUsed();
+  const { favorites } = useFavorites();
 
   // Keep layout adjustment effect here as it interacts with prop `onColumnCountChange`
   useEffect(() => {
@@ -252,6 +260,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                 deleteLink={deleteLink}
                 onToggleFavorite={handleToggleFavorite}
                 isFavorite={isFavorite}
+                onLinkClick={recordUsage}
               />
             ))}
           </div>
@@ -320,6 +329,60 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="overflow-y-auto custom-scrollbar view-px min-h-0 pt-4 pb-4">
+          {!isSearchActive && (recentLinks.length > 0 || favorites.length > 0) && (
+            <div className="mb-6">
+              {recentLinks.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <i className="material-icons text-xl text-orange-500">history</i>
+                    <h2 className="text-lg font-semibold text-neutral-300">Zuletzt verwendet</h2>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {recentLinks.map(entry => (
+                      <button
+                        key={entry.url}
+                        onClick={() => {
+                          recordUsage({ name: entry.name, url: entry.url });
+                          window.open(entry.url, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
+                        title={entry.name}
+                      >
+                        <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{entry.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {favorites.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <i className="material-icons text-xl text-orange-500">star</i>
+                    <h2 className="text-lg font-semibold text-neutral-300">Favoriten</h2>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {favorites.map(fav => (
+                      <button
+                        key={fav.url}
+                        onClick={() => {
+                          recordUsage({ name: fav.name, url: fav.url });
+                          window.open(fav.url, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
+                        title={fav.name}
+                      >
+                        <i className="material-icons text-yellow-400 text-sm mr-1.5">star</i>
+                        <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{fav.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <hr className="border-neutral-700" />
+            </div>
+          )}
           {content}
         </div>
 

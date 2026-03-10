@@ -27,20 +27,17 @@ const FavoriteListItem: React.FC<{
 
   return (
     <div
-      className="group relative flex items-center w-full h-16 px-4 rounded-lg cursor-pointer border border-neutral-600 hover:border-orange-500 transition-colors duration-200 bg-neutral-700"
+      className="group relative flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg cursor-pointer bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200"
       onClick={handleClick}
     >
-      <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">{data.group.icon}</i>
-      <div className="flex-grow min-w-0">
-        <p className="text-xs text-white/80 truncate">{data.group.title}</p>
-        <p className="font-semibold text-white truncate">{data.link.name}</p>
-      </div>
+      <i className="material-icons text-yellow-400 text-sm mr-1.5">star</i>
+      <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{data.link.name}</span>
       <button
         onClick={handleRemoveClick}
-        className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-neutral-700 hover:bg-neutral-600 transition-all scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"
+        className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center rounded-full text-neutral-400 bg-neutral-700 border border-neutral-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all opacity-0 group-hover:opacity-100"
         aria-label="Favorit entfernen"
       >
-        <i className="material-icons text-base">close</i>
+        <i className="material-icons" style={{ fontSize: '12px' }}>close</i>
       </button>
     </div>
   );
@@ -102,28 +99,24 @@ export const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose 
 
             <div className="p-6 overflow-y-auto custom-scrollbar">
               {favorites.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {favorites.map((fav) => {
                     const data = allLinksMap.get(fav.url);
 
                     if (!data) {
-                      // Render a fallback tile for orphaned favorites that might still exist
                       return (
                         <div
                           key={fav.url}
-                          className="group relative flex items-center w-full h-16 px-4 rounded-lg border border-neutral-600 bg-neutral-700"
+                          className="group relative flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700"
                         >
-                          <i className="material-icons text-2xl mr-4 text-white/90 flex-shrink-0">link_off</i>
-                          <div className="flex-grow min-w-0">
-                            <p className="text-xs text-white/80 truncate">Verwaister Favorit</p>
-                            <p className="font-semibold text-white truncate">{fav.name}</p>
-                          </div>
+                          <i className="material-icons text-neutral-500 text-sm mr-1.5">link_off</i>
+                          <span className="font-medium text-neutral-400 text-center text-sm leading-tight truncate">{fav.name}</span>
                           <button
                             onClick={() => removeFavorite(fav.url)}
-                            className="ml-4 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-white bg-neutral-700 hover:bg-neutral-600 transition-all"
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center rounded-full text-neutral-400 bg-neutral-700 border border-neutral-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all"
                             aria-label="Verwaisten Favorit entfernen"
                           >
-                            <i className="material-icons text-base">close</i>
+                            <i className="material-icons" style={{ fontSize: '12px' }}>close</i>
                           </button>
                         </div>
                       );
