@@ -5,7 +5,7 @@ import { Dashboard } from './content/Dashboard';
 import { Kontakte } from './content/Kontakte';
 import { MailTemplates } from './content/MailTemplates';
 
-import { Wohnungswirtschaft } from './content/Wohnungswirtschaft';
+import { MsgToIcs } from '../src/components/MsgToIcs';
 import { Dienstplan } from './content/Dienstplan';
 import { TimeTracker } from './content/TimeTracker';
 import { EMobilityKalkulator } from '../src/components/EMobilityKalkulator';
@@ -55,7 +55,7 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <MailTemplates onAdd={onAddTemplate} onEdit={onEditTemplate} onOpenSignatureModal={onOpenSignatureModal} />;
 
       case 'WiWo-Terminpflege':
-        return <Wohnungswirtschaft />;
+        return <MsgToIcs />;
       case 'Zeiterfassung':
         return <TimeTracker onOpenResetModal={onOpenResetTimeTrackerModal} resetTrigger={timeTrackerResetTrigger} />;
       case 'E-Mobility':
