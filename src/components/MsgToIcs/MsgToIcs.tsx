@@ -158,8 +158,8 @@ export const MsgToIcs: React.FC = () => {
 
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-orange-400">MSG → ICS Konverter</h1>
-          <p className="text-sm text-neutral-500 mt-1">Outlook-Mail automatisch in Kalendertermin umwandeln</p>
+          <h1 className="text-4xl font-bold text-neutral-100 mb-2">WiWo-Terminpflege</h1>
+          <p className="text-neutral-400">Outlook-Mails automatisch in Kalendertermine umwandeln.</p>
         </div>
 
         {/* ① Kundennummer / Storno */}
@@ -175,7 +175,7 @@ export const MsgToIcs: React.FC = () => {
           </div>
         ) : (
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
-            <div className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-3">
+            <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-3">
               ① Kundennummer — manuell eingeben
             </div>
             <div className="flex items-center gap-3">
@@ -219,7 +219,7 @@ export const MsgToIcs: React.FC = () => {
 
           {/* ② Mail Input */}
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex flex-col gap-4">
-            <div className="text-xs font-semibold text-orange-400 uppercase tracking-widest">
+            <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest">
               ② Mail-Inhalt — Datei oder Text einfügen
             </div>
 
@@ -279,7 +279,7 @@ export const MsgToIcs: React.FC = () => {
 
           {/* ③ Erkannte Felder */}
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
-            <div className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-4">
+            <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-4">
               ③ Erkannte Felder
             </div>
             <div className="grid grid-cols-2 gap-3">
