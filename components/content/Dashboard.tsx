@@ -1,4 +1,4 @@
-import React, { useEffect, memo } from 'react';
+import React, { useEffect, useMemo, memo } from 'react';
 import ReactDOM from 'react-dom';
 import { ToolLink, ToolGroup } from '../../types';
 import {
@@ -17,6 +17,7 @@ import { SortableLinkItem } from '../../src/components/dashboard/SortableLinkIte
 import { useDashboardLogic } from '../../src/hooks/useDashboardLogic';
 import { useRecentlyUsed } from '../../src/hooks/useRecentlyUsed';
 import { useFavorites } from '../../contexts/FavoritesContext';
+import { getGroupColorHex } from '../../src/constants/theme';
 
 interface DashboardProps {
   onAddLink: (link: null, groupId?: string) => void;
@@ -175,6 +176,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
 
   const { recentLinks, recordUsage } = useRecentlyUsed();
   const { favorites } = useFavorites();
+
+  // Map link URL → group color hex for quick-access sections
+  const linkColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const group of toolGroups) {
+      const hex = getGroupColorHex(group.color);
+      if (hex) {
+        for (const link of group.links) {
+          map.set(link.url, hex);
+        }
+      }
+    }
+    return map;
+  }, [toolGroups]);
 
   // Keep layout adjustment effect here as it interacts with prop `onColumnCountChange`
   useEffect(() => {
@@ -338,19 +353,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                     <h2 className="text-lg font-semibold text-neutral-300">Zuletzt verwendet</h2>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {recentLinks.map(entry => (
-                      <button
-                        key={entry.url}
-                        onClick={() => {
-                          recordUsage({ name: entry.name, url: entry.url });
-                          window.open(entry.url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
-                        title={entry.name}
-                      >
-                        <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{entry.name}</span>
-                      </button>
-                    ))}
+                    {recentLinks.map(entry => {
+                      const recentColor = linkColorMap.get(entry.url);
+                      return (
+                        <button
+                          key={entry.url}
+                          onClick={() => {
+                            recordUsage({ name: entry.name, url: entry.url });
+                            window.open(entry.url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
+                          style={recentColor ? { borderLeftWidth: '3px', borderLeftColor: recentColor } : undefined}
+                          title={entry.name}
+                        >
+                          <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{entry.name}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -362,20 +381,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onAddLink, onEditTile, onA
                     <h2 className="text-lg font-semibold text-neutral-300">Favoriten</h2>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {favorites.map(fav => (
-                      <button
-                        key={fav.url}
-                        onClick={() => {
-                          recordUsage({ name: fav.name, url: fav.url });
-                          window.open(fav.url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
-                        title={fav.name}
-                      >
-                        <i className="material-icons text-yellow-400 text-sm mr-1.5">star</i>
-                        <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{fav.name}</span>
-                      </button>
-                    ))}
+                    {favorites.map(fav => {
+                      const favColor = linkColorMap.get(fav.url);
+                      return (
+                        <button
+                          key={fav.url}
+                          onClick={() => {
+                            recordUsage({ name: fav.name, url: fav.url });
+                            window.open(fav.url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="flex items-center justify-center min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 hover:bg-neutral-700 hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
+                          style={favColor ? { borderLeftWidth: '3px', borderLeftColor: favColor } : undefined}
+                          title={fav.name}
+                        >
+                          <i className="material-icons text-yellow-400 text-sm mr-1.5">star</i>
+                          <span className="font-medium text-neutral-200 text-center text-sm leading-tight truncate">{fav.name}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

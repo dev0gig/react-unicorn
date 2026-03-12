@@ -22,8 +22,8 @@ export interface ToolGroup {
 
 export interface DashboardContextType {
   toolGroups: ToolGroup[];
-  addGroup: (title: string, icon: string) => void;
-  updateGroup: (groupId: string, newTitle: string, newIcon: string) => void;
+  addGroup: (title: string, icon: string, color?: string) => void;
+  updateGroup: (groupId: string, newTitle: string, newIcon: string, color?: string) => void;
   deleteGroup: (groupId: string) => void;
   addLink: (groupId: string, link: ToolLink) => void;
   updateLink: (originalGroupId: string, linkToUpdate: ToolLink, newLink: ToolLink, newGroupId?: string) => void;

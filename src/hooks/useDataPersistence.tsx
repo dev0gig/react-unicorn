@@ -60,7 +60,7 @@ export const useDataPersistence = () => {
             const newToolGroups = importedGroups.map((group, index) => ({
                 ...group,
                 id: group.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                color: GROUP_COLORS[index % GROUP_COLORS.length]
+                color: group.color || GROUP_COLORS[index % GROUP_COLORS.length]
             }));
             setToolGroups(newToolGroups);
         }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../App';
 import type { ToolGroup } from '../types';
+import { GROUP_COLOR_OPTIONS } from '../src/constants/theme';
 
 interface ToolGroupModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
   const { toolGroups, addGroup, updateGroup } = useDashboard();
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState('');
+  const [color, setColor] = useState('');
   const [error, setError] = useState('');
 
   const isEditMode = groupToEdit !== null;
@@ -23,9 +25,11 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
       if (isEditMode) {
         setTitle(groupToEdit.title);
         setIcon(groupToEdit.icon);
+        setColor(groupToEdit.color || '');
       } else {
         setTitle('');
         setIcon('');
+        setColor('');
       }
     }
   }, [isOpen, groupToEdit, isEditMode]);
@@ -50,9 +54,9 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
     }
 
     if (isEditMode) {
-      updateGroup(groupToEdit.id, title.trim(), icon.trim());
+      updateGroup(groupToEdit.id, title.trim(), icon.trim(), color || undefined);
     } else {
-      addGroup(title.trim(), icon.trim());
+      addGroup(title.trim(), icon.trim(), color || undefined);
     }
     onClose();
   };
@@ -127,6 +131,21 @@ export const ToolGroupModal: React.FC<ToolGroupModalProps> = ({ isOpen, onClose,
                 <a href="https://fonts.google.com/icons?selected=Material+Icons" target="_blank" rel="noopener noreferrer" className="text-xs text-orange-400 hover:underline mt-1 block">
                   Verfügbare Icons finden
                 </a>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Farbe</label>
+                <div className="flex flex-wrap gap-2">
+                  {GROUP_COLOR_OPTIONS.map(opt => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setColor(opt.key)}
+                      className={`w-9 h-9 rounded-lg border-2 transition-all duration-150 ${color === opt.key ? 'border-white scale-110' : 'border-transparent hover:border-neutral-500'}`}
+                      style={{ backgroundColor: opt.hex }}
+                      title={opt.label}
+                    />
+                  ))}
+                </div>
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <div className="flex justify-between items-center pt-2">

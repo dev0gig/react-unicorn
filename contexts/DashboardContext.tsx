@@ -46,7 +46,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         });
     }, [setToolGroups]);
 
-    const addGroup = useCallback((title: string, icon: string) => {
+    const addGroup = useCallback((title: string, icon: string, color?: string) => {
         setToolGroups(prev => {
             if (prev.some(g => g.title.toLowerCase() === title.toLowerCase())) {
                 throw new Error(`Eine Gruppe mit dem Titel "${title}" existiert bereits.`);
@@ -55,19 +55,19 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                 title,
                 icon,
-                color: GROUP_COLORS[prev.length % GROUP_COLORS.length],
+                color: color || GROUP_COLORS[prev.length % GROUP_COLORS.length],
                 links: []
             };
             return [...prev, newGroup];
         });
     }, [setToolGroups]);
 
-    const updateGroup = useCallback((groupId: string, newTitle: string, newIcon: string) => {
+    const updateGroup = useCallback((groupId: string, newTitle: string, newIcon: string, color?: string) => {
         setToolGroups(prev => {
             if (prev.some(g => g.title.toLowerCase() === newTitle.toLowerCase() && g.id !== groupId)) {
                 throw new Error(`Eine Gruppe mit dem Titel "${newTitle}" existiert bereits.`);
             }
-            return prev.map(g => (g.id === groupId ? { ...g, title: newTitle, icon: newIcon } : g));
+            return prev.map(g => (g.id === groupId ? { ...g, title: newTitle, icon: newIcon, ...(color !== undefined && { color }) } : g));
         });
     }, [setToolGroups]);
 

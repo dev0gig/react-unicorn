@@ -1,5 +1,6 @@
 import React from 'react';
 import { ToolLink, ToolGroup } from '../../../types';
+import { getGroupColorHex } from '../../constants/theme';
 
 // Feste Farbpalette via CSS-Variablen aus theme.css
 const INITIAL_COLORS = [
@@ -41,9 +42,12 @@ interface LinkItemProps {
 }
 
 export const LinkItem: React.FC<LinkItemProps> = ({ data, isFavorite, isEditMode, onToggleFavorite, onEdit, onDelete }) => {
+    const groupColorHex = getGroupColorHex(data.group.color);
+
     return (
         <div
             className={`group relative flex items-center justify-center w-full min-h-[3rem] py-2 px-3 rounded-lg bg-neutral-800/60 border border-neutral-700 transition-all duration-200 overflow-hidden ${isEditMode ? 'flex-col min-h-[5rem] gap-2 ring-2 ring-orange-500 bg-neutral-800' : 'hover:bg-neutral-700 hover:border-orange-500/50'}`}
+            style={groupColorHex ? { borderLeftWidth: '3px', borderLeftColor: groupColorHex } : undefined}
         >
             {/* Edit Mode: Aktions-Buttons (oben) */}
             {isEditMode && (
