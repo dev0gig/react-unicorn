@@ -23,8 +23,7 @@ export { useFavorites } from './contexts/FavoritesContext';
 import { useModal } from './src/contexts/ModalContext';
 import { GlobalModalManager } from './src/components/managers/GlobalModalManager';
 import { useDataPersistence } from './src/hooks/useDataPersistence';
-import { useTheme } from './contexts/ThemeContext';
-export { useTheme } from './contexts/ThemeContext';
+
 
 function AppContent() {
     const [activeView, setActiveView] = useState<ViewName>('Dashboard');

@@ -162,7 +162,7 @@ export const MsgToIcs: React.FC = () => {
           <p className="text-neutral-400">Outlook-Mails automatisch in Kalendertermine umwandeln.</p>
         </div>
 
-        {/* ① Kundennummer / Storno */}
+        {/* Kundennummer / Storno */}
         {isStorno ? (
           <div className="bg-red-950/30 border-2 border-red-500/50 rounded-xl p-5 flex items-center gap-4">
             <span className="text-3xl font-bold text-red-400 tracking-widest" style={{ textShadow: '0 0 24px rgba(239,68,68,0.4)' }}>
@@ -176,7 +176,7 @@ export const MsgToIcs: React.FC = () => {
         ) : (
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
             <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-3">
-              ① Kundennummer — manuell eingeben
+              Kundennummer — manuell eingeben
             </div>
             <div className="flex items-center gap-3">
               <input
@@ -214,13 +214,13 @@ export const MsgToIcs: React.FC = () => {
           </div>
         )}
 
-        {/* ② + ③ Two-column row */}
+        {/* Two-column row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-          {/* ② Mail Input */}
+          {/* Mail Input */}
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex flex-col gap-4">
             <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest">
-              ② Mail-Inhalt — Datei oder Text einfügen
+              Mail-Inhalt — Datei oder Text einfügen
             </div>
 
             {/* Dropzone */}
@@ -277,10 +277,10 @@ export const MsgToIcs: React.FC = () => {
             />
           </div>
 
-          {/* ③ Erkannte Felder */}
+          {/* Erkannte Felder */}
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
             <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-4">
-              ③ Erkannte Felder
+              Erkannte Felder
             </div>
             <div className="grid grid-cols-2 gap-3">
               <ParsedField label="Obj.bez." value={parsed.objbez} fullWidth />

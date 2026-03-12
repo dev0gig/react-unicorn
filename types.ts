@@ -1,5 +1,5 @@
 
-export type ViewName = 'Dienstplan' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'WiWo-Terminpflege' | 'Zeiterfassung' | 'E-Mobility';
+export type ViewName = 'Dienstplan' | 'Dashboard' | 'Kontakte' | 'Mail Vorlagen' | 'WiWo-Terminpflege' | 'Zeiterfassung' | 'E-Mobility' | 'HK Generator';
 
 export interface MenuItem {
   id: ViewName;

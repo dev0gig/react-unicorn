@@ -9,6 +9,7 @@ import { MsgToIcs } from '../src/components/MsgToIcs';
 import { Dienstplan } from './content/Dienstplan';
 import { TimeTracker } from './content/TimeTracker';
 import { EMobilityKalkulator } from '../src/components/EMobilityKalkulator';
+import { HkGenerator } from '../src/components/HkGenerator';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -60,6 +61,8 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <TimeTracker onOpenResetModal={onOpenResetTimeTrackerModal} resetTrigger={timeTrackerResetTrigger} />;
       case 'E-Mobility':
         return <EMobilityKalkulator />;
+      case 'HK Generator':
+        return <HkGenerator />;
       default:
         return <Dienstplan />;
     }

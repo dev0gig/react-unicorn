@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
 import { useContacts, useTemplates } from '../App';
-import { useTheme } from '../contexts/ThemeContext';
+
 import { DateTimeWidget } from './widgets/DateTimeWidget';
 import { WeatherWidget } from './widgets/WeatherWidget';
 
@@ -16,6 +16,7 @@ const menuItems: MenuItem[] = [
     { id: 'Dienstplan', label: 'Dienstplan', icon: 'calendar_month' },
     { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
     { id: 'E-Mobility', label: 'E-Mobility', icon: 'ev_station' },
+    { id: 'HK Generator', label: 'HK Generator', icon: 'description' },
 ];
 
 interface SidebarProps {
@@ -64,8 +65,6 @@ const NavItem = memo(({ item, isActive, onClick, count }: {
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
     const { contacts } = useContacts();
     const { templateGroups } = useTemplates();
-    const { theme, setTheme } = useTheme();
-
     const counts: Record<string, number> = {
         'Kontakte': contacts.length,
         'Mail Vorlagen': templateGroups.reduce((sum, group) => sum + group.templates.length, 0),
@@ -111,30 +110,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
                         ))}
                     </ul>
                 </nav>
-            </div>
-
-            <div className="px-6 py-4 border-t border-neutral-700/50 flex-shrink-0">
-                <div className="flex items-center justify-center bg-neutral-800/60 rounded-full p-0.5">
-                    {([
-                        { id: 'dark', icon: 'dark_mode', title: 'Dark' },
-                        { id: 'sepia', icon: 'auto_stories', title: 'Sepia' },
-                        { id: 'light', icon: 'light_mode', title: 'Light' },
-                    ] as const).map((t) => (
-                        <button
-                            key={t.id}
-                            onClick={() => setTheme(t.id)}
-                            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-full text-xs font-medium transition-all duration-200 ${
-                                theme === t.id
-                                    ? 'bg-neutral-700 text-white shadow-sm'
-                                    : 'text-neutral-500 hover:text-neutral-300'
-                            }`}
-                            title={t.title}
-                        >
-                            <i className="material-icons" style={{ fontSize: '14px' }}>{t.icon}</i>
-                            <span>{t.title}</span>
-                        </button>
-                    ))}
-                </div>
             </div>
 
         </aside>

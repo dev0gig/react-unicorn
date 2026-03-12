@@ -94,6 +94,22 @@ export function generateAndDownloadIcs(params: GenerateIcsParams): string | null
   const description = icsEscape(descriptionRaw);
   const location = parsed.address ? icsEscape(parsed.address) : '';
 
+  // Build HTML description with Kundennummer in 33pt red
+  const htmlDescParts: string[] = isStorno
+    ? ['<span style="font-size:33pt;color:red;font-weight:bold;">STORNO</span>', `<br>${separator}`]
+    : [`<span style="font-size:33pt;color:red;font-weight:bold;">${kundennummer}</span> - ${selectedType}`, `<br>${separator}`];
+
+  if (headerLines.length > 0) {
+    htmlDescParts.push(...headerLines.map((l) => `<br>${l}`));
+    htmlDescParts.push('<br>');
+  }
+  htmlDescParts.push(`<br>${mailContent.replace(/\n/g, '<br>')}`);
+
+  const htmlBody = htmlDescParts.join('');
+  const altDesc = icsEscape(
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN"><HTML><BODY>${htmlBody}</BODY></HTML>`,
+  );
+
   const icsLines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -107,6 +123,7 @@ export function generateAndDownloadIcs(params: GenerateIcsParams): string | null
     `DTEND;TZID=Europe/Vienna:${endDT}`,
     `SUMMARY:${icsEscape(parsed.name)}`,
     `DESCRIPTION:${description}`,
+    `X-ALT-DESC;FMTTYPE=text/html:${altDesc}`,
     location ? `LOCATION:${location}` : '',
     'BEGIN:VALARM',
     'TRIGGER:-PT30M',
