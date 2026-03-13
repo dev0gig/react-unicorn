@@ -90,12 +90,18 @@ export const HkGenerator: React.FC = () => {
   // Adding state
   const [addingTo, setAddingTo] = useState<'kontaktart' | 'sd' | 'id' | null>(null);
 
-  // Compact mode — only Anliegen + Kürzel
-  const [compact, setCompact] = useState(() => localStorage.getItem('hk-compact') === 'true');
+  // Per-field enable/disable
+  const [fieldEnabled, setFieldEnabled] = useState<{ kontaktart: boolean; sd: boolean; id: boolean }>(() => {
+    try {
+      const saved = localStorage.getItem('hk-field-enabled');
+      return saved ? JSON.parse(saved) : { kontaktart: true, sd: true, id: true };
+    } catch { return { kontaktart: true, sd: true, id: true }; }
+  });
 
   // Tab: 'generator' or 'history'
   const [tab, setTab] = useState<'generator' | 'history'>('generator');
   const [historySearch, setHistorySearch] = useState('');
+  const [toggledDays, setToggledDays] = useState<Set<string>>(new Set());
 
   // Merged options
   const allKontaktart = [...defaultKontaktartOptions, ...customKontaktart];
@@ -119,7 +125,7 @@ export const HkGenerator: React.FC = () => {
   useEffect(() => { saveCustomOptions('hk-custom-kontaktart', customKontaktart); }, [customKontaktart]);
   useEffect(() => { saveCustomOptions('hk-custom-sd', customSd); }, [customSd]);
   useEffect(() => { saveCustomOptions('hk-custom-id', customId); }, [customId]);
-  useEffect(() => { localStorage.setItem('hk-compact', String(compact)); }, [compact]);
+  useEffect(() => { localStorage.setItem('hk-field-enabled', JSON.stringify(fieldEnabled)); }, [fieldEnabled]);
 
   // ── Add / Remove custom options ───────────────────────────────────────────
 
@@ -151,24 +157,34 @@ export const HkGenerator: React.FC = () => {
     return customId.some(o => o.value === value);
   }, [customKontaktart, customSd, customId]);
 
+  const toggleField = useCallback((field: 'kontaktart' | 'sd' | 'id') => {
+    setFieldEnabled(prev => ({ ...prev, [field]: !prev[field] }));
+  }, []);
+
   // ── Build output string ─────────────────────────────────────────────────
 
   const buildOutput = useCallback((): string => {
     const anliegenTeil = anliegen.trim() || 'kundenanliegen';
     const kuerzelTeil = kuerzel.trim() || 'XX';
-    if (compact) {
-      return `${anliegenTeil} -${kuerzelTeil}`;
-    }
     const parts: string[] = [];
-    const tel = telefonnummer.trim();
-    const kontaktLabel = allKontaktart.find(o => o.value === kontaktart)?.label.toLowerCase() || kontaktart;
-    parts.push(tel ? `lt ${kontaktLabel} ${tel}` : `lt ${kontaktLabel}`);
-    const sdLabel = allSd.find(o => o.value === sdStatus)?.label || sdStatus;
-    parts.push(`sd ${sdLabel}`);
-    const idLabel = allId.find(o => o.value === idMethode)?.label.toLowerCase() || idMethode;
-    parts.push(`id.${idLabel} - ${anliegenTeil} -${kuerzelTeil}`);
-    return parts.join(' | ');
-  }, [kontaktart, telefonnummer, sdStatus, idMethode, anliegen, kuerzel, compact, allKontaktart, allSd, allId]);
+    if (fieldEnabled.kontaktart) {
+      const tel = telefonnummer.trim();
+      const kontaktLabel = allKontaktart.find(o => o.value === kontaktart)?.label.toLowerCase() || kontaktart;
+      parts.push(tel ? `lt ${kontaktLabel} ${tel}` : `lt ${kontaktLabel}`);
+    }
+    if (fieldEnabled.sd) {
+      const sdLabel = allSd.find(o => o.value === sdStatus)?.label || sdStatus;
+      parts.push(`sd ${sdLabel}`);
+    }
+    if (fieldEnabled.id) {
+      const idLabel = allId.find(o => o.value === idMethode)?.label.toLowerCase() || idMethode;
+      parts.push(`id.${idLabel}`);
+    }
+    if (parts.length > 0) {
+      return `${parts.join(' | ')} - ${anliegenTeil} -${kuerzelTeil}`;
+    }
+    return `${anliegenTeil} -${kuerzelTeil}`;
+  }, [kontaktart, telefonnummer, sdStatus, idMethode, anliegen, kuerzel, fieldEnabled, allKontaktart, allSd, allId]);
 
   const output = buildOutput();
 
@@ -204,16 +220,35 @@ export const HkGenerator: React.FC = () => {
 
   const sectionHeader = (title: string, category: 'kontaktart' | 'sd' | 'id') => (
     <div className="flex items-center justify-between mb-3">
-      <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest">
-        {title}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => toggleField(category)}
+          className={`w-6 h-6 flex items-center justify-center rounded-md transition ${
+            fieldEnabled[category]
+              ? 'text-orange-400 hover:bg-orange-500/10'
+              : 'text-neutral-600 hover:bg-neutral-700'
+          }`}
+          title={fieldEnabled[category] ? 'Feld deaktivieren' : 'Feld aktivieren'}
+        >
+          <i className="material-icons" style={{ fontSize: '16px' }}>
+            {fieldEnabled[category] ? 'visibility' : 'visibility_off'}
+          </i>
+        </button>
+        <div className={`text-xs font-semibold uppercase tracking-widest transition ${
+          fieldEnabled[category] ? 'text-neutral-100' : 'text-neutral-500'
+        }`}>
+          {title}
+        </div>
       </div>
-      <button
-        onClick={() => setAddingTo(addingTo === category ? null : category)}
-        className="w-6 h-6 flex items-center justify-center rounded-md text-neutral-400 hover:text-orange-400 hover:bg-orange-500/10 transition"
-        title="Eigenen Eintrag hinzufügen"
-      >
-        <i className="material-icons" style={{ fontSize: '16px' }}>{addingTo === category ? 'close' : 'add'}</i>
-      </button>
+      {fieldEnabled[category] && (
+        <button
+          onClick={() => setAddingTo(addingTo === category ? null : category)}
+          className="w-6 h-6 flex items-center justify-center rounded-md text-neutral-400 hover:text-orange-400 hover:bg-orange-500/10 transition"
+          title="Eigenen Eintrag hinzufügen"
+        >
+          <i className="material-icons" style={{ fontSize: '16px' }}>{addingTo === category ? 'close' : 'add'}</i>
+        </button>
+      )}
     </div>
   );
 
@@ -255,20 +290,6 @@ export const HkGenerator: React.FC = () => {
           <p className="text-neutral-400">Hauptkontakte schnell und einheitlich erstellen.</p>
         </div>
         <div className="flex gap-2">
-          {tab === 'generator' && (
-            <button
-              onClick={() => setCompact(c => !c)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 font-medium text-sm transition ${
-                compact
-                  ? 'border-orange-500 bg-orange-500/10 text-orange-400'
-                  : 'border-neutral-600 text-neutral-400 hover:border-neutral-500 hover:text-neutral-300'
-              }`}
-              title={compact ? 'Alle Felder einblenden' : 'Nur Anliegen & Kürzel'}
-            >
-              <i className="material-icons" style={{ fontSize: '18px' }}>{compact ? 'unfold_more' : 'unfold_less'}</i>
-              {compact ? 'Erweitert' : 'Kompakt'}
-            </button>
-          )}
           <button
             onClick={() => setTab(t => t === 'generator' ? 'history' : 'generator')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 font-medium text-sm transition ${
@@ -287,72 +308,76 @@ export const HkGenerator: React.FC = () => {
       {tab === 'generator' ? (
         <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar view-pr view-pb space-y-5">
 
-          {!compact && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
               {/* Kontaktart */}
-              <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
+              <div className={`border rounded-xl p-5 transition ${fieldEnabled.kontaktart ? 'bg-neutral-800 border-neutral-700' : 'bg-neutral-800/50 border-neutral-700/40'}`}>
                 {sectionHeader('Kontaktart', 'kontaktart')}
-                <div className={`grid gap-2 ${allKontaktart.length > 3 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  {allKontaktart.map(opt => optionButton(opt, kontaktart, setKontaktart, 'kontaktart'))}
-                  {addingTo === 'kontaktart' && (
+                <div className={`transition-opacity ${!fieldEnabled.kontaktart ? 'opacity-30 pointer-events-none' : ''}`}>
+                  <div className={`grid gap-2 ${allKontaktart.length > 3 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {allKontaktart.map(opt => optionButton(opt, kontaktart, setKontaktart, 'kontaktart'))}
+                    {addingTo === 'kontaktart' && (
+                      <div className="col-span-full">
+                        <AddOptionInput
+                          onAdd={label => addCustomOption('kontaktart', label)}
+                          onCancel={() => setAddingTo(null)}
+                        />
+                      </div>
+                    )}
                     <div className="col-span-full">
-                      <AddOptionInput
-                        onAdd={label => addCustomOption('kontaktart', label)}
-                        onCancel={() => setAddingTo(null)}
+                      <input
+                        type="text"
+                        value={telefonnummer}
+                        onChange={e => setTelefonnummer(e.target.value)}
+                        placeholder={
+                          kontaktart === 'tel' ? 'Telefonnummer eingeben...'
+                          : kontaktart === 'mail' ? 'E-Mail-Adresse eingeben...'
+                          : kontaktart === 'persönlich' ? 'Anmerkung (optional)...'
+                          : 'Details eingeben...'
+                        }
+                        className="w-full bg-neutral-900 border border-neutral-600 rounded-lg p-3 text-neutral-200 font-mono text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 transition placeholder:text-neutral-600"
                       />
                     </div>
-                  )}
-                  <div className="col-span-full">
-                    <input
-                      type="text"
-                      value={telefonnummer}
-                      onChange={e => setTelefonnummer(e.target.value)}
-                      placeholder={
-                        kontaktart === 'tel' ? 'Telefonnummer eingeben...'
-                        : kontaktart === 'mail' ? 'E-Mail-Adresse eingeben...'
-                        : kontaktart === 'persönlich' ? 'Anmerkung (optional)...'
-                        : 'Details eingeben...'
-                      }
-                      className="w-full bg-neutral-900 border border-neutral-600 rounded-lg p-3 text-neutral-200 font-mono text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 transition placeholder:text-neutral-600"
-                    />
                   </div>
                 </div>
               </div>
 
               {/* SD-Status */}
-              <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
+              <div className={`border rounded-xl p-5 transition ${fieldEnabled.sd ? 'bg-neutral-800 border-neutral-700' : 'bg-neutral-800/50 border-neutral-700/40'}`}>
                 {sectionHeader('Stammdaten-Status', 'sd')}
-                <div className={`grid gap-2 ${allSd.length > 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  {allSd.map(opt => optionButton(opt, sdStatus, setSdStatus, 'sd'))}
-                  {addingTo === 'sd' && (
-                    <div className="col-span-full">
-                      <AddOptionInput
-                        onAdd={label => addCustomOption('sd', label)}
-                        onCancel={() => setAddingTo(null)}
-                      />
-                    </div>
-                  )}
+                <div className={`transition-opacity ${!fieldEnabled.sd ? 'opacity-30 pointer-events-none' : ''}`}>
+                  <div className={`grid gap-2 ${allSd.length > 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {allSd.map(opt => optionButton(opt, sdStatus, setSdStatus, 'sd'))}
+                    {addingTo === 'sd' && (
+                      <div className="col-span-full">
+                        <AddOptionInput
+                          onAdd={label => addCustomOption('sd', label)}
+                          onCancel={() => setAddingTo(null)}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Identifikation */}
-              <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
+              <div className={`border rounded-xl p-5 transition ${fieldEnabled.id ? 'bg-neutral-800 border-neutral-700' : 'bg-neutral-800/50 border-neutral-700/40'}`}>
                 {sectionHeader('Identifikation', 'id')}
-                <div className={`grid gap-2 ${allId.length > 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  {allId.map(opt => optionButton(opt, idMethode, setIdMethode, 'id'))}
-                  {addingTo === 'id' && (
-                    <div className="col-span-full">
-                      <AddOptionInput
-                        onAdd={label => addCustomOption('id', label)}
-                        onCancel={() => setAddingTo(null)}
-                      />
-                    </div>
-                  )}
+                <div className={`transition-opacity ${!fieldEnabled.id ? 'opacity-30 pointer-events-none' : ''}`}>
+                  <div className={`grid gap-2 ${allId.length > 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {allId.map(opt => optionButton(opt, idMethode, setIdMethode, 'id'))}
+                    {addingTo === 'id' && (
+                      <div className="col-span-full">
+                        <AddOptionInput
+                          onAdd={label => addCustomOption('id', label)}
+                          onCancel={() => setAddingTo(null)}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+          </div>
 
           {/* Anliegen + Kürzel */}
           <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
@@ -450,39 +475,60 @@ export const HkGenerator: React.FC = () => {
                 );
               }
 
-              const dayCounts: Record<string, number> = {};
+              const todayKey = new Date().toLocaleDateString('de-AT');
+              const groups: { key: string; dateStr: string; items: { text: string; timestamp: number }[] }[] = [];
               for (const item of filtered) {
-                const key = new Date(item.timestamp).toLocaleDateString('de-AT');
-                dayCounts[key] = (dayCounts[key] || 0) + 1;
+                const date = new Date(item.timestamp);
+                const key = date.toLocaleDateString('de-AT');
+                const dateStr = date.toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+                if (groups.length === 0 || groups[groups.length - 1].key !== key) {
+                  groups.push({ key, dateStr, items: [item] });
+                } else {
+                  groups[groups.length - 1].items.push(item);
+                }
               }
 
-              return filtered.map((item, i) => {
-                const date = new Date(item.timestamp);
-                const dateStr = date.toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
-                const timeStr = date.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
-                const prevDate = i > 0 ? new Date(filtered[i - 1].timestamp).toLocaleDateString('de-AT') : null;
-                const currentDate = date.toLocaleDateString('de-AT');
-                const showDivider = i === 0 || currentDate !== prevDate;
-
+              return groups.map(group => {
+                const isToday = group.key === todayKey;
+                const isExpanded = isToday ? !toggledDays.has(group.key) : toggledDays.has(group.key);
                 return (
-                  <React.Fragment key={i}>
-                    {showDivider && (
-                      <div className="flex items-center gap-3 text-neutral-500 text-xs pt-2 pb-1">
-                        <span className="h-px flex-1 bg-neutral-700" />
-                        <span className="font-semibold uppercase tracking-wider">{dateStr}</span>
-                        <span className="bg-neutral-700 text-neutral-400 rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums">{dayCounts[currentDate]}</span>
-                        <span className="h-px flex-1 bg-neutral-700" />
+                  <div key={group.key}>
+                    <button
+                      onClick={() => setToggledDays(prev => {
+                        const next = new Set(prev);
+                        if (next.has(group.key)) next.delete(group.key);
+                        else next.add(group.key);
+                        return next;
+                      })}
+                      className="w-full flex items-center gap-3 text-neutral-500 text-xs pt-2 pb-1 cursor-pointer hover:text-neutral-400 transition"
+                    >
+                      <span className="h-px flex-1 bg-neutral-700" />
+                      <i className="material-icons" style={{ fontSize: '14px' }}>
+                        {isExpanded ? 'expand_less' : 'expand_more'}
+                      </i>
+                      <span className="font-semibold uppercase tracking-wider">{group.dateStr}</span>
+                      <span className="bg-neutral-700 text-neutral-400 rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums">{group.items.length}</span>
+                      <span className="h-px flex-1 bg-neutral-700" />
+                    </button>
+                    {isExpanded && (
+                      <div className="space-y-1.5 mt-1.5">
+                        {group.items.map((item, j) => {
+                          const timeStr = new Date(item.timestamp).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+                          return (
+                            <div
+                              key={j}
+                              onClick={() => handleCopyHistoryItem(item.text)}
+                              className="flex items-start gap-3 p-2.5 rounded-lg bg-neutral-900 border border-neutral-700 cursor-pointer hover:border-orange-500/30 hover:text-orange-400 transition group"
+                              title="Klicken zum Kopieren"
+                            >
+                              <span className="text-xs text-neutral-600 flex-shrink-0 pt-0.5">{timeStr}</span>
+                              <span className="font-mono text-sm text-neutral-400 group-hover:text-orange-400 break-all">{item.text}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
-                    <div
-                      onClick={() => handleCopyHistoryItem(item.text)}
-                      className="flex items-center gap-3 p-2.5 rounded-lg bg-neutral-900 border border-neutral-700 cursor-pointer hover:border-orange-500/30 hover:text-orange-400 transition group"
-                      title="Klicken zum Kopieren"
-                    >
-                      <span className="text-xs text-neutral-600 flex-shrink-0">{timeStr}</span>
-                      <span className="font-mono text-sm text-neutral-400 group-hover:text-orange-400 truncate">{item.text}</span>
-                    </div>
-                  </React.Fragment>
+                  </div>
                 );
               });
             })()}
