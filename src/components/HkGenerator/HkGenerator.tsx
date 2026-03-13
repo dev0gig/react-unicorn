@@ -238,16 +238,14 @@ export const HkGenerator: React.FC = () => {
       </div>
       <button
         onClick={() => toggleField(category)}
-        className={`flex items-center gap-1.5 text-[11px] font-medium rounded-md px-2 py-1 transition ${
-          fieldEnabled[category]
-            ? 'text-orange-400 bg-orange-500/10 hover:bg-orange-500/20'
-            : 'text-neutral-500 bg-neutral-700/50 hover:bg-neutral-700'
-        }`}
+        className="flex items-center gap-2 group"
       >
-        <i className="material-icons" style={{ fontSize: '14px' }}>
-          {fieldEnabled[category] ? 'visibility' : 'visibility_off'}
-        </i>
-        {fieldEnabled[category] ? 'Eingeblendet' : 'Ausgeblendet'}
+        <div className={`relative w-9 h-5 rounded-full transition-colors ${fieldEnabled[category] ? 'bg-orange-500' : 'bg-neutral-600'}`}>
+          <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${fieldEnabled[category] ? 'translate-x-4' : 'translate-x-0'}`} />
+        </div>
+        <span className={`text-[11px] font-medium transition ${fieldEnabled[category] ? 'text-neutral-300' : 'text-neutral-500'}`}>
+          {fieldEnabled[category] ? 'Eingeblendet' : 'Ausgeblendet'}
+        </span>
       </button>
     </div>
   );
@@ -535,7 +533,7 @@ export const HkGenerator: React.FC = () => {
           {history.length > 0 && (
             <button
               onClick={clearHistory}
-              className="flex-shrink-0 flex items-center justify-center gap-2 w-full mt-3 py-2 rounded-lg border border-neutral-700 text-neutral-500 hover:border-red-500/50 hover:text-red-400 text-sm transition"
+              className="flex-shrink-0 flex items-center justify-center gap-2 w-full mt-3 py-2 rounded-lg border border-red-500/30 bg-red-500/5 text-red-400 hover:border-red-500/60 hover:bg-red-500/10 text-sm transition"
             >
               <i className="material-icons" style={{ fontSize: '16px' }}>delete_outline</i>
               Gesamten Verlauf löschen
