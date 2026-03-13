@@ -218,35 +218,35 @@ export const HkGenerator: React.FC = () => {
 
   const isReady = anliegen.trim() && kuerzel.trim();
 
+  const fieldEmoji: Record<string, string> = { kontaktart: '📞', sd: '📋', id: '🔐' };
+
   const sectionHeader = (title: string, category: 'kontaktart' | 'sd' | 'id') => (
-    <div className="mb-3 space-y-2">
-      <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2.5">
+        <button
+          onClick={() => toggleField(category)}
+          className="flex-shrink-0"
+        >
+          <div className={`relative w-9 h-5 rounded-full transition-colors ${fieldEnabled[category] ? 'bg-orange-500' : 'bg-neutral-600'}`}>
+            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${fieldEnabled[category] ? 'translate-x-4' : 'translate-x-0'}`} />
+          </div>
+        </button>
+        <span className="text-sm">{fieldEmoji[category]}</span>
         <div className={`text-xs font-semibold uppercase tracking-widest transition ${
           fieldEnabled[category] ? 'text-neutral-100' : 'text-neutral-500'
         }`}>
           {title}
         </div>
-        {fieldEnabled[category] && (
-          <button
-            onClick={() => setAddingTo(addingTo === category ? null : category)}
-            className="w-6 h-6 flex items-center justify-center rounded-md text-neutral-400 hover:text-orange-400 hover:bg-orange-500/10 transition"
-            title="Eigenen Eintrag hinzufügen"
-          >
-            <i className="material-icons" style={{ fontSize: '16px' }}>{addingTo === category ? 'close' : 'add'}</i>
-          </button>
-        )}
       </div>
-      <button
-        onClick={() => toggleField(category)}
-        className="flex items-center gap-2 group"
-      >
-        <div className={`relative w-9 h-5 rounded-full transition-colors ${fieldEnabled[category] ? 'bg-orange-500' : 'bg-neutral-600'}`}>
-          <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${fieldEnabled[category] ? 'translate-x-4' : 'translate-x-0'}`} />
-        </div>
-        <span className={`text-[11px] font-medium transition ${fieldEnabled[category] ? 'text-neutral-300' : 'text-neutral-500'}`}>
-          {fieldEnabled[category] ? 'Eingeblendet' : 'Ausgeblendet'}
-        </span>
-      </button>
+      {fieldEnabled[category] && (
+        <button
+          onClick={() => setAddingTo(addingTo === category ? null : category)}
+          className="w-6 h-6 flex items-center justify-center rounded-md text-neutral-400 hover:text-orange-400 hover:bg-orange-500/10 transition"
+          title="Eigenen Eintrag hinzufügen"
+        >
+          <i className="material-icons" style={{ fontSize: '16px' }}>{addingTo === category ? 'close' : 'add'}</i>
+        </button>
+      )}
     </div>
   );
 
