@@ -219,36 +219,36 @@ export const HkGenerator: React.FC = () => {
   const isReady = anliegen.trim() && kuerzel.trim();
 
   const sectionHeader = (title: string, category: 'kontaktart' | 'sd' | 'id') => (
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => toggleField(category)}
-          className={`w-6 h-6 flex items-center justify-center rounded-md transition ${
-            fieldEnabled[category]
-              ? 'text-orange-400 hover:bg-orange-500/10'
-              : 'text-neutral-600 hover:bg-neutral-700'
-          }`}
-          title={fieldEnabled[category] ? 'Feld deaktivieren' : 'Feld aktivieren'}
-        >
-          <i className="material-icons" style={{ fontSize: '16px' }}>
-            {fieldEnabled[category] ? 'visibility' : 'visibility_off'}
-          </i>
-        </button>
+    <div className="mb-3 space-y-2">
+      <div className="flex items-center justify-between">
         <div className={`text-xs font-semibold uppercase tracking-widest transition ${
           fieldEnabled[category] ? 'text-neutral-100' : 'text-neutral-500'
         }`}>
           {title}
         </div>
+        {fieldEnabled[category] && (
+          <button
+            onClick={() => setAddingTo(addingTo === category ? null : category)}
+            className="w-6 h-6 flex items-center justify-center rounded-md text-neutral-400 hover:text-orange-400 hover:bg-orange-500/10 transition"
+            title="Eigenen Eintrag hinzufügen"
+          >
+            <i className="material-icons" style={{ fontSize: '16px' }}>{addingTo === category ? 'close' : 'add'}</i>
+          </button>
+        )}
       </div>
-      {fieldEnabled[category] && (
-        <button
-          onClick={() => setAddingTo(addingTo === category ? null : category)}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-neutral-400 hover:text-orange-400 hover:bg-orange-500/10 transition"
-          title="Eigenen Eintrag hinzufügen"
-        >
-          <i className="material-icons" style={{ fontSize: '16px' }}>{addingTo === category ? 'close' : 'add'}</i>
-        </button>
-      )}
+      <button
+        onClick={() => toggleField(category)}
+        className={`flex items-center gap-1.5 text-[11px] font-medium rounded-md px-2 py-1 transition ${
+          fieldEnabled[category]
+            ? 'text-orange-400 bg-orange-500/10 hover:bg-orange-500/20'
+            : 'text-neutral-500 bg-neutral-700/50 hover:bg-neutral-700'
+        }`}
+      >
+        <i className="material-icons" style={{ fontSize: '14px' }}>
+          {fieldEnabled[category] ? 'visibility' : 'visibility_off'}
+        </i>
+        {fieldEnabled[category] ? 'Eingeblendet' : 'Ausgeblendet'}
+      </button>
     </div>
   );
 
@@ -436,25 +436,22 @@ export const HkGenerator: React.FC = () => {
       ) : (
         <div className="flex-1 min-h-0 flex flex-col view-pr view-pb">
 
-          {/* Search + Clear */}
-          <div className="flex gap-3 mb-4 flex-shrink-0">
-            <div className="relative flex-1">
-              <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" style={{ fontSize: '20px' }}>search</i>
-              <input
-                type="text"
-                value={historySearch}
-                onChange={e => setHistorySearch(e.target.value)}
-                placeholder="Verlauf durchsuchen..."
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 pl-10 pr-4 text-neutral-200 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500 transition"
-              />
-            </div>
-            {history.length > 0 && (
+          {/* Search */}
+          <div className="relative mb-4 flex-shrink-0">
+            <i className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" style={{ fontSize: '20px' }}>search</i>
+            <input
+              type="text"
+              value={historySearch}
+              onChange={e => setHistorySearch(e.target.value)}
+              placeholder="Verlauf durchsuchen..."
+              className={`w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2.5 pl-10 ${historySearch ? 'pr-10' : 'pr-4'} text-neutral-200 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500 transition`}
+            />
+            {historySearch && (
               <button
-                onClick={clearHistory}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-700 text-neutral-400 hover:border-red-500/50 hover:text-red-400 text-sm transition"
+                onClick={() => setHistorySearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition"
               >
-                <i className="material-icons" style={{ fontSize: '16px' }}>delete_outline</i>
-                Löschen
+                <i className="material-icons" style={{ fontSize: '18px' }}>close</i>
               </button>
             )}
           </div>
@@ -533,6 +530,17 @@ export const HkGenerator: React.FC = () => {
               });
             })()}
           </div>
+
+          {/* Verlauf löschen */}
+          {history.length > 0 && (
+            <button
+              onClick={clearHistory}
+              className="flex-shrink-0 flex items-center justify-center gap-2 w-full mt-3 py-2 rounded-lg border border-neutral-700 text-neutral-500 hover:border-red-500/50 hover:text-red-400 text-sm transition"
+            >
+              <i className="material-icons" style={{ fontSize: '16px' }}>delete_outline</i>
+              Gesamten Verlauf löschen
+            </button>
+          )}
 
         </div>
       )}
