@@ -450,6 +450,12 @@ export const HkGenerator: React.FC = () => {
                 );
               }
 
+              const dayCounts: Record<string, number> = {};
+              for (const item of filtered) {
+                const key = new Date(item.timestamp).toLocaleDateString('de-AT');
+                dayCounts[key] = (dayCounts[key] || 0) + 1;
+              }
+
               return filtered.map((item, i) => {
                 const date = new Date(item.timestamp);
                 const dateStr = date.toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -464,6 +470,7 @@ export const HkGenerator: React.FC = () => {
                       <div className="flex items-center gap-3 text-neutral-500 text-xs pt-2 pb-1">
                         <span className="h-px flex-1 bg-neutral-700" />
                         <span className="font-semibold uppercase tracking-wider">{dateStr}</span>
+                        <span className="bg-neutral-700 text-neutral-400 rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums">{dayCounts[currentDate]}</span>
                         <span className="h-px flex-1 bg-neutral-700" />
                       </div>
                     )}
