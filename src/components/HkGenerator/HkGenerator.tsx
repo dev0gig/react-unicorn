@@ -197,7 +197,7 @@ export const HkGenerator: React.FC = () => {
       setTimeout(() => setCopied(false), 1500);
       setHistory(prev => {
         const filtered = prev.filter(h => h.text !== output);
-        return [{ text: output, timestamp: Date.now() }, ...filtered].slice(0, 20);
+        return [{ text: output, timestamp: Date.now() }, ...filtered];
       });
       setTelefonnummer('');
       setAnliegen('');
