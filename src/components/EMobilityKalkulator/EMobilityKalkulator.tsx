@@ -237,19 +237,23 @@ export const EMobilityKalkulator: React.FC = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [showSettings]);
 
-  // Station options based on network
+  // Station options based on network and charge type
   const stationOptions = useMemo(() => {
-    return networkType === 'roaming'
+    const allOptions = networkType === 'roaming'
       ? [...WIEN_STATION_OPTIONS, ...ROAMING_EXTRA_OPTIONS]
       : WIEN_STATION_OPTIONS;
-  }, [networkType]);
+    return allOptions.filter(opt =>
+      chargeType === 'DC' ? opt.value.includes('dc') : !opt.value.includes('dc')
+    );
+  }, [networkType, chargeType]);
 
-  // Reset stationCategory if invalid for new network
+  // Reset stationCategory if invalid for new network or charge type
   useEffect(() => {
-    if (networkType === 'wien' && stationCategory === 'dc20') {
-      setStationCategory('city_ac11');
+    const validValues = stationOptions.map(o => o.value);
+    if (!validValues.includes(stationCategory)) {
+      setStationCategory(validValues[0]);
     }
-  }, [networkType, stationCategory]);
+  }, [stationOptions, stationCategory]);
 
   // Show time_of_day toggle?
   const showTimeOfDay = stationCategory === 'city_ac11' && networkType === 'wien';
