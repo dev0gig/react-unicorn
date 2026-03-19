@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { loadFromStorage, saveToStorage } from '@/utils/storage';
 
 // ─── Default Settings ────────────────────────────────────────────
@@ -147,6 +147,9 @@ export const EMobilityKalkulator: React.FC = () => {
   const [powerDc, setPowerDc] = useState(180);
   const [energyKwh, setEnergyKwh] = useState(30);
   const [durationMin, setDurationMin] = useState(164);
+  const [durationH, setDurationH] = useState('2');
+  const [durationM, setDurationM] = useState('44');
+  const isEditingDuration = useRef(false);
   const [lastEdited, setLastEdited] = useState<'kwh' | 'min'>('kwh');
   const [phevMode, setPhevMode] = useState(false);
   const [prevPowerDc, setPrevPowerDc] = useState(180);
@@ -181,6 +184,29 @@ export const EMobilityKalkulator: React.FC = () => {
       setEnergyKwh(+(ap * (val / 60)).toFixed(2));
     }
   }, [chargeType, powerAc, powerDc]);
+
+  // Sync display fields when durationMin changes externally
+  useEffect(() => {
+    if (!isEditingDuration.current) {
+      setDurationH(String(Math.floor(durationMin / 60)));
+      setDurationM(String(durationMin % 60));
+    }
+  }, [durationMin]);
+
+  // Normalize h/min on blur: decimal hours → h+min, minutes ≥60 → extra hours
+  const handleDurationBlur = useCallback(() => {
+    isEditingDuration.current = false;
+    const hParsed = parseFloat(durationH.replace(',', '.')) || 0;
+    const mParsed = parseFloat(durationM.replace(',', '.')) || 0;
+    const wholeH = Math.floor(hParsed);
+    const fracMin = Math.round((hParsed - wholeH) * 60);
+    const totalMin = Math.max(0, wholeH * 60 + fracMin + Math.round(mParsed));
+    const newH = Math.floor(totalMin / 60);
+    const newM = totalMin % 60;
+    setDurationH(String(newH));
+    setDurationM(String(newM));
+    handleDurationChange(totalMin);
+  }, [durationH, durationM, handleDurationChange]);
 
   // Recompute when activePower changes
   useEffect(() => {
@@ -453,15 +479,32 @@ export const EMobilityKalkulator: React.FC = () => {
                   Ladedauer <span className="text-neutral-500">({fmtDuration(durationMin)})</span>
                 </label>
               </div>
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={durationMin}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => handleDurationChange(parseInt(e.target.value) || 0)}
-                className={`w-full bg-neutral-900 border rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${durationMin === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
-              />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={durationH}
+                    onFocus={(e) => { isEditingDuration.current = true; e.target.select(); }}
+                    onChange={(e) => setDurationH(e.target.value)}
+                    onBlur={handleDurationBlur}
+                    className={`w-full bg-neutral-900 border rounded-md p-3 pr-8 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${durationMin === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">h</span>
+                </div>
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={durationM}
+                    onFocus={(e) => { isEditingDuration.current = true; e.target.select(); }}
+                    onChange={(e) => setDurationM(e.target.value)}
+                    onBlur={handleDurationBlur}
+                    className={`w-full bg-neutral-900 border rounded-md p-3 pr-12 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${durationMin === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">min</span>
+                </div>
+              </div>
             </div>
 
             {/* PHEV Button */}
