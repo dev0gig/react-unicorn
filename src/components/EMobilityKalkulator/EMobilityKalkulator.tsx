@@ -193,8 +193,8 @@ export const EMobilityKalkulator: React.FC = () => {
     }
   }, [durationMin]);
 
-  // Normalize on blur: only the edited field determines the total, overwriting the other
-  const handleDurationBlur = useCallback((field: 'h' | 'min') => {
+  // Normalize on Enter: only the edited field determines the total, overwriting the other
+  const handleDurationSubmit = useCallback((field: 'h' | 'min') => {
     editingDurationField.current = null;
     let totalMin: number;
     if (field === 'h') {
@@ -210,6 +210,13 @@ export const EMobilityKalkulator: React.FC = () => {
     setDurationM(String(newM));
     handleDurationChange(totalMin);
   }, [durationH, durationM, handleDurationChange]);
+
+  const handleDurationKeyDown = useCallback((e: React.KeyboardEvent, field: 'h' | 'min') => {
+    if (e.key === 'Enter') {
+      handleDurationSubmit(field);
+      (e.target as HTMLInputElement).blur();
+    }
+  }, [handleDurationSubmit]);
 
   // Recompute when activePower changes
   useEffect(() => {
@@ -487,7 +494,8 @@ export const EMobilityKalkulator: React.FC = () => {
                     value={durationH}
                     onFocus={(e) => { editingDurationField.current = 'h'; e.target.select(); }}
                     onChange={(e) => setDurationH(e.target.value)}
-                    onBlur={() => handleDurationBlur('h')}
+                    onKeyDown={(e) => handleDurationKeyDown(e, 'h')}
+                    onBlur={() => { editingDurationField.current = null; }}
                     className="w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 pr-8 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">h</span>
@@ -499,7 +507,8 @@ export const EMobilityKalkulator: React.FC = () => {
                     value={durationM}
                     onFocus={(e) => { editingDurationField.current = 'min'; e.target.select(); }}
                     onChange={(e) => setDurationM(e.target.value)}
-                    onBlur={() => handleDurationBlur('min')}
+                    onKeyDown={(e) => handleDurationKeyDown(e, 'min')}
+                    onBlur={() => { editingDurationField.current = null; }}
                     className="w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 pr-12 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">min</span>
