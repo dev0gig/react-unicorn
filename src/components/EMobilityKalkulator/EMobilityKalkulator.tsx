@@ -410,8 +410,8 @@ export const EMobilityKalkulator: React.FC = () => {
                 <label className="text-sm font-medium text-neutral-300">Ladevorgänge pro Monat</label>
               </div>
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="numeric"
                 value={chargesPerMonth}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setChargesPerMonth(parseInt(e.target.value) || 0)}
@@ -428,9 +428,8 @@ export const EMobilityKalkulator: React.FC = () => {
                 </a>
               </div>
               <input
-                type="number"
-                min={0}
-                step={0.1}
+                type="text"
+                inputMode="decimal"
                 value={powerAc}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setPowerAc(parseFloat(e.target.value) || 0)}
@@ -448,9 +447,8 @@ export const EMobilityKalkulator: React.FC = () => {
                 </a>
               </div>
               <input
-                type="number"
-                min={0}
-                step={1}
+                type="text"
+                inputMode="decimal"
                 value={powerDc}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setPowerDc(parseFloat(e.target.value) || 0)}
@@ -465,9 +463,8 @@ export const EMobilityKalkulator: React.FC = () => {
                 <label className="text-sm font-medium text-neutral-300">Geladene Energie (kWh)</label>
               </div>
               <input
-                type="number"
-                min={0}
-                step={1}
+                type="text"
+                inputMode="decimal"
                 value={energyKwh}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => handleEnergyChange(parseFloat(e.target.value) || 0)}
