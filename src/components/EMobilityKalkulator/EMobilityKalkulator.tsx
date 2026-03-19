@@ -415,7 +415,7 @@ export const EMobilityKalkulator: React.FC = () => {
                 value={chargesPerMonth}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setChargesPerMonth(parseInt(e.target.value) || 0)}
-                className={`w-full bg-neutral-900 border rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${chargesPerMonth === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                className="w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
               />
             </div>
 
@@ -434,7 +434,7 @@ export const EMobilityKalkulator: React.FC = () => {
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setPowerAc(parseFloat(e.target.value) || 0)}
                 disabled={chargeType === 'DC'}
-                className={`w-full bg-neutral-900 border rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${chargeType === 'DC' ? 'opacity-40 pointer-events-none border-neutral-600 focus:ring-orange-500' : powerAc === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                className={`w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition ${chargeType === 'DC' ? 'opacity-40 pointer-events-none' : ''}`}
               />
             </div>
 
@@ -453,7 +453,7 @@ export const EMobilityKalkulator: React.FC = () => {
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setPowerDc(parseFloat(e.target.value) || 0)}
                 disabled={chargeType === 'AC' || phevMode}
-                className={`w-full bg-neutral-900 border rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${(chargeType === 'AC' || phevMode) ? 'opacity-40 pointer-events-none border-neutral-600 focus:ring-orange-500' : powerDc === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                className={`w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition ${(chargeType === 'AC' || phevMode) ? 'opacity-40 pointer-events-none' : ''}`}
               />
             </div>
 
@@ -468,7 +468,7 @@ export const EMobilityKalkulator: React.FC = () => {
                 value={energyKwh}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => handleEnergyChange(parseFloat(e.target.value) || 0)}
-                className={`w-full bg-neutral-900 border rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${energyKwh === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                className="w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
               />
             </div>
 
@@ -488,7 +488,7 @@ export const EMobilityKalkulator: React.FC = () => {
                     onFocus={(e) => { editingDurationField.current = 'h'; e.target.select(); }}
                     onChange={(e) => setDurationH(e.target.value)}
                     onBlur={() => handleDurationBlur('h')}
-                    className={`w-full bg-neutral-900 border rounded-md p-3 pr-8 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${durationMin === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                    className="w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 pr-8 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">h</span>
                 </div>
@@ -500,7 +500,7 @@ export const EMobilityKalkulator: React.FC = () => {
                     onFocus={(e) => { editingDurationField.current = 'min'; e.target.select(); }}
                     onChange={(e) => setDurationM(e.target.value)}
                     onBlur={() => handleDurationBlur('min')}
-                    className={`w-full bg-neutral-900 border rounded-md p-3 pr-12 text-neutral-200 text-sm focus:outline-none focus:ring-2 transition ${durationMin === 0 ? 'border-red-500 bg-red-900/20 focus:ring-red-500' : 'border-neutral-600 focus:ring-orange-500'}`}
+                    className="w-full bg-neutral-900 border border-neutral-600 rounded-md p-3 pr-12 text-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">min</span>
                 </div>
@@ -523,14 +523,6 @@ export const EMobilityKalkulator: React.FC = () => {
             </div>
           </div>
 
-          {(activePower === 0 || chargesPerMonth === 0 || energyKwh === 0 || durationMin === 0) && (
-            <div className="mt-3 bg-red-900/50 border border-red-700 text-red-300 text-sm rounded-md p-3">
-              {activePower === 0 && <div>Ladeleistung darf nicht 0 sein.</div>}
-              {chargesPerMonth === 0 && <div>Ladevorgänge pro Monat darf nicht 0 sein.</div>}
-              {energyKwh === 0 && <div>Geladene Energie darf nicht 0 sein.</div>}
-              {durationMin === 0 && <div>Ladedauer darf nicht 0 sein.</div>}
-            </div>
-          )}
         </div>
 
         {/* Context Selectors */}
@@ -607,6 +599,21 @@ export const EMobilityKalkulator: React.FC = () => {
             )}
           </div>
         </div>
+
+        {(activePower === 0 || chargesPerMonth === 0 || energyKwh === 0 || durationMin === 0) ? (
+          <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-xl p-6 flex items-center gap-4">
+            <i className="material-icons text-4xl text-yellow-400">warning</i>
+            <div>
+              <div className="text-lg font-bold text-yellow-300 mb-1">Keine Berechnung möglich</div>
+              <div className="text-sm text-yellow-400/80">
+                {activePower === 0 && <div>Ladeleistung ist 0 — bitte einen Wert eingeben.</div>}
+                {chargesPerMonth === 0 && <div>Ladevorgänge pro Monat ist 0 — bitte einen Wert eingeben.</div>}
+                {energyKwh === 0 && <div>Geladene Energie ist 0 — bitte einen Wert eingeben.</div>}
+                {durationMin === 0 && <div>Ladedauer ist 0 — bitte einen Wert eingeben.</div>}
+              </div>
+            </div>
+          </div>
+        ) : (<>
 
         {/* kWh Tarife Cards */}
         <div>
@@ -731,6 +738,8 @@ export const EMobilityKalkulator: React.FC = () => {
           <i className="material-icons text-base mt-0.5">warning</i>
           <span>Zeittarife können je nach Ladegeschwindigkeit des Fahrzeugs stark variieren. Die Berechnung basiert auf der eingegebenen Ladedauer.</span>
         </div>
+
+        </>)}
 
         {/* Settings Modal */}
         {showSettings && (
