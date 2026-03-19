@@ -74,11 +74,11 @@ const AddOptionInput: React.FC<{
 // ── Component ───────────────────────────────────────────────────────────────
 
 export const HkGenerator: React.FC = () => {
-  const [kontaktart, setKontaktart] = useState('tel');
-  const [telefonnummer, setTelefonnummer] = useState('');
-  const [sdStatus, setSdStatus] = useState('aktuell');
-  const [idMethode, setIdMethode] = useState('gp');
-  const [anliegen, setAnliegen] = useState('');
+  const [kontaktart, setKontaktart] = useState(() => localStorage.getItem('hk-kontaktart') || 'tel');
+  const [telefonnummer, setTelefonnummer] = useState(() => localStorage.getItem('hk-telefonnummer') || '');
+  const [sdStatus, setSdStatus] = useState(() => localStorage.getItem('hk-sdStatus') || 'aktuell');
+  const [idMethode, setIdMethode] = useState(() => localStorage.getItem('hk-idMethode') || 'gp');
+  const [anliegen, setAnliegen] = useState(() => localStorage.getItem('hk-anliegen') || '');
   const [kuerzel, setKuerzel] = useState(() => localStorage.getItem('hk-kuerzel') || '');
   const [copied, setCopied] = useState(false);
 
@@ -126,6 +126,11 @@ export const HkGenerator: React.FC = () => {
   useEffect(() => { saveCustomOptions('hk-custom-sd', customSd); }, [customSd]);
   useEffect(() => { saveCustomOptions('hk-custom-id', customId); }, [customId]);
   useEffect(() => { localStorage.setItem('hk-field-enabled', JSON.stringify(fieldEnabled)); }, [fieldEnabled]);
+  useEffect(() => { localStorage.setItem('hk-kontaktart', kontaktart); }, [kontaktart]);
+  useEffect(() => { localStorage.setItem('hk-telefonnummer', telefonnummer); }, [telefonnummer]);
+  useEffect(() => { localStorage.setItem('hk-sdStatus', sdStatus); }, [sdStatus]);
+  useEffect(() => { localStorage.setItem('hk-idMethode', idMethode); }, [idMethode]);
+  useEffect(() => { localStorage.setItem('hk-anliegen', anliegen); }, [anliegen]);
 
   // ── Add / Remove custom options ───────────────────────────────────────────
 
