@@ -82,6 +82,7 @@ export const HkGenerator: React.FC = () => {
   const [kuerzel, setKuerzel] = useState(() => localStorage.getItem('hk-kuerzel') || '');
   const [copied, setCopied] = useState(false);
   const anliegenRef = useRef<HTMLInputElement>(null);
+  const telefonnummerRef = useRef<HTMLInputElement>(null);
 
   // Custom options from localStorage
   const [customKontaktart, setCustomKontaktart] = useState<CustomOption[]>(() => loadCustomOptions('hk-custom-kontaktart'));
@@ -337,6 +338,7 @@ export const HkGenerator: React.FC = () => {
                     )}
                     <div className="col-span-full">
                       <input
+                        ref={telefonnummerRef}
                         type="text"
                         value={telefonnummer}
                         onChange={e => setTelefonnummer(e.target.value)}
@@ -407,6 +409,12 @@ export const HkGenerator: React.FC = () => {
                 type="text"
                 value={anliegen}
                 onChange={e => setAnliegen(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Tab' && e.shiftKey) {
+                    e.preventDefault();
+                    telefonnummerRef.current?.focus();
+                  }
+                }}
                 placeholder="Kundenanliegen eingeben..."
                 className="flex-1 bg-neutral-900 border border-neutral-600 rounded-lg p-3 text-neutral-200 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 transition placeholder:text-neutral-600"
               />
