@@ -437,17 +437,19 @@ export const EMobilityKalkulator: React.FC = () => {
           <div className="flex items-center gap-1">
             <button
               onClick={exportPricing}
-              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
+              className="flex items-center gap-1 p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
               title="Preise als JSON exportieren"
             >
               <i className="material-icons">download</i>
+              <span className="text-sm">JSON exportieren</span>
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
+              className="flex items-center gap-1 p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
               title="Preise aus JSON importieren"
             >
               <i className="material-icons">upload</i>
+              <span className="text-sm">JSON importieren</span>
             </button>
             <input
               ref={fileInputRef}
