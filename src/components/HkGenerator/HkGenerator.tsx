@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 // ── Default options ─────────────────────────────────────────────────────────
 
@@ -81,6 +81,7 @@ export const HkGenerator: React.FC = () => {
   const [anliegen, setAnliegen] = useState(() => localStorage.getItem('hk-anliegen') || '');
   const [kuerzel, setKuerzel] = useState(() => localStorage.getItem('hk-kuerzel') || '');
   const [copied, setCopied] = useState(false);
+  const anliegenRef = useRef<HTMLInputElement>(null);
 
   // Custom options from localStorage
   const [customKontaktart, setCustomKontaktart] = useState<CustomOption[]>(() => loadCustomOptions('hk-custom-kontaktart'));
@@ -339,6 +340,12 @@ export const HkGenerator: React.FC = () => {
                         type="text"
                         value={telefonnummer}
                         onChange={e => setTelefonnummer(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Tab' && !e.shiftKey) {
+                            e.preventDefault();
+                            anliegenRef.current?.focus();
+                          }
+                        }}
                         placeholder={
                           kontaktart === 'tel' ? 'Telefonnummer eingeben...'
                           : kontaktart === 'mail' ? 'E-Mail-Adresse eingeben...'
@@ -396,6 +403,7 @@ export const HkGenerator: React.FC = () => {
             </div>
             <div className="flex gap-3">
               <input
+                ref={anliegenRef}
                 type="text"
                 value={anliegen}
                 onChange={e => setAnliegen(e.target.value)}
