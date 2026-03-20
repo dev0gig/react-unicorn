@@ -17,6 +17,7 @@ const menuItems: MenuItem[] = [
     { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
     { id: 'E-Mobility', label: 'E-Mobility', icon: 'ev_station' },
     { id: 'HK Generator', label: 'HK Generator', icon: 'description' },
+    { id: 'Tarif Kalkulator', label: 'Tarif Kalkulator', icon: 'calculate' },
 ];
 
 interface SidebarProps {

@@ -10,6 +10,7 @@ import { Dienstplan } from './content/Dienstplan';
 import { TimeTracker } from './content/TimeTracker';
 import { EMobilityKalkulator } from '../src/components/EMobilityKalkulator';
 import { HkGenerator } from '../src/components/HkGenerator';
+import { TarifKalkulator } from '../src/components/TarifKalkulator';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -63,6 +64,8 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
         return <EMobilityKalkulator />;
       case 'HK Generator':
         return <HkGenerator />;
+      case 'Tarif Kalkulator':
+        return <TarifKalkulator />;
       default:
         return <Dienstplan />;
     }
