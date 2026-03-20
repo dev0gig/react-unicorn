@@ -163,6 +163,9 @@ export const EMobilityKalkulator: React.FC = () => {
   // Expanded rechenweg
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
 
+  // File input ref for JSON import
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Active power
   const activePower = chargeType === 'AC' ? powerAc : powerDc;
 
@@ -257,6 +260,38 @@ export const EMobilityKalkulator: React.FC = () => {
 
   const resetSettings = useCallback(() => {
     setSettingsDraft(JSON.parse(JSON.stringify(DEFAULT_SETTINGS)));
+  }, []);
+
+  const exportPricing = useCallback(() => {
+    const json = JSON.stringify(settings, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'emobility-preise.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [settings]);
+
+  const importPricing = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target?.result as string);
+        if (!data.kwh_tarife || !data.zeit_tarife || !data.standzeit) {
+          alert('Ungültiges Format: JSON muss kwh_tarife, zeit_tarife und standzeit enthalten.');
+          return;
+        }
+        setSettings(data);
+        saveToStorage('emobility_settings', data);
+      } catch {
+        alert('Fehler beim Lesen der JSON-Datei.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   }, []);
 
   const updateDraft = useCallback((path: string[], value: number) => {
@@ -399,13 +434,36 @@ export const EMobilityKalkulator: React.FC = () => {
             <i className="material-icons">ev_station</i>
             E-Mobility Tarifrechner
           </h1>
-          <button
-            onClick={openSettings}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
-            title="Einstellungen"
-          >
-            <i className="material-icons">settings</i>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={exportPricing}
+              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
+              title="Preise als JSON exportieren"
+            >
+              <i className="material-icons">download</i>
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
+              title="Preise aus JSON importieren"
+            >
+              <i className="material-icons">upload</i>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={importPricing}
+              className="hidden"
+            />
+            <button
+              onClick={openSettings}
+              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
+              title="Einstellungen"
+            >
+              <i className="material-icons">settings</i>
+            </button>
+          </div>
         </div>
 
         {/* Inputs */}
