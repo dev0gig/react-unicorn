@@ -20,14 +20,9 @@ interface StromTarif {
   vp_netto_mit: number;
 }
 
-interface GasTarif extends StromTarif {
-  co2_brutto: number;
-  co2_netto: number;
-}
-
 interface Tarif {
   strom: StromTarif;
-  gas: GasTarif;
+  gas: StromTarif;
 }
 
 const INITIAL_META: TarifMeta = {
@@ -52,10 +47,11 @@ const makeTarif = (): Tarif => ({
     vp_brutto_mit: 5.9588,
     vp_netto_ohne: 6.3440 / 1.07 / 1.20,
     vp_netto_mit: 5.9588 / 1.07 / 1.20,
-    co2_brutto: 1.2055,
-    co2_netto: 1.2055 / 1.20,
   },
 });
+
+// ── Validation helper ──
+const isValidNumber = (v: string) => v === '' || /^\d*[.,]?\d*$/.test(v);
 
 // ── Formatierung ──
 
@@ -132,6 +128,34 @@ const DividerRow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
+// ── Field Row (extracted for stable ref → no focus loss) ──
+
+const FieldRow: React.FC<{
+  label: string; sub: string; field: string; value: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  unit: string; readonly?: boolean; inputCls: string; hasError?: boolean;
+}> = ({ label, sub, value, onChange, unit, readonly: ro, inputCls, hasError }) => (
+  <div className="flex items-center justify-between gap-4 py-1.5">
+    <label className="flex-1 text-sm text-neutral-300 leading-snug">
+      {label}
+      <small className="block text-xs text-neutral-500 font-mono mt-0.5">{sub}</small>
+      {hasError && <small className="block text-xs text-red-400 mt-0.5">Bitte nur Zahlen</small>}
+    </label>
+    <div className="relative flex items-center flex-shrink-0">
+      <input
+        type="text"
+        inputMode="decimal"
+        className={inputCls}
+        value={value}
+        onChange={onChange}
+        readOnly={ro}
+        tabIndex={ro ? -1 : undefined}
+      />
+      <span className="absolute right-2 text-xs text-neutral-500 font-mono pointer-events-none">{unit}</span>
+    </div>
+  </div>
+);
+
 // ── Settings Modal ──
 
 interface SettingsModalProps {
@@ -148,7 +172,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
   const [gGp, setGGp] = useState('');
   const [gVpOhne, setGVpOhne] = useState('');
   const [gRabatt, setGRabatt] = useState('');
-  const [gCo2, setGCo2] = useState('');
   const [changed, setChanged] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -159,7 +182,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
       setGGp(tarif.gas.gp_brutto.toFixed(4));
       setGVpOhne(tarif.gas.vp_brutto_ohne.toFixed(4));
       setGRabatt((tarif.gas.vp_brutto_ohne - tarif.gas.vp_brutto_mit).toFixed(4));
-      setGCo2(tarif.gas.co2_brutto.toFixed(4));
       setChanged(new Set());
     }
   }, [open, tarif]);
@@ -179,7 +201,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
   const sVpMit = Math.max(0, (parseFloat(sVpOhne) || 0) - (parseFloat(sRabatt) || 0)).toFixed(4);
   const gVpMit = Math.max(0, (parseFloat(gVpOhne) || 0) - (parseFloat(gRabatt) || 0)).toFixed(4);
 
+  const allFields = [sGp, sVpOhne, sRabatt, gGp, gVpOhne, gRabatt];
+  const hasAnyError = allFields.some(v => !isValidNumber(v));
+
   const handleApply = () => {
+    if (hasAnyError) return;
     const GA = 1.07;
     const UST = 1.20;
     const sGpN = parseFloat(sGp);
@@ -188,9 +214,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
     const gGpN = parseFloat(gGp);
     const gVpON = parseFloat(gVpOhne);
     const gR = parseFloat(gRabatt);
-    const gC = parseFloat(gCo2);
 
-    if ([sGpN, sVpON, sR, gGpN, gVpON, gR, gC].some(v => isNaN(v) || v < 0)) return;
+    if ([sGpN, sVpON, sR, gGpN, gVpON, gR].some(v => isNaN(v) || v < 0)) return;
 
     const sVpM = parseFloat((sVpON - sR).toFixed(4));
     const gVpM = parseFloat((gVpON - gR).toFixed(4));
@@ -211,8 +236,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
         vp_brutto_mit: gVpM,
         vp_netto_ohne: gVpON / GA / UST,
         vp_netto_mit: gVpM / GA / UST,
-        co2_brutto: gC,
-        co2_netto: gC / UST,
       },
     });
     onClose();
@@ -220,34 +243,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
 
   if (!open) return null;
 
-  const inputCls = (field: string, readonly = false) =>
-    `w-28 bg-neutral-900 border rounded-lg px-2 py-1.5 pr-8 text-right font-mono text-sm text-neutral-200 outline-none transition-colors ${
+  const inputCls = (field: string, value: string, readonly = false) => {
+    const err = !readonly && !isValidNumber(value);
+    return `w-28 bg-neutral-900 border rounded-lg px-2 py-1.5 pr-8 text-right font-mono text-sm text-neutral-200 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
       readonly ? 'border-transparent bg-neutral-950 text-neutral-500 cursor-default' :
+      err ? 'border-red-500 focus:border-red-400' :
       changed.has(field) ? 'border-orange-500/60 focus:border-orange-500' : 'border-neutral-600 focus:border-neutral-500'
     }`;
-
-  const FieldRow: React.FC<{ label: string; sub: string; field: string; value: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; unit: string; readonly?: boolean }> =
-    ({ label, sub, field, value, onChange, unit, readonly: ro }) => (
-    <div className="flex items-center justify-between gap-4 py-1.5">
-      <label className="flex-1 text-sm text-neutral-300 leading-snug">
-        {label}
-        <small className="block text-xs text-neutral-500 font-mono mt-0.5">{sub}</small>
-      </label>
-      <div className="relative flex items-center flex-shrink-0">
-        <input
-          type="number"
-          step="0.0001"
-          min="0"
-          className={inputCls(field, ro)}
-          value={value}
-          onChange={onChange}
-          readOnly={ro}
-          tabIndex={ro ? -1 : undefined}
-        />
-        <span className="absolute right-2 text-xs text-neutral-500 font-mono pointer-events-none">{unit}</span>
-      </div>
-    </div>
-  );
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -271,10 +274,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
               <i className="material-icons text-sm text-orange-400">bolt</i>
               Strom — Brutto (inkl. 7% GA + 20% USt.)
             </div>
-            <FieldRow label="Grundpreis" sub="EUR/Jahr brutto" field="s-gp" value={sGp} onChange={mark('s-gp', setSGp)} unit="€/J" />
-            <FieldRow label="Verbrauchspreis — ohne Bindung" sub="Ct/kWh brutto" field="s-vp-ohne" value={sVpOhne} onChange={mark('s-vp-ohne', setSVpOhne)} unit="Ct" />
-            <FieldRow label="Cent-Rabatt (Bindung)" sub="wird vom VP abgezogen" field="s-rabatt" value={sRabatt} onChange={mark('s-rabatt', setSRabatt)} unit="Ct" />
-            <FieldRow label="Verbrauchspreis — mit Bindung" sub="berechnet: VP ohne − Rabatt" field="s-vp-mit" value={sVpMit} unit="Ct" readonly />
+            <FieldRow label="Grundpreis" sub="EUR/Jahr brutto" field="s-gp" value={sGp} onChange={mark('s-gp', setSGp)} unit="€/J" inputCls={inputCls('s-gp', sGp)} hasError={!isValidNumber(sGp)} />
+            <FieldRow label="Verbrauchspreis — ohne Bindung" sub="Ct/kWh brutto" field="s-vp-ohne" value={sVpOhne} onChange={mark('s-vp-ohne', setSVpOhne)} unit="Ct" inputCls={inputCls('s-vp-ohne', sVpOhne)} hasError={!isValidNumber(sVpOhne)} />
+            <FieldRow label="Cent-Rabatt (Bindung)" sub="wird vom VP abgezogen" field="s-rabatt" value={sRabatt} onChange={mark('s-rabatt', setSRabatt)} unit="Ct" inputCls={inputCls('s-rabatt', sRabatt)} hasError={!isValidNumber(sRabatt)} />
+            <FieldRow label="Verbrauchspreis — mit Bindung" sub="berechnet: VP ohne − Rabatt" field="s-vp-mit" value={sVpMit} unit="Ct" readonly inputCls={inputCls('s-vp-mit', sVpMit, true)} />
           </div>
 
           {/* Gas Section */}
@@ -283,11 +286,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
               <i className="material-icons text-sm text-blue-400">local_fire_department</i>
               Erdgas — Brutto (inkl. 7% GA + 20% USt.)
             </div>
-            <FieldRow label="Grundpreis" sub="EUR/Jahr brutto" field="g-gp" value={gGp} onChange={mark('g-gp', setGGp)} unit="€/J" />
-            <FieldRow label="Verbrauchspreis — ohne Bindung" sub="Ct/kWh brutto" field="g-vp-ohne" value={gVpOhne} onChange={mark('g-vp-ohne', setGVpOhne)} unit="Ct" />
-            <FieldRow label="Cent-Rabatt (Bindung)" sub="wird vom VP abgezogen" field="g-rabatt" value={gRabatt} onChange={mark('g-rabatt', setGRabatt)} unit="Ct" />
-            <FieldRow label="Verbrauchspreis — mit Bindung" sub="berechnet: VP ohne − Rabatt" field="g-vp-mit" value={gVpMit} unit="Ct" readonly />
-            <FieldRow label="CO₂-Abgabe NEHG" sub="Ct/kWh brutto (inkl. 20% USt., kein GA)" field="g-co2" value={gCo2} onChange={mark('g-co2', setGCo2)} unit="Ct" />
+            <FieldRow label="Grundpreis" sub="EUR/Jahr brutto" field="g-gp" value={gGp} onChange={mark('g-gp', setGGp)} unit="€/J" inputCls={inputCls('g-gp', gGp)} hasError={!isValidNumber(gGp)} />
+            <FieldRow label="Verbrauchspreis — ohne Bindung" sub="Ct/kWh brutto" field="g-vp-ohne" value={gVpOhne} onChange={mark('g-vp-ohne', setGVpOhne)} unit="Ct" inputCls={inputCls('g-vp-ohne', gVpOhne)} hasError={!isValidNumber(gVpOhne)} />
+            <FieldRow label="Cent-Rabatt (Bindung)" sub="wird vom VP abgezogen" field="g-rabatt" value={gRabatt} onChange={mark('g-rabatt', setGRabatt)} unit="Ct" inputCls={inputCls('g-rabatt', gRabatt)} hasError={!isValidNumber(gRabatt)} />
+            <FieldRow label="Verbrauchspreis — mit Bindung" sub="berechnet: VP ohne − Rabatt" field="g-vp-mit" value={gVpMit} unit="Ct" readonly inputCls={inputCls('g-vp-mit', gVpMit, true)} />
           </div>
         </div>
 
@@ -296,7 +298,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose, tarif, onA
           <button onClick={onClose} className="px-4 py-2 rounded-lg font-mono text-sm border border-neutral-600 bg-neutral-700 text-neutral-300 hover:text-neutral-100 hover:border-neutral-500 transition-colors">
             Abbrechen
           </button>
-          <button onClick={handleApply} className="px-4 py-2 rounded-lg font-mono text-sm border border-orange-500/40 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:border-orange-500 transition-colors">
+          <button onClick={handleApply} disabled={hasAnyError} className={`px-4 py-2 rounded-lg font-mono text-sm border transition-colors ${hasAnyError ? 'border-neutral-600 bg-neutral-700 text-neutral-500 cursor-not-allowed' : 'border-orange-500/40 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:border-orange-500'}`}>
             <i className="material-icons text-sm mr-1 align-middle">check</i>
             Übernehmen
           </button>
@@ -317,6 +319,7 @@ export const TarifKalkulator: React.FC = () => {
   const [tarif, setTarif] = useState<Tarif>(makeTarif);
   const [meta, setMeta] = useState<TarifMeta>({ ...INITIAL_META });
   const [isCustom, setIsCustom] = useState(false);
+  const [lastImported, setLastImported] = useState<{ tarif: Tarif; meta: TarifMeta } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
   const toastTimer = useRef<number>(0);
@@ -331,7 +334,7 @@ export const TarifKalkulator: React.FC = () => {
   const [gasBindung, setGasBindung] = useState(false);
   const [gasGaRate, setGasGaRate] = useState(7);
   const [gasUst, setGasUst] = useState(true);
-  const [gasCo2, setGasCo2] = useState(true);
+
 
   const showToast = useCallback((msg: string, type: 'ok' | 'err' = 'ok') => {
     setToast({ msg, type });
@@ -390,16 +393,9 @@ export const TarifKalkulator: React.FC = () => {
 
     const gaF = 1 + gasGaRate / 100;
     const ustF = gasUst ? 1.20 : 1.00;
-    const co2 = gasUst ? T.co2_brutto : T.co2_netto;
 
     const vpFinalBrutto = vpFinal * gaF * ustF;
     const rabattBrutto = rabattN * gaF * ustF;
-    const totalFinal = vpFinalBrutto + (gasCo2 ? co2 : 0);
-
-    const labelParts: string[] = [];
-    if (gasBindung) labelParts.push(`mit 12-Mon.-Bindung · Rabatt: −${ct(rabattBrutto)}`);
-    else labelParts.push('ohne Bindung');
-    if (gasCo2) labelParts.push('inkl. CO₂');
 
     return {
       gpNetto: eur(gp),
@@ -409,13 +405,12 @@ export const TarifKalkulator: React.FC = () => {
       vpNetto: ct(vpBase),
       vpGa: ct(vpBase * (gasGaRate / 100)),
       vpUst: ct(vpBase * gaF * 0.20),
-      vpCo2: ct(co2),
-      vpBrutto: ct(totalFinal),
-      vpLabel: labelParts.join(' · '),
-      co2Info: ct(co2),
+      vpBrutto: ct(vpFinalBrutto),
+      vpLabel: gasBindung
+        ? `mit 12-Mon.-Bindung · Rabatt: −${ct(rabattBrutto)}`
+        : 'ohne Bindung',
       showGA: gasGaRate > 0,
       showUST: gasUst,
-      showCO2: gasCo2,
     };
   };
 
@@ -444,7 +439,6 @@ export const TarifKalkulator: React.FC = () => {
       const gp_g = data?.gas?.grundpreis?.brutto_eur_jahr;
       const vp_g_ohne = data?.gas?.verbrauchspreis?.ohne_bindung?.brutto_ct_kwh;
       const g_rabatt = data?.gas?.verbrauchspreis?.mit_bindung?.rabatt_ct_kwh;
-      const co2 = data?.gas?.co2_abgabe_nehg?.brutto_ct_kwh;
 
       const errors: string[] = [];
       if (typeof gp_s !== 'number' || gp_s <= 0) errors.push('strom.grundpreis');
@@ -453,7 +447,6 @@ export const TarifKalkulator: React.FC = () => {
       if (typeof gp_g !== 'number' || gp_g <= 0) errors.push('gas.grundpreis');
       if (typeof vp_g_ohne !== 'number' || vp_g_ohne <= 0) errors.push('gas.vp');
       if (typeof g_rabatt !== 'number' || g_rabatt < 0) errors.push('gas.rabatt');
-      if (typeof co2 !== 'number' || co2 < 0) errors.push('gas.co2');
 
       if (errors.length > 0) {
         showToast(`Fehlende/ungültige Felder: ${errors.join(', ')}`, 'err');
@@ -466,7 +459,7 @@ export const TarifKalkulator: React.FC = () => {
       const vp_s_mit = parseFloat((vp_s_ohne - s_rabatt).toFixed(4));
       const vp_g_mit = parseFloat((vp_g_ohne - g_rabatt).toFixed(4));
 
-      setTarif({
+      const importedTarif: Tarif = {
         strom: {
           gp_brutto: gp_s, gp_netto: gp_s / GA / UST,
           vp_brutto_ohne: vp_s_ohne, vp_brutto_mit: vp_s_mit,
@@ -476,16 +469,19 @@ export const TarifKalkulator: React.FC = () => {
           gp_brutto: gp_g, gp_netto: gp_g / GA / UST,
           vp_brutto_ohne: vp_g_ohne, vp_brutto_mit: vp_g_mit,
           vp_netto_ohne: vp_g_ohne / GA / UST, vp_netto_mit: vp_g_mit / GA / UST,
-          co2_brutto: co2, co2_netto: co2 / UST,
         },
-      });
+      };
 
       const importMeta = data._meta;
-      setMeta({
+      const importedMeta: TarifMeta = {
         gueltig_von: importMeta?.gueltig_von && importMeta.gueltig_von !== 'manuell' ? importMeta.gueltig_von : new Date().toISOString().slice(0, 10),
         gueltig_bis: importMeta?.gueltig_bis && importMeta.gueltig_bis !== 'manuell' ? importMeta.gueltig_bis : new Date().toISOString().slice(0, 10),
         label: importMeta?.label || 'Importiert',
-      });
+      };
+
+      setTarif(importedTarif);
+      setMeta(importedMeta);
+      setLastImported({ tarif: importedTarif, meta: importedMeta });
       setIsCustom(true);
       showToast(`Tarif aus "${file.name}" importiert & übernommen.`);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -532,7 +528,6 @@ export const TarifKalkulator: React.FC = () => {
             einheit: 'Ct/kWh',
           },
         },
-        co2_abgabe_nehg: { brutto_ct_kwh: tarif.gas.co2_brutto, einheit: 'Ct/kWh', inkl: '20% USt. (kein GA)' },
       },
     };
 
@@ -548,10 +543,17 @@ export const TarifKalkulator: React.FC = () => {
 
   // ── Reset ──
   const resetTarif = () => {
-    setTarif(makeTarif());
-    setMeta({ ...INITIAL_META });
-    setIsCustom(false);
-    showToast('Auf Standardtarif 2026 zurückgesetzt.');
+    if (lastImported) {
+      setTarif(lastImported.tarif);
+      setMeta(lastImported.meta);
+      setIsCustom(true);
+      showToast('Auf letzten Import zurückgesetzt.');
+    } else {
+      setTarif(makeTarif());
+      setMeta({ ...INITIAL_META });
+      setIsCustom(false);
+      showToast('Auf Standardtarif 2026 zurückgesetzt.');
+    }
   };
 
   // ── Settings apply ──
@@ -719,13 +721,7 @@ export const TarifKalkulator: React.FC = () => {
                   sub={`Rabatt: −${ct(tarif.gas.vp_brutto_ohne - tarif.gas.vp_brutto_mit)}`}
                   accent="blue"
                 />
-                <Toggle
-                  checked={gasCo2}
-                  onChange={setGasCo2}
-                  label="CO₂-Abgabe (NEHG)"
-                  sub="Pflichtabgabe laut Preisblatt"
-                  accent="blue"
-                />
+
                 <Toggle
                   checked={gasUst}
                   onChange={setGasUst}
@@ -745,16 +741,9 @@ export const TarifKalkulator: React.FC = () => {
                   </div>
                   <GaSelect value={gasGaRate} onChange={setGasGaRate} />
                 </div>
-                <div className="flex items-center justify-between py-2.5 border-b border-neutral-700">
+                <div className="flex items-center justify-between py-2.5">
                   <div className="text-sm text-neutral-300">Umsatzsteuer</div>
                   <div className="font-mono text-sm text-neutral-200">20,00 %</div>
-                </div>
-                <div className="flex items-center justify-between py-2.5">
-                  <div>
-                    <div className="text-sm text-neutral-300">CO₂-Abgabe NEHG</div>
-                    <div className="text-xs text-neutral-500 font-mono mt-0.5">Pflichtabgabe, inkl. 20% USt.</div>
-                  </div>
-                  <div className="font-mono text-sm text-neutral-200">{gas.co2Info}</div>
                 </div>
               </div>
             </div>
@@ -775,7 +764,6 @@ export const TarifKalkulator: React.FC = () => {
               <ResultRow label="Netto (exkl. GA & USt.)" value={gas.vpNetto} />
               <ResultRow label={`+ Gebrauchsabgabe (${gasGaRate}%)`} value={gas.vpGa} hidden={!gas.showGA} />
               <ResultRow label="+ Umsatzsteuer (20%)" value={gas.vpUst} hidden={!gas.showUST} />
-              <ResultRow label="+ CO₂-Abgabe NEHG" sub="inkl. 20% USt." value={gas.vpCo2} hidden={!gas.showCO2} />
               <ResultRow label="Verbrauchspreis gesamt" sub={gas.vpLabel} value={gas.vpBrutto} isTotal accent="blue" />
             </div>
           </div>
