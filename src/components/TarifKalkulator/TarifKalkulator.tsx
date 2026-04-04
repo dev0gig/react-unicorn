@@ -9,6 +9,8 @@ interface TarifMeta {
   gueltig_von: string;
   gueltig_bis: string;
   label: string;
+  anbieter: string;
+  produkt: string;
 }
 
 interface StromTarif {
@@ -29,6 +31,8 @@ const INITIAL_META: TarifMeta = {
   gueltig_von: '2026-01-01',
   gueltig_bis: '2026-03-31',
   label: 'Jän–Mär 2026',
+  anbieter: 'Wien Energie',
+  produkt: 'OPTIMA Entspannt plus',
 };
 
 const makeTarif = (): Tarif => ({
@@ -477,6 +481,8 @@ export const TarifKalkulator: React.FC = () => {
         gueltig_von: importMeta?.gueltig_von && importMeta.gueltig_von !== 'manuell' ? importMeta.gueltig_von : new Date().toISOString().slice(0, 10),
         gueltig_bis: importMeta?.gueltig_bis && importMeta.gueltig_bis !== 'manuell' ? importMeta.gueltig_bis : new Date().toISOString().slice(0, 10),
         label: importMeta?.label || 'Importiert',
+        anbieter: importMeta?.anbieter || 'Unbekannt',
+        produkt: importMeta?.produkt || 'Importierter Tarif',
       };
 
       setTarif(importedTarif);
@@ -498,8 +504,9 @@ export const TarifKalkulator: React.FC = () => {
         erstellt_am: now,
         gueltig_von: meta.gueltig_von,
         gueltig_bis: meta.gueltig_bis,
-        produkt: 'OPTIMA Entspannt plus',
-        anbieter: 'Wien Energie Vertrieb GmbH & Co KG',
+        label: meta.label,
+        anbieter: meta.anbieter,
+        produkt: meta.produkt,
         hinweis: 'Exportiert aus TarifKalkulator. Alle Brutto-Werte inkl. 7% GA + 20% USt.',
       },
       abgaben: { gebrauchsabgabe_pct: 7.0, umsatzsteuer_pct: 20.0 },
@@ -584,7 +591,7 @@ export const TarifKalkulator: React.FC = () => {
           <h1 className="text-4xl font-bold text-neutral-100">
             Tarif<span className="text-orange-400">Kalkulator</span>
           </h1>
-          <p className="text-neutral-400 mt-1">Wien Energie · Optima Entspannt Plus · 2026</p>
+          <p className="text-neutral-400 mt-1">{meta.anbieter} · {meta.produkt} · {meta.label}</p>
         </div>
       </header>
 

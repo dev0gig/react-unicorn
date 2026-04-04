@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import type { ViewName, MenuItem } from '../types';
 import { useContacts, useTemplates } from '../App';
 
@@ -74,17 +74,38 @@ const NavItem = memo(({ item, isActive, onClick, count, isCollapsed }: {
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onFavoritesClick, onExportClick, onImportClick, onDeleteClick }) => {
     const { contacts } = useContacts();
     const { templateGroups } = useTemplates();
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        try { return localStorage.getItem('sidebar-collapsed') === 'true'; }
+        catch { return false; }
+    });
+    const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+    const settingsMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        try { localStorage.setItem('sidebar-collapsed', String(isCollapsed)); }
+        catch {}
+    }, [isCollapsed]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.altKey && e.key === 's') {
                 e.preventDefault();
                 setIsCollapsed(prev => !prev);
+                setIsSettingsMenuOpen(false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
+                setIsSettingsMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const counts: Record<string, number> = {
@@ -99,13 +120,41 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             <div className={`flex-1 min-h-0 overflow-x-hidden ${isCollapsed ? 'overflow-y-hidden' : 'overflow-y-auto custom-scrollbar'}`}>
                 {isCollapsed ? (
                     <div className="flex flex-col items-center pt-4 gap-1">
-                        <button
-                            title="Einstellungen"
-                            onClick={onExportClick}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700/50 transition-colors duration-200"
-                        >
-                            <i className="material-icons text-xl">settings</i>
-                        </button>
+                        <div className="relative" ref={settingsMenuRef}>
+                            <button
+                                title="Einstellungen"
+                                onClick={() => setIsSettingsMenuOpen(prev => !prev)}
+                                className="w-10 h-10 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700/50 transition-colors duration-200"
+                            >
+                                <i className="material-icons text-xl">settings</i>
+                            </button>
+                            {isSettingsMenuOpen && (
+                                <div className="absolute left-full top-0 ml-2 w-48 bg-neutral-800 border border-neutral-700 rounded-lg z-20 p-2 shadow-xl">
+                                    <button
+                                        onClick={() => { onExportClick(); setIsSettingsMenuOpen(false); }}
+                                        className="w-full text-left text-neutral-200 px-3 py-2 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-3"
+                                    >
+                                        <i className="material-icons text-base">download</i>
+                                        <span>Backup erstellen</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { onImportClick(); setIsSettingsMenuOpen(false); }}
+                                        className="w-full text-left text-neutral-200 px-3 py-2 rounded-md hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-3"
+                                    >
+                                        <i className="material-icons text-base">upload</i>
+                                        <span>Backup importieren</span>
+                                    </button>
+                                    <hr className="border-neutral-700 my-1" />
+                                    <button
+                                        onClick={() => { onDeleteClick(); setIsSettingsMenuOpen(false); }}
+                                        className="w-full text-left text-red-400 px-3 py-2 rounded-md hover:bg-red-500 hover:text-white transition-colors flex items-center gap-3"
+                                    >
+                                        <i className="material-icons text-base">delete_sweep</i>
+                                        <span>Daten löschen</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <hr className="w-8 border-neutral-700 my-2" />
                         <button
                             onClick={onFavoritesClick}
@@ -173,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             {/* Toggle button at bottom */}
             <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-end'} px-3 py-3 border-t border-neutral-700`}>
                 <button
-                    onClick={() => setIsCollapsed(prev => !prev)}
+                    onClick={() => { setIsCollapsed(prev => !prev); setIsSettingsMenuOpen(false); }}
                     title={isCollapsed ? 'Sidebar aufklappen (Alt+S)' : 'Sidebar zuklappen (Alt+S)'}
                     className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700/50 transition-colors duration-200"
                 >
