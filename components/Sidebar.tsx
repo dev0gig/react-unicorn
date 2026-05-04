@@ -222,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             {/* Vue Unicorn link */}
             <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-center'} px-3 py-2`}>
                 <a
-                    href="https://dev0gig.github.io/vuejs-unicorn/"
+                    href="https://we-unicorn.web.app"
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Vue.js Unicorn"
