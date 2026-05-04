@@ -219,6 +219,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
                 )}
             </div>
 
+            {/* Vue Unicorn link */}
+            <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-center'} px-3 py-2`}>
+                <a
+                    href="https://dev0gig.github.io/vuejs-unicorn/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Vue.js Unicorn"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700/50 transition-colors duration-200"
+                >
+                    <span style={{
+                        background: 'linear-gradient(to right, #ff0000, #ff7700, #ffee00, #00cc00, #0088ff, #8800ff)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        whiteSpace: 'nowrap',
+                    }}>
+                        {isCollapsed ? '🦄' : '🦄 Vue Unicorn'}
+                    </span>
+                </a>
+            </div>
+
             {/* Toggle button at bottom */}
             <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-end'} px-3 py-3 border-t border-neutral-700`}>
                 <button
