@@ -8,9 +8,12 @@ interface TemplateModalProps {
   templateToEdit: { template: Template, category: string } | null;
 }
 
+const NEW_CATEGORY_VALUE = '__new__';
+
 export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, templateToEdit }) => {
   const { addTemplate, updateTemplate, getCategories } = useTemplates();
   const [category, setCategory] = useState('');
+  const [newCategoryInput, setNewCategoryInput] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
@@ -25,19 +28,22 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, t
         setContent(templateToEdit.template.content);
       } else {
         setCategory('');
+        setNewCategoryInput('');
         setTitle('');
         setContent('');
       }
     }
   }, [isOpen, templateToEdit, isEditMode]);
   
+  const effectiveCategory = category === NEW_CATEGORY_VALUE ? newCategoryInput : category;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (category.trim() && title.trim() && content.trim()) {
+    if (effectiveCategory.trim() && title.trim() && content.trim()) {
       if (isEditMode && templateToEdit) {
         updateTemplate(templateToEdit.category, { title, content }, templateToEdit.template.id);
       } else {
-        addTemplate(category, title, content);
+        addTemplate(effectiveCategory, title, content);
       }
       onClose();
     }
@@ -83,10 +89,36 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, t
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
               <div>
                 <label htmlFor="template-category" className="block text-sm font-medium text-neutral-300 mb-1">Kategorie</label>
-                <input id="template-category" type="text" list="categories" value={category} onChange={(e) => setCategory(e.target.value)} required readOnly={isEditMode} className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500 read-only:bg-neutral-800 read-only:cursor-not-allowed" placeholder="Bestehende auswählen oder neue eingeben" />
-                 <datalist id="categories">
-                    {existingCategories.map(cat => <option key={cat} value={cat} />)}
-                 </datalist>
+                {isEditMode ? (
+                  <input id="template-category" type="text" value={category} readOnly className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-400 cursor-not-allowed focus:outline-none" />
+                ) : (
+                  <>
+                    <select
+                      id="template-category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      required
+                      className="w-full bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                    >
+                      <option value="" disabled>Kategorie auswählen...</option>
+                      {existingCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value={NEW_CATEGORY_VALUE}>+ Neue Kategorie erstellen</option>
+                    </select>
+                    {category === NEW_CATEGORY_VALUE && (
+                      <input
+                        type="text"
+                        value={newCategoryInput}
+                        onChange={(e) => setNewCategoryInput(e.target.value)}
+                        required
+                        autoFocus
+                        className="w-full mt-2 bg-neutral-900 border border-neutral-700 rounded-lg py-2 px-3 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                        placeholder="Name der neuen Kategorie"
+                      />
+                    )}
+                  </>
+                )}
               </div>
                <div>
                 <label htmlFor="template-title" className="block text-sm font-medium text-neutral-300 mb-1">Titel</label>
