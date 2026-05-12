@@ -22,13 +22,13 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, t
 
   useEffect(() => {
     if (isOpen) {
+      setNewCategoryInput('');
       if (isEditMode && templateToEdit) {
         setCategory(templateToEdit.category);
         setTitle(templateToEdit.template.title);
         setContent(templateToEdit.template.content);
       } else {
         setCategory('');
-        setNewCategoryInput('');
         setTitle('');
         setContent('');
       }
