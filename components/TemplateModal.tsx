@@ -17,7 +17,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, t
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  const isEditMode = templateToEdit !== null;
+  const isEditMode = !!templateToEdit;
   const existingCategories = getCategories();
 
   useEffect(() => {
