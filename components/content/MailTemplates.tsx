@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTemplates, useSignatures } from '../../App';
+import { useModal } from '../../src/contexts/ModalContext';
 import type { Template } from '../../types';
 
 interface MailTemplatesProps {
@@ -29,6 +30,7 @@ const Toast: React.FC<{ message: string; onDismiss: () => void; }> = ({ message,
 export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onOpenSignatureModal }) => {
     const { templateGroups, deleteTemplate } = useTemplates();
     const { signatures, activeSignatureId, setActiveSignatureId } = useSignatures();
+    const { openModal, closeModal } = useModal();
     const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -213,7 +215,11 @@ export const MailTemplates: React.FC<MailTemplatesProps> = ({ onAdd, onEdit, onO
                                 <i className="material-icons text-lg">edit</i>
                             </button>
                             <button
-                                onClick={() => deleteTemplate(selectedCategory, selectedTemplate.id)}
+                                onClick={() => openModal('CONFIRMATION', {
+                                    title: 'Vorlage löschen',
+                                    onConfirm: () => { deleteTemplate(selectedCategory, selectedTemplate.id); closeModal(); },
+                                    children: <p>Möchten Sie die Vorlage <strong>„{selectedTemplate.title}"</strong> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                                })}
                                 className="p-2 rounded-full text-neutral-400 hover:bg-red-500/20 hover:text-red-400 transition-colors"
                                 title="Vorlage löschen"
                             >
