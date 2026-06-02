@@ -10,6 +10,52 @@ function icsEscape(str: string): string {
     .replace(/\r?\n/g, '\\n');
 }
 
+// Convert a wall-clock time in Europe/Vienna to the corresponding UTC instant.
+// This makes the ICS DST-aware and avoids the +1h shift Outlook applies when a
+// TZID is referenced without an embedded VTIMEZONE definition.
+function viennaLocalToUtc(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+): Date {
+  // Treat the wall-clock components as if they were UTC to get a probe instant.
+  const probe = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Vienna',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(probe).reduce((acc, p) => {
+    acc[p.type] = p.value;
+    return acc;
+  }, {} as Record<string, string>);
+  const asTz = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  const offset = asTz - probe.getTime(); // how far Vienna is ahead of UTC
+  return new Date(probe.getTime() - offset);
+}
+
+function utcToIcsString(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}` +
+    `T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`
+  );
+}
+
 function downloadIcs(filename: string, content: string): void {
   const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
   const link = document.createElement('a');
@@ -24,6 +70,7 @@ function downloadIcs(filename: string, content: string): void {
 export interface GenerateIcsParams {
   parsed: ParsedFields;
   kundennummer: string;
+  zaehlerpunkt: string;
   selectedType: AppointmentType;
   isStorno: boolean;
   mailBody: string;
@@ -34,7 +81,7 @@ export interface GenerateIcsParams {
  * Returns an error string if generation fails, or null on success.
  */
 export function generateAndDownloadIcs(params: GenerateIcsParams): string | null {
-  const { parsed, kundennummer, selectedType, isStorno, mailBody } = params;
+  const { parsed, kundennummer, zaehlerpunkt, selectedType, isStorno, mailBody } = params;
 
   if (!parsed.name || !parsed.date || !parsed.time) {
     const missing: string[] = [];
@@ -44,16 +91,15 @@ export function generateAndDownloadIcs(params: GenerateIcsParams): string | null
     return `Folgende Felder konnten nicht erkannt werden:\n${missing.map((m) => '  • ' + m).join('\n')}\n\nBitte prüfe den eingefügten Text.`;
   }
 
-  // Date/Time calculation
-  const [day, month, year] = parsed.date.split('.').map((n) => n.padStart(2, '0'));
-  const [hour, minute] = parsed.time.split(':').map((n) => n.padStart(2, '0'));
-  const startDT = `${year}${month}${day}T${hour}${minute}00`;
+  // Date/Time calculation — interpret the parsed values as Europe/Vienna wall-clock
+  // time and convert to UTC so calendars (Outlook etc.) display the correct hour.
+  const [day, month, year] = parsed.date.split('.').map((n) => parseInt(n, 10));
+  const [hour, minute] = parsed.time.split(':').map((n) => parseInt(n, 10));
 
-  const startTotalMin = parseInt(hour) * 60 + parseInt(minute);
-  const endTotalMin = startTotalMin + DURATION_MIN;
-  const endHour = String(Math.floor(endTotalMin / 60) % 24).padStart(2, '0');
-  const endMinute = String(endTotalMin % 60).padStart(2, '0');
-  const endDT = `${year}${month}${day}T${endHour}${endMinute}00`;
+  const startUtc = viennaLocalToUtc(year, month, day, hour, minute);
+  const endUtc = new Date(startUtc.getTime() + DURATION_MIN * 60 * 1000);
+  const startDT = utcToIcsString(startUtc);
+  const endDT = utcToIcsString(endUtc);
 
   const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const uid = `mietvertrag-${Date.now()}@msg-ics-converter`;
@@ -82,7 +128,11 @@ export function generateAndDownloadIcs(params: GenerateIcsParams): string | null
   const separator = '------------';
   const descParts: string[] = isStorno
     ? ['STORNO', separator]
-    : [`${kundennummer} - ${selectedType}`, separator];
+    : [
+        `${kundennummer} - ${selectedType}`,
+        ...(zaehlerpunkt ? [`Zählerpunkt: ${zaehlerpunkt}`] : []),
+        separator,
+      ];
 
   if (headerLines.length > 0) {
     descParts.push(...headerLines);
@@ -94,10 +144,15 @@ export function generateAndDownloadIcs(params: GenerateIcsParams): string | null
   const description = icsEscape(descriptionRaw);
   const location = parsed.address ? icsEscape(parsed.address) : '';
 
-  // Build HTML description with Kundennummer in 33pt red
+  // Build HTML description with Kundennummer (and EC/FWW) in 33pt red
+  const bigRed = 'font-size:33pt;color:red;font-weight:bold;';
   const htmlDescParts: string[] = isStorno
-    ? ['<span style="font-size:33pt;color:red;font-weight:bold;">STORNO</span>', `<br>${separator}`]
-    : [`<span style="font-size:33pt;color:red;font-weight:bold;">${kundennummer}</span> - ${selectedType}`, `<br>${separator}`];
+    ? [`<span style="${bigRed}">STORNO</span>`, `<br>${separator}`]
+    : [
+        `<span style="${bigRed}">${kundennummer}</span> - <span style="${bigRed}">${selectedType}</span>`,
+        ...(zaehlerpunkt ? [`<br>Zählerpunkt: ${zaehlerpunkt}`] : []),
+        `<br>${separator}`,
+      ];
 
   if (headerLines.length > 0) {
     htmlDescParts.push(...headerLines.map((l) => `<br>${l}`));
@@ -119,8 +174,8 @@ export function generateAndDownloadIcs(params: GenerateIcsParams): string | null
     'BEGIN:VEVENT',
     `UID:${uid}`,
     `DTSTAMP:${stamp}`,
-    `DTSTART;TZID=Europe/Vienna:${startDT}`,
-    `DTEND;TZID=Europe/Vienna:${endDT}`,
+    `DTSTART:${startDT}`,
+    `DTEND:${endDT}`,
     `SUMMARY:${icsEscape(parsed.name)}`,
     `DESCRIPTION:${description}`,
     `X-ALT-DESC;FMTTYPE=text/html:${altDesc}`,
