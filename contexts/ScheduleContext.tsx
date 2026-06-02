@@ -34,9 +34,7 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             const lines = icsContent.replace(/\r\n /g, '').split(/\r\n/);
             let currentEvent: Partial<ScheduleEvent> | null = null;
 
-            const parseIcsDate = (dateStr: string): Date | null => {
-                // This parser handles floating local times and UTC times ending in 'Z'.
-                // It does not parse TZID timezone identifiers.
+            const parseIcsDate = (dateStr: string, tzid?: string): Date | null => {
                 const isUtc = dateStr.endsWith('Z');
                 const cleanDateStr = isUtc ? dateStr.slice(0, -1) : dateStr;
 
@@ -46,10 +44,32 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 const [, year, month, day, hour, minute, second] = match.map(Number);
 
                 if (isUtc) {
-                    // Create a Date object from UTC components.
                     return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+                } else if (tzid) {
+                    // Convert the given local time in tzid to UTC using Intl
+                    const pad = (n: number) => String(n).padStart(2, '0');
+                    const probe = new Date(`${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}Z`);
+                    try {
+                        const formatter = new Intl.DateTimeFormat('en-US', {
+                            timeZone: tzid,
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit',
+                            hour12: false,
+                        });
+                        const parts = formatter.formatToParts(probe).reduce((acc, p) => {
+                            acc[p.type] = p.value;
+                            return acc;
+                        }, {} as Record<string, string>);
+                        const probeInTzMs = Date.UTC(
+                            Number(parts.year), Number(parts.month) - 1, Number(parts.day),
+                            Number(parts.hour) % 24, Number(parts.minute), Number(parts.second)
+                        );
+                        const offsetMs = probe.getTime() - probeInTzMs;
+                        return new Date(Date.UTC(year, month - 1, day, hour, minute, second) + offsetMs);
+                    } catch {
+                        return new Date(year, month - 1, day, hour, minute, second);
+                    }
                 } else {
-                    // Create a Date object from local time components for floating times.
                     return new Date(year, month - 1, day, hour, minute, second);
                 }
             };
@@ -65,14 +85,20 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 } else if (currentEvent) {
                     if (line.startsWith('SUMMARY:')) {
                         currentEvent.summary = line.substring(8);
-                    } else if (line.startsWith('DTSTART;')) { // Handles DTSTART;TZID=...
-                        const dateStr = line.split(':')[1];
-                        currentEvent.dtstart = parseIcsDate(dateStr) || undefined;
+                    } else if (line.startsWith('DTSTART;')) {
+                        const colonIdx = line.indexOf(':');
+                        const params = line.substring(0, colonIdx);
+                        const dateStr = line.substring(colonIdx + 1);
+                        const tzidMatch = params.match(/TZID=([^;:]+)/);
+                        currentEvent.dtstart = parseIcsDate(dateStr, tzidMatch?.[1]) || undefined;
                     } else if (line.startsWith('DTSTART:')) {
                         currentEvent.dtstart = parseIcsDate(line.substring(8)) || undefined;
-                    } else if (line.startsWith('DTEND;')) { // Handles DTEND;TZID=...
-                        const dateStr = line.split(':')[1];
-                        currentEvent.dtend = parseIcsDate(dateStr) || undefined;
+                    } else if (line.startsWith('DTEND;')) {
+                        const colonIdx = line.indexOf(':');
+                        const params = line.substring(0, colonIdx);
+                        const dateStr = line.substring(colonIdx + 1);
+                        const tzidMatch = params.match(/TZID=([^;:]+)/);
+                        currentEvent.dtend = parseIcsDate(dateStr, tzidMatch?.[1]) || undefined;
                     } else if (line.startsWith('DTEND:')) {
                         currentEvent.dtend = parseIcsDate(line.substring(6)) || undefined;
                     }
