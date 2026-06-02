@@ -45,6 +45,7 @@ const ParsedField: React.FC<ParsedFieldProps> = ({ label, value, fullWidth, onCl
 export const MsgToIcs: React.FC = () => {
   const [mailText, setMailText] = useState('');
   const [kundennummer, setKundennummer] = useState('');
+  const [zaehlerpunkt, setZaehlerpunkt] = useState('');
   const [selectedType, setSelectedType] = useState<AppointmentType>('FWW');
   const [isStorno, setIsStorno] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -71,6 +72,9 @@ export const MsgToIcs: React.FC = () => {
     (file: File) => {
       setFileName(file.name);
       setStatus(null);
+      // Neue Mail eingefügt → alle manuellen Eingabefelder leeren
+      setKundennummer('');
+      setZaehlerpunkt('');
       const ext = file.name.split('.').pop()?.toLowerCase();
       const reader = new FileReader();
 
@@ -135,6 +139,7 @@ export const MsgToIcs: React.FC = () => {
     const error = generateAndDownloadIcs({
       parsed,
       kundennummer: kundennummer.trim(),
+      zaehlerpunkt: zaehlerpunkt.trim(),
       selectedType,
       isStorno,
       mailBody: mailText,
@@ -148,7 +153,7 @@ export const MsgToIcs: React.FC = () => {
         msg: `✅ ICS erstellt!\n  ${isStorno ? '⚠️ STORNO' : `Kunde: ${kundennummer.trim()} - ${selectedType}`}\n  Mieter: ${parsed.name}\n  Am: ${parsed.date} um ${parsed.time} Uhr  (25 min)`,
       });
     }
-  }, [mailText, kundennummer, isStorno, selectedType, parsed]);
+  }, [mailText, kundennummer, zaehlerpunkt, isStorno, selectedType, parsed]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -211,6 +216,18 @@ export const MsgToIcs: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Zählerpunkt */}
+            <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mt-4 mb-3">
+              Zählerpunkt — manuell eingeben
+            </div>
+            <input
+              type="text"
+              value={zaehlerpunkt}
+              onChange={(e) => setZaehlerpunkt(e.target.value)}
+              placeholder="z.B. AT0010000000000000000000000123456"
+              className="w-full bg-neutral-900 border-2 border-red-500/40 rounded-lg p-3 text-red-400 font-bold text-xl focus:outline-none focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20 transition placeholder:text-red-900 placeholder:text-sm placeholder:font-normal"
+            />
           </div>
         )}
 
