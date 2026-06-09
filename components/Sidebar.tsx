@@ -13,11 +13,6 @@ const menuItems: MenuItem[] = [
     { id: 'Kontakte', label: 'Kontakte', icon: 'people' },
     { id: 'Mail Vorlagen', label: 'Mail Vorlagen', icon: 'drafts' },
     { id: 'WiWo-Terminpflege', label: 'WiWo-Terminpflege', icon: 'event_note' },
-    { id: 'Dienstplan', label: 'Dienstplan', icon: 'calendar_month' },
-    { id: 'Zeiterfassung', label: 'Zeiterfassung', icon: 'timer' },
-    { id: 'E-Mobility', label: 'E-Mobility', icon: 'ev_station' },
-    { id: 'HK Generator', label: 'HK Generator', icon: 'description' },
-    { id: 'Tarif Kalkulator', label: 'Tarif Kalkulator', icon: 'calculate' },
 ];
 
 interface SidebarProps {

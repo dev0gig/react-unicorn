@@ -53,7 +53,6 @@ export const GlobalModalManager: React.FC = () => {
             return <ConfirmationModal {...commonProps} />;
         // These share the ConfirmationModal but might have distinct behaviors in logic, handled via props
         case 'IMPORT_CONFIRMATION':
-        case 'RESET_TIME_TRACKER':
             return <ConfirmationModal {...commonProps} />;
         default:
             return null;

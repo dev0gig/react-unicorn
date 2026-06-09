@@ -6,11 +6,6 @@ import { Kontakte } from './content/Kontakte';
 import { MailTemplates } from './content/MailTemplates';
 
 import { MsgToIcs } from '../src/components/MsgToIcs';
-import { Dienstplan } from './content/Dienstplan';
-import { TimeTracker } from './content/TimeTracker';
-import { EMobilityKalkulator } from '../src/components/EMobilityKalkulator';
-import { HkGenerator } from '../src/components/HkGenerator';
-import { TarifKalkulator } from '../src/components/TarifKalkulator';
 
 interface ContentAreaProps {
   activeView: ViewName;
@@ -25,9 +20,7 @@ interface ContentAreaProps {
   onAddGroup: () => void;
   onEditGroup: (group: ToolGroup) => void;
   onOpenReorderGroupsModal: () => void;
-  onOpenResetTimeTrackerModal: () => void;
   onColumnCountChange: (count: number) => void;
-  timeTrackerResetTrigger: number;
 }
 
 export const ContentArea: React.FC<ContentAreaProps> = (props) => {
@@ -35,13 +28,11 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
     activeView, setActiveView, onAddContact,
     onEditContact, onAddTemplate, onEditTemplate,
     onOpenSignatureModal, onAddLink, onEditTile, onAddGroup, onEditGroup,
-    onOpenReorderGroupsModal, onOpenResetTimeTrackerModal, onColumnCountChange, timeTrackerResetTrigger,
+    onOpenReorderGroupsModal, onColumnCountChange,
   } = props;
 
   const renderContent = () => {
     switch (activeView) {
-      case 'Dienstplan':
-        return <Dienstplan />;
       case 'Dashboard':
         return <Dashboard
           onAddLink={onAddLink}
@@ -58,16 +49,15 @@ export const ContentArea: React.FC<ContentAreaProps> = (props) => {
 
       case 'WiWo-Terminpflege':
         return <MsgToIcs />;
-      case 'Zeiterfassung':
-        return <TimeTracker onOpenResetModal={onOpenResetTimeTrackerModal} resetTrigger={timeTrackerResetTrigger} />;
-      case 'E-Mobility':
-        return <EMobilityKalkulator />;
-      case 'HK Generator':
-        return <HkGenerator />;
-      case 'Tarif Kalkulator':
-        return <TarifKalkulator />;
       default:
-        return <Dienstplan />;
+        return <Dashboard
+          onAddLink={onAddLink}
+          onEditTile={onEditTile}
+          onAddGroup={onAddGroup}
+          onEditGroup={onEditGroup}
+          onOpenReorderGroupsModal={onOpenReorderGroupsModal}
+          onColumnCountChange={onColumnCountChange}
+        />;
     }
   };
 

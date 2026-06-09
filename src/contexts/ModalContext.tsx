@@ -12,8 +12,7 @@ export type ModalType =
     | 'REORDER_GROUPS'
     | 'INFO'
     | 'CONFIRMATION'
-    | 'IMPORT_CONFIRMATION'
-    | 'RESET_TIME_TRACKER';
+    | 'IMPORT_CONFIRMATION';
 
 export interface ModalContextType {
     activeModal: ModalType | null;

@@ -41,7 +41,6 @@ function AppContent() {
 
     // States
     const [dashboardColumnCount, setDashboardColumnCount] = useState(1);
-    const [timeTrackerResetTrigger, setTimeTrackerResetTrigger] = useState(0);
 
     // --- Deletion Logic ---
     const handleConfirmBulkDelete = (categoriesToDelete: any) => {
@@ -70,11 +69,6 @@ function AppContent() {
             onConfirm: () => handleConfirmBulkDelete(options),
             children: <p>Möchten Sie die ausgewählten Daten wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
         });
-    };
-
-    const handleConfirmResetTimeTracker = () => {
-        setTimeTrackerResetTrigger(c => c + 1);
-        closeModal();
     };
 
     return (
@@ -115,13 +109,6 @@ function AppContent() {
                     })}
                     onOpenReorderGroupsModal={() => openModal('REORDER_GROUPS', { columnCount: dashboardColumnCount })}
                     onColumnCountChange={setDashboardColumnCount}
-                    onOpenResetTimeTrackerModal={() => openModal('RESET_TIME_TRACKER', {
-                        title: "Zeiterfassung zurücksetzen",
-                        onConfirm: handleConfirmResetTimeTracker,
-                        children: <p>Möchten Sie wirklich alle Felder der Zeiterfassung leeren und zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                    })}
-                    timeTrackerResetTrigger={timeTrackerResetTrigger}
-
                 />
             </main>
             <GlobalModalManager />
