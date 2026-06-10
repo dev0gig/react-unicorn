@@ -306,81 +306,79 @@ export const MsgToIcs: React.FC = () => {
 
   return (
     <div className="w-full h-full overflow-hidden" style={{ backgroundColor: 'var(--bg-page)' }}>
-      <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-4 p-4 overflow-y-auto lg:overflow-hidden custom-scrollbar">
+      <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 overflow-y-auto lg:overflow-hidden custom-scrollbar">
 
-        {/* ── Spalte 1: Mail-Inhalt ── */}
-        <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex flex-col gap-4 overflow-hidden">
-          <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest">
-            Mail-Inhalt — Datei oder Text einfügen
+        {/* ── Spalte 1: Mail-Inhalt (genau halbiert) ── */}
+        <div className="flex flex-col gap-4 min-h-0">
+
+          {/* Obere Hälfte: Datei einfügen */}
+          <div className="flex-1 min-h-0 bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex flex-col gap-3">
+            <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest flex-shrink-0">
+              Mail-Inhalt — Datei einfügen
+            </div>
+            <div
+              className={`flex-1 min-h-0 border-2 border-dashed rounded-lg cursor-pointer transition flex flex-col items-center justify-center gap-3 ${
+                isDragging
+                  ? 'border-orange-400 bg-orange-400/5'
+                  : 'border-neutral-600 hover:border-orange-400/50 hover:bg-orange-400/5'
+              }`}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".msg,.eml,.txt"
+                className="hidden"
+                onChange={handleFileInput}
+              />
+              <div className="text-3xl">📎</div>
+              <div className="text-neutral-500 text-sm leading-relaxed text-center">
+                <span className="text-neutral-300 font-medium">.msg / .eml Datei hier ablegen</span>
+                <br />oder klicken zum Auswählen
+              </div>
+            </div>
+            {fileName && (
+              <div className="flex items-center gap-3 px-3 py-2 bg-green-950/30 border border-green-700/40 rounded-lg text-sm flex-shrink-0">
+                <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] flex-shrink-0" />
+                <span className="text-neutral-300 truncate">{fileName}</span>
+              </div>
+            )}
           </div>
 
-          {/* Dropzone */}
-          <div
-            className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition flex-shrink-0 ${
-              isDragging
-                ? 'border-orange-400 bg-orange-400/5'
-                : 'border-neutral-600 hover:border-orange-400/50 hover:bg-orange-400/5'
-            }`}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".msg,.eml,.txt"
-              className="hidden"
-              onChange={handleFileInput}
+          {/* Untere Hälfte: Text einfügen */}
+          <div className="flex-1 min-h-0 bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-3 text-neutral-600 text-xs tracking-widest flex-shrink-0">
+              <span className="flex-1 h-px bg-neutral-700" />
+              ODER TEXT DIREKT EINFÜGEN
+              <span className="flex-1 h-px bg-neutral-700" />
+            </div>
+            <textarea
+              value={mailText}
+              onChange={(e) => {
+                setMailText(e.target.value);
+                setIsStorno(false);
+                if (fileName) setFileName(null);
+              }}
+              onBlur={handleMailTextBlur}
+              placeholder=" Obj.bez.: 0821302 - 003 012&#10;Mietername: DEMIR HASAN&#10;Adresse: 21.,JUSTGASSE 13/3/12&#10;Datum Mietvertragsabschluss: 11.03.2026&#10;Zeit Mietvertragsabschluss: 10:00 Uhr"
+              className="flex-1 min-h-0 bg-neutral-900 border border-neutral-600 rounded-lg p-3 text-neutral-200 font-mono text-sm resize-none focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 transition custom-scrollbar placeholder:text-neutral-700"
             />
-            <div className="text-2xl mb-1">📎</div>
-            <div className="text-neutral-500 text-sm leading-relaxed">
-              <span className="text-neutral-300 font-medium">.msg / .eml Datei hier ablegen</span>
-              <br />oder klicken zum Auswählen
-            </div>
           </div>
-
-          {/* File loaded indicator */}
-          {fileName && (
-            <div className="flex items-center gap-3 px-3 py-2 bg-green-950/30 border border-green-700/40 rounded-lg text-sm flex-shrink-0">
-              <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] flex-shrink-0" />
-              <span className="text-neutral-300 truncate">{fileName}</span>
-            </div>
-          )}
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 text-neutral-600 text-xs tracking-widest flex-shrink-0">
-            <span className="flex-1 h-px bg-neutral-700" />
-            ODER TEXT DIREKT EINFÜGEN
-            <span className="flex-1 h-px bg-neutral-700" />
-          </div>
-
-          {/* Textarea — fills remaining space */}
-          <textarea
-            value={mailText}
-            onChange={(e) => {
-              setMailText(e.target.value);
-              setIsStorno(false);
-              if (fileName) setFileName(null);
-            }}
-            onBlur={handleMailTextBlur}
-            placeholder=" Obj.bez.: 0821302 - 003 012&#10;Mietername: DEMIR HASAN&#10;Adresse: 21.,JUSTGASSE 13/3/12&#10;Datum Mietvertragsabschluss: 11.03.2026&#10;Zeit Mietvertragsabschluss: 10:00 Uhr"
-            className="flex-1 min-h-[200px] bg-neutral-900 border border-neutral-600 rounded-lg p-3 text-neutral-200 font-mono text-sm resize-none focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 transition custom-scrollbar placeholder:text-neutral-700"
-          />
         </div>
 
-        {/* ── Spalte 2: Erkannte Felder + Kundennummer ── */}
-        <div className="flex flex-col gap-4 mt-4 lg:mt-0 overflow-y-auto custom-scrollbar">
+        {/* ── Spalte 2: Erkannte Felder + Kundennummer (gleiche Gesamthöhe) ── */}
+        <div className="flex flex-col gap-4 min-h-0 mt-4 lg:mt-0">
 
-          {/* Erkannte Felder */}
-          <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex-shrink-0">
+          {/* Erkannte Felder — natürliche Höhe */}
+          <div className="flex-shrink-0 bg-neutral-800 border border-neutral-700 rounded-xl p-5">
             <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-4">
               Erkannte Felder
             </div>
             <div className="grid grid-cols-2 gap-3">
               <ParsedField label="Obj.bez." value={parsed.objbez} fullWidth />
-
-              {/* Formatted obj.bez — click to copy */}
               <div
                 className={`col-span-2 border rounded-lg p-3 cursor-pointer transition ${
                   copyFlash
@@ -397,7 +395,6 @@ export const MsgToIcs: React.FC = () => {
                   {formattedObjbez || '—'}
                 </div>
               </div>
-
               <ParsedField label="Titel (Mietername)" value={parsed.name} />
               <ParsedField label="Datum" value={parsed.date} />
               <ParsedField label="Uhrzeit (Start)" value={parsed.time} />
@@ -409,9 +406,9 @@ export const MsgToIcs: React.FC = () => {
             </div>
           </div>
 
-          {/* Kundennummer / Storno */}
+          {/* Kundennummer / Storno — füllt verbleibende Höhe */}
           {isStorno ? (
-            <div className="bg-red-950/30 border-2 border-red-500/50 rounded-xl p-5 flex items-center gap-4 flex-shrink-0">
+            <div className="flex-1 min-h-0 bg-red-950/30 border-2 border-red-500/50 rounded-xl p-5 flex items-center gap-4">
               <span className="text-3xl font-bold text-red-400 tracking-widest" style={{ textShadow: '0 0 24px rgba(239,68,68,0.4)' }}>
                 STORNO
               </span>
@@ -421,67 +418,70 @@ export const MsgToIcs: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex-shrink-0">
-              <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-3">
-                Kundennummer
-              </div>
-              <div className="flex items-center gap-3 mb-4">
-                <input
-                  type="text"
-                  value={kundennummer}
-                  onChange={(e) => setKundennummer(e.target.value)}
-                  inputMode="numeric"
-                  placeholder="z.B. 4351404105"
-                  className="flex-1 bg-neutral-900 border-2 border-red-500/40 rounded-lg p-3 text-red-400 font-bold text-lg focus:outline-none focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20 transition placeholder:text-red-900 placeholder:text-sm placeholder:font-normal"
-                />
-                <span className="text-red-400 font-bold text-2xl select-none">-</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelectedType('EC')}
-                    className={`px-4 py-2 rounded-lg border-2 font-bold text-sm transition ${
-                      selectedType === 'EC'
-                        ? 'border-red-500 bg-red-500/10 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-                        : 'border-red-500/20 text-red-500/40 hover:border-red-500/50 hover:text-red-500/60'
-                    }`}
-                  >
-                    EC
-                  </button>
-                  <button
-                    onClick={() => setSelectedType('FWW')}
-                    className={`px-4 py-2 rounded-lg border-2 font-bold text-sm transition ${
-                      selectedType === 'FWW'
-                        ? 'border-red-500 bg-red-500/10 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-                        : 'border-red-500/20 text-red-500/40 hover:border-red-500/50 hover:text-red-500/60'
-                    }`}
-                  >
-                    FWW
-                  </button>
+            <div className="flex-1 min-h-0 bg-neutral-800 border border-neutral-700 rounded-xl p-5 flex flex-col justify-center gap-6">
+              <div>
+                <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-3">
+                  Kundennummer
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={kundennummer}
+                    onChange={(e) => setKundennummer(e.target.value)}
+                    inputMode="numeric"
+                    placeholder="z.B. 4351404105"
+                    className="flex-1 bg-neutral-900 border-2 border-red-500/40 rounded-lg p-3 text-red-400 font-bold text-lg focus:outline-none focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20 transition placeholder:text-red-900 placeholder:text-sm placeholder:font-normal"
+                  />
+                  <span className="text-red-400 font-bold text-2xl select-none">-</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedType('EC')}
+                      className={`px-4 py-2 rounded-lg border-2 font-bold text-sm transition ${
+                        selectedType === 'EC'
+                          ? 'border-red-500 bg-red-500/10 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                          : 'border-red-500/20 text-red-500/40 hover:border-red-500/50 hover:text-red-500/60'
+                      }`}
+                    >
+                      EC
+                    </button>
+                    <button
+                      onClick={() => setSelectedType('FWW')}
+                      className={`px-4 py-2 rounded-lg border-2 font-bold text-sm transition ${
+                        selectedType === 'FWW'
+                          ? 'border-red-500 bg-red-500/10 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                          : 'border-red-500/20 text-red-500/40 hover:border-red-500/50 hover:text-red-500/60'
+                      }`}
+                    >
+                      FWW
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-3">
-                Zählerpunkt
+              <div>
+                <div className="text-xs font-semibold text-neutral-100 uppercase tracking-widest mb-3">
+                  Zählerpunkt
+                </div>
+                <input
+                  type="text"
+                  value={zaehlerpunkt}
+                  onChange={(e) => setZaehlerpunkt(e.target.value)}
+                  placeholder="z.B. AT0010000000000000000000000123456"
+                  className="w-full bg-neutral-900 border-2 border-red-500/40 rounded-lg p-3 text-red-400 font-bold text-lg focus:outline-none focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20 transition placeholder:text-red-900 placeholder:text-sm placeholder:font-normal"
+                />
               </div>
-              <input
-                type="text"
-                value={zaehlerpunkt}
-                onChange={(e) => setZaehlerpunkt(e.target.value)}
-                placeholder="z.B. AT0010000000000000000000000123456"
-                className="w-full bg-neutral-900 border-2 border-red-500/40 rounded-lg p-3 text-red-400 font-bold text-lg focus:outline-none focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20 transition placeholder:text-red-900 placeholder:text-sm placeholder:font-normal"
-              />
             </div>
           )}
         </div>
 
-        {/* ── Spalte 3: Feldstatus + ICS-Button ── */}
-        <div className="flex flex-col gap-4 mt-4 lg:mt-0">
+        {/* ── Spalte 3: Feldstatus (Inhalt unten) + ICS-Button ── */}
+        <div className="flex flex-col gap-4 min-h-0 mt-4 lg:mt-0">
 
-          {/* Feldstatus */}
-          <div className="bg-neutral-800/60 border border-neutral-700 rounded-xl p-5 flex-1">
-            <div className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-4">
+          {/* Feldstatus — füllt den Platz, Items von unten */}
+          <div className="flex-1 min-h-0 bg-neutral-800/60 border border-neutral-700 rounded-xl p-5 flex flex-col">
+            <div className="text-xs font-semibold text-neutral-400 uppercase tracking-widest flex-shrink-0">
               Feldstatus
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex-1 flex flex-col justify-end gap-2">
               {fieldStatus.map((f) => (
                 <div
                   key={f.label}
@@ -509,11 +509,11 @@ export const MsgToIcs: React.FC = () => {
             </div>
           </div>
 
-          {/* Generate button */}
+          {/* ICS Button */}
           <button
             onClick={handleGenerate}
             disabled={isStorno}
-            className="w-full py-5 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold text-base tracking-wide transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(249,115,22,0.3)] disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2 flex-shrink-0"
+            className="flex-shrink-0 w-full py-5 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold text-base tracking-wide transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(249,115,22,0.3)] disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
           >
             <i className="material-icons text-xl">event</i>
             ICS Datei generieren &amp; herunterladen
