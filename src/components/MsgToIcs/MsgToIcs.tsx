@@ -152,6 +152,12 @@ export const MsgToIcs: React.FC = () => {
         type: 'success',
         msg: `✅ ICS erstellt!\n  ${isStorno ? '⚠️ STORNO' : `Kunde: ${kundennummer.trim()} - ${selectedType}`}\n  Mieter: ${parsed.name}\n  Am: ${parsed.date} um ${parsed.time} Uhr  (25 min)`,
       });
+      setMailText('');
+      setKundennummer('');
+      setZaehlerpunkt('');
+      setFileName(null);
+      setIsStorno(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   }, [mailText, kundennummer, zaehlerpunkt, isStorno, selectedType, parsed]);
 
