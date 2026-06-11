@@ -214,13 +214,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
                 )}
             </div>
 
-            {/* Vue Unicorn link */}
+            {/* New Unicorn link */}
             <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-center'} px-3 py-2`}>
                 <a
-                    href="https://we-unicorn.web.app"
+                    href="https://dev0gig.github.io/unicorn"
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Vue.js Unicorn"
+                    title="New Unicorn"
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700/50 transition-colors duration-200"
                 >
                     <span style={{
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
                         fontSize: '0.8rem',
                         whiteSpace: 'nowrap',
                     }}>
-                        {isCollapsed ? '🦄' : '🦄 Vue Unicorn'}
+                        {isCollapsed ? '🦄' : '🦄 NEW unicorn'}
                     </span>
                 </a>
             </div>
