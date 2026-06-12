@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onF
             {/* New Unicorn link */}
             <div className="flex justify-center px-3 py-2 border-t border-neutral-700">
                 <a
-                    href="https://dev0gig.github.io/unicorn"
+                    href="https://we-unicorn.vercel.app"
                     target="_blank"
                     rel="noopener noreferrer"
                     title="New Unicorn"
